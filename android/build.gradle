@@ -1,0 +1,40 @@
+buildscript {
+    ext.kotlin_version = '1.5.20'
+    repositories {
+        maven { url 'https://maven.aliyun.com/repository/central' }
+        maven { url "https://jitpack.io" }
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url "https://repo1.maven.org/maven2/" }
+        maven { url 'https://oss.sonatype.org/content/repositories/public' }
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.0.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+allprojects {
+    repositories {
+        maven { url 'https://maven.aliyun.com/repository/central' }
+        maven { url "https://jitpack.io" }
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url "https://repo1.maven.org/maven2/" }
+        maven { url 'https://oss.sonatype.org/content/repositories/public' }
+        google()
+    }
+}
+
+rootProject.buildDir = '../build'
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+subprojects {
+    project.evaluationDependsOn(':app')
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

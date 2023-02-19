@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<input-method xmlns:android="http://schemas.android.com/apk/res/android"
+  android:settingsActivity="top.someapp.fime.MainActivity"
+  android:supportsSwitchingToNextInputMethod="true">
+
+  <!-- Add default system subtype so we can properly set the icon and label -->
+  <subtype
+    android:name="Fime"
+    android:label="Fime 中文输入法"
+    android:icon="@drawable/ic_fime"
+    android:imeSubtypeExtraValue="AsciiCapable"
+    android:imeSubtypeLocale="zh"
+    android:imeSubtypeMode="keyboard" />
+</input-method>

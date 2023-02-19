@@ -1,0 +1,181 @@
+ext {
+  versionMajor = 0
+  versionMinor = 1
+  versionPatch = 0
+  versionCode = 0
+  versionName = ''
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+  localPropertiesFile.withReader('UTF-8') { reader ->
+    localProperties.load(reader)
+  }
+}
+
+def flutterRoot = localProperties.getProperty('flutter.sdk')
+if (flutterRoot == null) {
+  throw new GradleException(
+      "Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
+}
+
+def versionMajor = Integer.valueOf(localProperties.getProperty('versionMajor'))
+if (versionMajor == null) {
+  versionMajor = 1
+}
+project.ext.versionMajor = versionMajor
+
+def versionMinor = Integer.valueOf(localProperties.getProperty('versionMinor'))
+if (versionMinor == null) {
+  versionMinor = 0
+}
+project.ext.versionMinor = versionMinor
+
+def getCommitCount() {
+  def count
+  try {
+    def cmd = 'git rev-list HEAD --count'
+    // or git rev-list HEAD --abbrev-commit --max-count=1
+    count = cmd.execute().text.trim().toInteger()
+  } catch (Exception e) {
+    count = project.ext.versionPatch
+  }
+  return count
+}
+
+def initVersionInfo() {
+  println('initVersionInfo')
+  // 2.0.1 => 02_00_001 max: 99_99_999
+  if (project.ext.versionCode == 0) {
+    def major = project.ext.versionMajor
+    def minor = project.ext.versionMinor
+    def patch = getCommitCount()
+    project.ext.versionCode = major * 100000 + minor * 1000 + patch
+
+    versionName = "$major.$minor.$patch"
+    if (!gradle.startParameter.taskNames.contains('assembleRelease')) {
+      versionName += '-dev'
+    }
+    project.ext.versionName = versionName
+  }
+  println("app.versionCode = ${project.ext.versionCode}")
+  println("app.versionName = ${project.ext.versionName}")
+}
+
+initVersionInfo()
+
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+  keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+//apply plugin: 'kotlin-kapt'
+apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
+
+android {
+  compileSdkVersion flutter.compileSdkVersion
+  ndkVersion flutter.ndkVersion
+
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+  }
+
+  defaultConfig {
+    applicationId "top.someapp.fime"
+    minSdkVersion 21 // 5.1
+    targetSdkVersion flutter.targetSdkVersion
+    versionCode project.ext.versionCode
+    versionName project.ext.versionName
+    manifestPlaceholders = [
+        app_name: "@string/app_name",
+        file_provider_auth: "top.someapp.fime.fileprovider"
+    ]
+    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+    ndk {
+      // Filter for architectures supported by Flutter.
+      abiFilters 'arm64-v8a', 'x86_64'
+    }
+
+    // used by Room, to test migrations
+    javaCompileOptions {
+      annotationProcessorOptions {
+        arguments += [
+            "room.schemaLocation": "$projectDir/schemas".toString(),
+            "room.incremental": "true",
+            "room.expandProjection": "true"]
+      }
+    }
+  }
+
+  aaptOptions {
+    noCompress 'dat' // 打包时不要压缩后缀名为 .dat 的文件
+  }
+
+  signingConfigs {
+    release {
+      keyAlias keystoreProperties['keyAlias']
+      keyPassword keystoreProperties['keyPassword']
+      storeFile file(keystoreProperties['storeFile'])
+      storePassword keystoreProperties['storePassword']
+    }
+  }
+
+  buildTypes {
+    debug {
+      applicationIdSuffix '.dev' // 区分 release 包，以允许同时安装 release 和 debug 方便对比
+      manifestPlaceholders = [
+          app_name: "@string/app_name_dev",
+          file_provider_auth: "top.someapp.fime.dev.fileprovider"
+      ]
+      ndk {
+        abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86_64'
+      }
+    }
+    release {
+      ndk {
+        abiFilters 'arm64-v8a', 'x86_64'
+      }
+      signingConfig signingConfigs.release
+    }
+  }
+
+  // 自定义生成的apk名字
+  applicationVariants.all { variant ->
+    variant.outputs.all {
+      outputFileName = "fime-${project.ext.versionName}.apk"
+    }
+  }
+}
+
+dependencies {
+  def room_version = "2.2.5"
+
+  //  implementation fileTree(include: ['*.jar', '*.aar'], dir: 'libs') // or below
+  implementation project(path: ':fime-sdk') // or above
+  implementation 'com.typesafe:config:1.4.2'
+  // androidx room
+  implementation "androidx.room:room-runtime:$room_version"
+  annotationProcessor "androidx.room:room-compiler:$room_version"
+  //  kapt("androidx.room:room-compiler:$room_version")
+
+  // fast util
+  implementation 'it.unimi.dsi:fastutil:7.2.1' // for jdk 7 compatible
+
+  // trie
+  implementation 'com.hankcs:aho-corasick-double-array-trie:1.2.3'
+  implementation 'com.github.takawitter:trie4j:0.9.8'
+
+  // for test
+  testImplementation "junit:junit:4.12"
+  androidTestImplementation 'androidx.test:runner:1.3.0'
+}
+
+flutter {
+  source '../..'
+}
