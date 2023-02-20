@@ -233,7 +233,7 @@ public class FimeEngine implements ImeEngine {
     @Override public void commitText(String text) {
         if (ims != null) {
             ims.getCurrentInputConnection()
-               .commitText(text, 0);
+               .commitText(text, 1);    // <=0: 提交的文字在光标前，> 0: 在光标后
         }
         resetInputContext();
     }

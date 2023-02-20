@@ -49,6 +49,9 @@ dependencies {
   // serializable
   implementation 'com.caucho:hessian:4.0.60'
 
+  // h2database
+  implementation 'com.h2database:h2:2.1.214'
+
   testImplementation 'junit:junit:4.12'
   androidTestImplementation 'androidx.test.ext:junit:1.1.2'
   androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
