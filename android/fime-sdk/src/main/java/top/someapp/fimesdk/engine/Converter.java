@@ -58,22 +58,22 @@ public class Converter {
     }
 
     public String convert(@NonNull String input) {
-        String temp = input;
+        String output = input;
         for (String r : rules) {
             if (r.startsWith("U:")) {
-                temp = upper(temp);
+                output = upper(output);
             }
             else if (r.startsWith("L:")) {
-                temp = lower(temp);
+                output = lower(output);
             }
             else if (r.startsWith("M:")) {
-                temp = map(temp, r.substring(2));
+                output = map(output, r.substring(2));
             }
             else if (r.startsWith("R:")) {
-                temp = replace(temp, r.substring(2));
+                output = replace(output, r.substring(2));
             }
         }
-        return temp;
+        return output;
     }
 
     private String replace(String input, String rule) {

@@ -159,11 +159,11 @@ public class FimeContext {
     private void init() {
         File dir = getAppHomeDir();
         getCacheDir();
-        File keyboards = new File(dir, Fime.PRESET_CONF[0]);
+        File keyboards = new File(dir, Fime.EXPORT_FILES[0]);
         if (!keyboards.exists() || keyboards.lastModified() < getUpdateTime()) {
-            for (String conf : Fime.PRESET_CONF) {
+            for (String conf : Fime.EXPORT_FILES) {
                 try (InputStream ins = getAssets().open(conf)) {
-                    FileStorage.copyToFile(ins, new File(dir, conf));
+                    FileStorage.copyIfNotExists(ins, new File(dir, conf));
                 }
                 catch (IOException ignored) {
                 }

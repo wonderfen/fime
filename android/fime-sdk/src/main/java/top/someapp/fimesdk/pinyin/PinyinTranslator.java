@@ -8,6 +8,7 @@ import top.someapp.fimesdk.api.Candidate;
 import top.someapp.fimesdk.api.ImeEngine;
 import top.someapp.fimesdk.api.Translator;
 import top.someapp.fimesdk.dict.Dict;
+import top.someapp.fimesdk.engine.Converter;
 import top.someapp.fimesdk.utils.FileStorage;
 
 import java.io.File;
@@ -30,13 +31,6 @@ public class PinyinTranslator implements Translator {
     private transient File target;
 
     public PinyinTranslator() {
-        // try {
-        //     dict = Dict.loadFromCompiled(
-        //             PinyinTranslator.class.getResourceAsStream("/pinyin.dict"));
-        // }
-        // catch (IOException e) {
-        //     e.printStackTrace();
-        // }
     }
 
     @Override
@@ -75,44 +69,41 @@ public class PinyinTranslator implements Translator {
 
     @Override public void reconfigure(Config config) {
         this.config = config;
-        Config c = config.getConfig("dict");
-        String name = c.getString("name");
-        String file = null;
-        if (c.hasPath("file")) {
-            file = c.getString("file");
-        }
-        initDict(name, file);
+        initDict();
     }
 
-    private void initDict(String name, String file) {
-        if (dict == null) {
-            FimeContext fimeContext = FimeContext.getInstance();
-            try {
-                if (file.endsWith(".csv")) {
-                    if (FileStorage.hasFile(fimeContext.fileInCacheDir(file + ".s"))) {
-                        dict = Dict.loadFromCompiled(
-                                new FileInputStream(fimeContext.fileInCacheDir(file + ".s")));
-                    }
-                    else {
-                        dict = new Dict(name);
-                        dict.loadFromCsv(fimeContext.fileInAppHome(file));
-                        target = fimeContext.fileInCacheDir(file + ".s");
-                        compileDictIf();
-                    }
-                }
+    private void initDict() {
+        Config c = config.getConfig("dict");
+        String name = c.getString("name");
+        if (dict != null && dict.getName()
+                                .equals(name)) {
+            return;
+        }
+
+        FimeContext fimeContext = FimeContext.getInstance();
+        try {
+            if (FileStorage.hasFile(fimeContext.fileInCacheDir(name + ".s"))) {
+                dict = Dict.loadFromCompiled(
+                        new FileInputStream(fimeContext.fileInCacheDir(name + ".s")));
             }
-            catch (IOException e) {
-                e.printStackTrace();
+            else {
+                dict = new Dict(name);
+                if (c.hasPath("converter") && c.hasPath("converter.rules")) {
+                    Converter converter = new Converter();
+                    for (String rule : c.getStringList("converter.rules")) {
+                        converter.addRule(rule);
+                    }
+                    dict.loadFromCsv(fimeContext.fileInAppHome(c.getString("file")), converter);
+                }
+                else {
+                    dict.loadFromCsv(fimeContext.fileInAppHome(c.getString("file")));
+                }
+                target = fimeContext.fileInCacheDir(name + ".s");
+                compileDictIf();
             }
         }
-        if (dict == null || dict.getSize() == 0) {
-            try {
-                dict = Dict.loadFromCompiled(
-                        PinyinTranslator.class.getResourceAsStream("/pinyin.dict"));
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
+        catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

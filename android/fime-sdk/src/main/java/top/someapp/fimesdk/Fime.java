@@ -15,9 +15,18 @@ public class Fime {
     public static final String SCHEMA_RESULT_BUILD = "kSchemaBuild";
     public static final String SCHEMA_RESULT_DELETE = "kSchemaDelete";
 
-    static final String[] PRESET_CONF = {
-            "fime_pinyin_schema.conf",
+    static final String[] EXPORT_FILES = {
             "fime_keyboards.conf",
+            "fime_pinyin_schema.conf",
+            "pinyin_dict.csv",
+            "pinyin_t9_schema.conf",
+            "stroke5_dict.csv",
+            "stroke5_keyboards.conf",
+            "stroke5_schema.conf",
+            "t9_keyboards.conf",
+            "wubi86_dict.csv",
+            "wubi86_schema.conf",
+            "zrm_schema.conf",
     };
     private static final String TAG_PREFIX = "Fime";
 

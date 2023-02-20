@@ -7,6 +7,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayPriorityQueue;
 import org.trie4j.patricia.MapPatriciaTrie;
 import org.trie4j.patricia.MapPatriciaTrieNode;
 import org.trie4j.util.IntArray;
+import top.someapp.fimesdk.engine.Converter;
 import top.someapp.fimesdk.utils.Serializes;
 import top.someapp.fimesdk.utils.Strings;
 
@@ -72,17 +73,21 @@ public class Dict implements Comparator<Dict.Item> {
     }
 
     public boolean loadFromCsv(File csvFile) throws IOException {
-        return loadFromCsv(new FileInputStream(csvFile));
+        return loadFromCsv(new FileInputStream(csvFile), new Converter());
     }
 
-    public boolean loadFromCsv(InputStream ins) throws IOException {
+    public boolean loadFromCsv(File csvFile,@NonNull Converter converter) throws IOException {
+        return loadFromCsv(new FileInputStream(csvFile), converter);
+    }
+
+    public boolean loadFromCsv(InputStream ins, @NonNull Converter converter) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(ins));
         String line = null;
         while ((line = reader.readLine()) != null) {
             if (line.startsWith("#")) continue;
             String[] parts = line.split("\t");
             String text = parts[0];
-            String code = parts[1];
+            String code = converter.convert(parts[1]);
             if (parts.length > 2 && !Strings.isNullOrEmpty(parts[2])) {
                 put(new Item(text, code, Integer.decode(parts[2])));
             }
