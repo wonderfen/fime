@@ -2,15 +2,24 @@ package top.someapp.fime;
 
 import android.Manifest;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
+import android.view.inputmethod.InputMethodInfo;
+import android.view.inputmethod.InputMethodManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import io.flutter.embedding.android.FlutterFragmentActivity;
+import io.flutter.embedding.engine.FlutterEngine;
+import io.flutter.embedding.engine.FlutterEngineCache;
+import io.flutter.embedding.engine.dart.DartExecutor;
+import io.flutter.plugin.common.MethodCall;
+import io.flutter.plugin.common.MethodChannel;
 import top.someapp.fimesdk.Fime;
 import top.someapp.fimesdk.FimeContext;
 import top.someapp.fimesdk.utils.FileStorage;
@@ -20,37 +29,76 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class MainActivity extends FlutterFragmentActivity {
+public class MainActivity extends FlutterFragmentActivity implements MethodChannel.MethodCallHandler {
 
     private static final String TAG = Fime.makeTag("MainActivity");
+    private static final String kFlutterEngineId = "fime_flutter_engine";
     private static final String[] PERMISSIONS = {
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.ACCESS_NETWORK_STATE,
             Manifest.permission.CHANGE_NETWORK_STATE,
-            Manifest.permission.ACCESS_WIFI_STATE,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.CAMERA,
+            // Manifest.permission.ACCESS_WIFI_STATE,
+            // Manifest.permission.ACCESS_COARSE_LOCATION,
+            // Manifest.permission.ACCESS_FINE_LOCATION,
+            // Manifest.permission.CAMERA,
     };
-    private long backPressedTime;
+    private FlutterEngine flutterEngine;
+    private MethodChannel methodChannel;
+    private SettingMethodCall settingMethodCall;
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
             @NonNull int[] grantResults) {
     }
 
-    @Override public void onBackPressed() {
-        long now = System.currentTimeMillis();
-        if (backPressedTime > 0 && now - backPressedTime <= 1200) {
-            super.onBackPressed();
+    @Override
+    public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
+        if ("switchToFime".equals(call.method)) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(
+                    Context.INPUT_METHOD_SERVICE);
+            boolean enabled = false;
+            final String selfPackageName = getPackageName();
+            for (InputMethodInfo imi : imm.getEnabledInputMethodList()) {
+                if (selfPackageName.equals(imi.getPackageName())) {
+                    enabled = true;
+                    break;
+                }
+            }
+            if (enabled) {
+                imm.showInputMethodPicker();
+            }
+            else {
+                Intent intent = new Intent(Settings.ACTION_INPUT_METHOD_SETTINGS);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            }
+            result.success(Collections.EMPTY_MAP);
+            callFlutter("ping", Collections.EMPTY_MAP);
+            return;
+        }
+
+        if ("versionInfo".equals(call.method)) {
+            Map<String, Object> versionInfo = new HashMap<>();
+            versionInfo.put("debug", BuildConfig.DEBUG);
+            versionInfo.put("versionCode", BuildConfig.VERSION_CODE);
+            versionInfo.put("versionName", BuildConfig.VERSION_NAME);
+            result.success(versionInfo);
+            return;
+        }
+
+        if (settingMethodCall == null) settingMethodCall = new SettingMethodCall(this);
+        Map<String, Object> map = settingMethodCall.onMethodCall(call);
+        if (map == null) {
+            result.notImplemented();
         }
         else {
-            backPressedTime = now;
-            FimeContext.getInstance()
-                       .showToastDefault("再次点击 返回 退出应用!");
+            result.success(map);
         }
     }
 
@@ -58,33 +106,18 @@ public class MainActivity extends FlutterFragmentActivity {
         super.onCreate(savedInstanceState);
         FimeApp app = (FimeApp) getApplication();
         app.setActivity(this);
+        init();
     }
 
     @Override
     protected String getCachedEngineId() {
-        return FimeApp.kFlutterEngineId;
+        return kFlutterEngineId;
     }
 
     @Override protected void onResume() {
         super.onResume();
         Log.d(TAG, "App=" + getApplication().hashCode());
-        // 申请权限
-        // Build.VERSION_CODES.S // Android 12
         checkPermissions();
-        // if (uriToRead == null) { // read
-        //     Intent intent = new Intent(Intent.ACTION_GET_CONTENT).setType("*/*")
-        //                                                          .addCategory(
-        //                                                                  Intent
-        //                                                                  .CATEGORY_OPENABLE);
-        //     startActivityForResult(Intent.createChooser(intent, "选择文件"), REQUEST_READ_URI);
-        // }
-        // else { // write
-        //     Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT).setType(
-        //             "application/octet-stream");
-        //     intent.addCategory(Intent.CATEGORY_OPENABLE)
-        //           .putExtra(Intent.EXTRA_TITLE, "fime-export.txt");
-        //     startActivityForResult(Intent.createChooser(intent, "选择导出位置"), REQUEST_WRITE_URI);
-        // }
     }
 
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -99,10 +132,10 @@ public class MainActivity extends FlutterFragmentActivity {
                     FileStorage.readUriToFile(this, uriToRead, FimeContext.getInstance()
                                                                           .fileInAppHome(name));
                 }
-                ((FimeApp) getApplication()).callFlutter(Fime.NOTIFY_FLUTTER_SCHEMA_RESULT,
-                                                         SettingMethodCall.buildMessage(
-                                                                 Fime.SCHEMA_RESULT_IMPORT,
-                                                                 name.endsWith("_schema.conf")));
+                callFlutter(Fime.NOTIFY_FLUTTER_SCHEMA_RESULT,
+                            SettingMethodCall.buildMessage(
+                                    Fime.SCHEMA_RESULT_IMPORT,
+                                    name.endsWith("_schema.conf")));
             }
             else if (requestCode == Fime.REQUEST_WRITE_URI) {
                 Uri uriToWrite = data.getData();
@@ -129,5 +162,28 @@ public class MainActivity extends FlutterFragmentActivity {
         if (!permissions.isEmpty()) {
             ActivityCompat.requestPermissions(this, permissions.toArray(new String[0]), 0);
         }
+    }
+
+    private void init() {
+        // Instantiate a FlutterEngine.
+        flutterEngine = new FlutterEngine(this);
+
+        // Start executing Dart code to pre-warm the FlutterEngine.
+        flutterEngine.getDartExecutor()
+                     .executeDartEntrypoint(DartExecutor.DartEntrypoint.createDefault());
+
+        // Cache the FlutterEngine to be used by FlutterActivity.
+        FlutterEngineCache.getInstance()
+                          .put(kFlutterEngineId, flutterEngine);
+
+        // setup methodChannel
+        methodChannel = new MethodChannel(flutterEngine.getDartExecutor()
+                                                       .getBinaryMessenger(), "FimeApp");
+        methodChannel.setMethodCallHandler(this);
+    }
+
+    private void callFlutter(String method, Map<String, Object> params) {
+        if (methodChannel == null) return;
+        methodChannel.invokeMethod(method, params == null ? Collections.EMPTY_MAP : params);
     }
 }
