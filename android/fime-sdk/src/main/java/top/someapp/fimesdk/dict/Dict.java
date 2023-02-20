@@ -2,6 +2,7 @@ package top.someapp.fimesdk.dict;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
+import it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayPriorityQueue;
 import org.trie4j.patricia.MapPatriciaTrie;
 import org.trie4j.patricia.MapPatriciaTrieNode;
@@ -24,7 +25,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TreeMap;
 
 /**
  * 字典
@@ -55,6 +55,7 @@ public class Dict implements Comparator<Dict.Item> {
         }
         Dict dict = new Dict((String) data[0]);
         List<Item> items = (List<Item>) data[1];
+        dict.size = 0;
         for (Item item : items) {
             dict.put(item);
         }
@@ -209,12 +210,13 @@ public class Dict implements Comparator<Dict.Item> {
 
     protected Dict put(Item item) {
         if (sealed) return this;
-        if (itemMap == null) itemMap = new TreeMap<>();
+        if (itemMap == null) itemMap = new Object2ObjectRBTreeMap<>();
         if (!itemMap.containsKey(item.getCode())) {
-            itemMap.put(item.getCode(), new ArrayList<>(128));
+            itemMap.put(item.getCode(), new ArrayList<>());
         }
         itemMap.get(item.getCode())
                .add(item);
+        size++;
         return this;
     }
 
