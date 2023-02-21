@@ -4,6 +4,7 @@ import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import org.trie4j.Trie;
 import org.trie4j.Tries;
+import top.someapp.fimesdk.api.Syncopate;
 
 import java.util.List;
 
@@ -12,7 +13,7 @@ import java.util.List;
  * Created on 2023-02-06
  */
 @Keep
-public class PinyinSyncopate implements top.someapp.fimesdk.api.Syncopate {
+class PinyinSyncopate implements Syncopate {
 
     // 合法的音节
     private static final String[] kSyllables = {

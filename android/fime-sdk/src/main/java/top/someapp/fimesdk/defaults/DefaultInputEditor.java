@@ -5,7 +5,10 @@ import com.typesafe.config.Config;
 import top.someapp.fimesdk.api.Candidate;
 import top.someapp.fimesdk.api.ImeEngine;
 import top.someapp.fimesdk.api.InputEditor;
+import top.someapp.fimesdk.api.Syncopate;
 import top.someapp.fimesdk.config.Keycode;
+import top.someapp.fimesdk.engine.Converter;
+import top.someapp.fimesdk.utils.Strings;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +27,12 @@ public class DefaultInputEditor implements InputEditor {
     private List<Candidate> candidateList;  // 候选列表
     private int activeIndex;                // 选中候选的索引
     private List<Candidate> selected;       // 已选择的候选
+    private String alphabet = "qwertyuiopasdfghjklzxcvbnm";
+    private String initials = "qwertyuiopasdfghjklzxcvbnm";
+    private char delimiter = '\0';
+    private Integer codeLength;
+    private Syncopate syncopate;
+    private Converter converter;
 
     public DefaultInputEditor() {
         rawInput = new StringBuilder();
@@ -32,13 +41,24 @@ public class DefaultInputEditor implements InputEditor {
     }
 
     @Override public void setup(@NonNull ImeEngine engine) {
-
+        this.engine = engine;
     }
 
     @Override public boolean accept(Keycode keycode) {
-        if (Keycode.isLetterLowerCode(keycode.code)) {
-            append(keycode.label);
-            return true;
+        final int code = keycode.code;
+        if (Keycode.isFnKeyCode(code) || Strings.isNullOrEmpty(keycode.label)) return false;
+
+        if (hasInput()) {
+            if (alphabet.contains(keycode.label)) {
+                append(keycode.label);
+                return true;
+            }
+        }
+        else {
+            if (initials.contains(keycode.label)) {
+                append(keycode.label);
+                return true;
+            }
         }
         return false;
     }
@@ -61,6 +81,8 @@ public class DefaultInputEditor implements InputEditor {
 
     @Override public InputEditor clearInput() {
         rawInput.setLength(0);
+        selected.clear();
+        cursor = 0;
         return this;
     }
 
@@ -144,5 +166,62 @@ public class DefaultInputEditor implements InputEditor {
 
     @Override public void reconfigure(Config config) {
         this.config = config;
+        if (config.hasPath("alphabet")) alphabet = config.getString("alphabet");
+        if (config.hasPath("initials")) initials = config.getString("initials");
+        if (config.hasPath("delimiter")) {
+            delimiter = config.getString("delimiter")
+                              .charAt(0);
+        }
+        codeLength = null;
+        if (config.hasPath("code-length")) codeLength = config.getInt("code-length");
+        if (config.hasPath("syncopate") && config.getBoolean("syncopate")) {
+            syncopate = createSyncopate();
+        }
+        converter = null;
+        if (config.hasPath("converter")) {
+            Config converter = config.getConfig("converter");
+            this.converter = new Converter();
+            if (converter.hasPath("rules")) {
+                for (String rule : converter.getStringList("rules")) {
+                    this.converter.addRule(rule);
+                }
+            }
+        }
+    }
+
+    protected Syncopate createSyncopate() {
+        return null;
+    }
+
+    protected ImeEngine getEngine() {
+        return engine;
+    }
+
+    protected List<Candidate> getSelected() {
+        return selected;
+    }
+
+    protected String getAlphabet() {
+        return alphabet;
+    }
+
+    protected String getInitials() {
+        return initials;
+    }
+
+    protected char getDelimiter() {
+        return delimiter;
+    }
+
+    protected Integer getCodeLength() {
+        return codeLength;
+    }
+
+    protected Syncopate getSyncopate() {
+        return syncopate;
+    }
+
+    protected Converter getConverter() {
+        return converter;
     }
 }
