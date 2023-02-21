@@ -11,7 +11,7 @@ import top.someapp.fimesdk.engine.Converter;
 import top.someapp.fimesdk.utils.Strings;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -26,7 +26,7 @@ public class DefaultInputEditor implements InputEditor {
     private int cursor;                     // 已输入编码的光标位置
     private List<Candidate> candidateList;  // 候选列表
     private int activeIndex;                // 选中候选的索引
-    private List<Candidate> selected;       // 已选择的候选
+    private StringBuilder selected;         // 已选择的候选
     private String alphabet = "qwertyuiopasdfghjklzxcvbnm";
     private String initials = "qwertyuiopasdfghjklzxcvbnm";
     private char delimiter = '\0';
@@ -37,7 +37,7 @@ public class DefaultInputEditor implements InputEditor {
     public DefaultInputEditor() {
         rawInput = new StringBuilder();
         candidateList = new ArrayList<>();
-        selected = new ArrayList<>();
+        selected = new StringBuilder();
     }
 
     @Override public void setup(@NonNull ImeEngine engine) {
@@ -68,7 +68,7 @@ public class DefaultInputEditor implements InputEditor {
     }
 
     @Override public List<String> getSearchCodes() {
-        return Arrays.asList(getRawInput());
+        return Collections.singletonList(getRawInput());
     }
 
     @Override public void setSearchCodes(List<String> codes) {
@@ -76,12 +76,29 @@ public class DefaultInputEditor implements InputEditor {
     }
 
     @Override public String getFormattedInput() {
-        return getRawInput();
+        StringBuilder prompt = new StringBuilder();
+        if (getCursor() <= 0) {
+            for (String code : getSearchCodes()) {
+                prompt.append("'")
+                      .append(code);
+            }
+            if (prompt.length() > 0) {
+                prompt.deleteCharAt(0);
+                if (rawInput.charAt(rawInput.length() - 1) == delimiter) {
+                    prompt.append(delimiter);
+                }
+            }
+        }
+        else {
+            prompt.append(selected);
+            if (getCursor() < rawInput.length()) prompt.append(rawInput.substring(getCursor()));
+        }
+        return prompt.toString();
     }
 
     @Override public InputEditor clearInput() {
         rawInput.setLength(0);
-        selected.clear();
+        selected.setLength(0);
         cursor = 0;
         return this;
     }
@@ -157,7 +174,16 @@ public class DefaultInputEditor implements InputEditor {
 
     @Override public void select(int index) {
         Candidate candidate = getCandidateAt(index);
-        if (candidate != null) selected.add(candidate);
+        if (candidate == null) return;
+        selected.append(candidate.text);
+        // FIXME: 2023/1/29 candidate.code.length() 始终等于 rawInput.length()!!
+        cursor += candidate.code.length();
+        if (cursor >= rawInput.length()) {
+            engine.commitText(getSelected());
+        }
+        else {
+            engine.commitText(getFormattedInput());
+        }
     }
 
     @Override public Config getConfig() {
@@ -197,8 +223,8 @@ public class DefaultInputEditor implements InputEditor {
         return engine;
     }
 
-    protected List<Candidate> getSelected() {
-        return selected;
+    protected String getSelected() {
+        return selected.toString();
     }
 
     protected String getAlphabet() {
