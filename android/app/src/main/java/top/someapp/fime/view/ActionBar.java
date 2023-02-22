@@ -72,7 +72,7 @@ class ActionBar implements Widget {
         paint.setColor(Color.BLACK);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         paint.setTextSize(0.25f * box.getHeight());
-        canvas.drawText(inputEditor.getFormattedInput(), box.getLeft() + 16, paint.getTextSize(),
+        canvas.drawText(inputEditor.getPrompt(), box.getLeft() + 16, paint.getTextSize(),
                         paint);
         if (inputEditor.hasCandidate()) {
             paint.setTextSize(0.33f * box.getHeight());

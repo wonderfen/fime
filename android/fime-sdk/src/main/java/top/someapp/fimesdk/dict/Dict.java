@@ -2,6 +2,8 @@ package top.someapp.fimesdk.dict;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
+import com.caucho.hessian.io.AbstractHessianInput;
+import com.caucho.hessian.io.AbstractHessianOutput;
 import it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayPriorityQueue;
 import org.trie4j.patricia.MapPatriciaTrie;
@@ -17,7 +19,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.InvalidObjectException;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -36,7 +37,8 @@ import java.util.Objects;
 @Keep
 public class Dict implements Comparator<Dict.Item> {
 
-    private final String name;  // 词典名
+    private static H2 h2;   // 用户词词典
+    private String name;  // 词典名
     private int size;           // 包含的词条数
     private boolean sealed;     // 词典是否构建完成
     private MapPatriciaTrie<IntArray> mapTrie;        // 词条树
@@ -48,17 +50,19 @@ public class Dict implements Comparator<Dict.Item> {
         mapTrie = new MapPatriciaTrie<>();
     }
 
-    @SuppressWarnings("unchecked")
     public static Dict loadFromCompiled(InputStream ins) throws IOException {
-        Object[] data = Serializes.deserialize(ins, "FimeDict:.+\\d\n$");
-        if (data == null || data.length != 2) {
-            throw new InvalidObjectException("Load dict failed!!");
-        }
-        Dict dict = new Dict((String) data[0]);
-        List<Item> items = (List<Item>) data[1];
-        dict.size = 0;
-        for (Item item : items) {
-            dict.put(item);
+        AbstractHessianInput input = Serializes.createInput(ins);
+        String head = input.readString();
+        if (!head.startsWith("FimeDict:")) throw new IOException("Invalid input!");
+        String name = head.substring(9)
+                          .split("[/]")[0];
+        Dict dict = new Dict(name);
+        int size = input.readInt();
+        for (int i = 1; i <= size; i++) {
+            String text = input.readString();
+            String code = input.readString();
+            int weight = input.readInt();
+            dict.put(new Item(text, code, weight));
         }
         dict.build();
         return dict;
@@ -76,13 +80,13 @@ public class Dict implements Comparator<Dict.Item> {
         return loadFromCsv(new FileInputStream(csvFile), new Converter());
     }
 
-    public boolean loadFromCsv(File csvFile,@NonNull Converter converter) throws IOException {
+    public boolean loadFromCsv(File csvFile, @NonNull Converter converter) throws IOException {
         return loadFromCsv(new FileInputStream(csvFile), converter);
     }
 
     public boolean loadFromCsv(InputStream ins, @NonNull Converter converter) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(ins));
-        String line = null;
+        String line;
         while ((line = reader.readLine()) != null) {
             if (line.startsWith("#")) continue;
             String[] parts = line.split("\t");
@@ -100,14 +104,17 @@ public class Dict implements Comparator<Dict.Item> {
     }
 
     public void compileTo(OutputStream out) throws IOException {
-        String head = "FimeDict:" + getName() + "/" + getSize() + "\n";
-        if (items != null) {
-            Object[] obj = {
-                    getName(),
-                    items
-            };
-            Serializes.serialize(obj, out, head);
+        AbstractHessianOutput output = Serializes.createOutput(out);
+        output.writeString(fileHead());
+        output.writeInt(items.size());
+        for (Item item : items) {
+            output.writeString(item.getText());
+            output.writeString(item.getCode());
+            output.writeInt(item.getWeight());
         }
+        output.flush();
+        output.close();
+        out.close();
     }
 
     public boolean search(@NonNull String prefix, @NonNull List<Item> result, int limit) {
@@ -140,10 +147,9 @@ public class Dict implements Comparator<Dict.Item> {
                 final int size = value.get(1);
                 for (int i = 0; i < size; i++) {
                     Item item = items.get(index + i);
-                    if (wordLength > 1) { // 词组查询
-                        queue.enqueue(item);
-                    }
-                    else if (item.getLength() == wordLength) {  // 单字查询
+                    if (item.getLength() == wordLength
+                            && item.getCode()
+                                   .startsWith(prefix)) {
                         queue.enqueue(item);
                     }
                 }
@@ -205,7 +211,7 @@ public class Dict implements Comparator<Dict.Item> {
         return code1.length() - code2.length();
     }
 
-    @Override public String toString() {
+    @NonNull @Override public String toString() {
         return "Dict{"
                 + name +
                 ", size=" + size +
@@ -213,7 +219,7 @@ public class Dict implements Comparator<Dict.Item> {
                 '}';
     }
 
-    protected Dict put(Item item) {
+    protected Dict put(@NonNull Item item) {
         if (sealed) return this;
         if (itemMap == null) itemMap = new Object2ObjectRBTreeMap<>();
         if (!itemMap.containsKey(item.getCode())) {
@@ -223,6 +229,23 @@ public class Dict implements Comparator<Dict.Item> {
                .add(item);
         size++;
         return this;
+    }
+
+    private void initH2() {
+        if (h2 == null) {
+            h2 = new H2(name);
+            h2.start();
+            return;
+        }
+        if (!name.equals(h2.getId())) {
+            h2.stop();
+            h2 = new H2(name);
+            h2.start();
+        }
+    }
+
+    private String fileHead() {
+        return "FimeDict:" + getName() + "/" + getSize() + "\n";
     }
 
     private boolean build() {
@@ -300,7 +323,7 @@ public class Dict implements Comparator<Dict.Item> {
             return Objects.hash(code, text);
         }
 
-        @Override public String toString() {
+        @NonNull @Override public String toString() {
             return "Item{" +
                     code +
                     ", " + text +

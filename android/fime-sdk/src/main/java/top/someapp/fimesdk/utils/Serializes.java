@@ -38,6 +38,20 @@ public class Serializes {
         return hessianDeserialize(source, headReg);
     }
 
+    public static AbstractHessianOutput createOutput(OutputStream source) {
+        AbstractHessianOutput out = new Hessian2Output(source);
+        if (factory == null) factory = new SerializerFactory();
+        out.setSerializerFactory(factory);
+        return out;
+    }
+
+    public static AbstractHessianInput createInput(InputStream source) {
+        AbstractHessianInput in = new Hessian2Input(source);
+        if (factory == null) factory = new SerializerFactory();
+        in.setSerializerFactory(factory);
+        return in;
+    }
+
     private static void hessianSerialize(Object obj, OutputStream target, String head) throws IOException {
         AbstractHessianOutput out = new Hessian2Output(target);
         if (factory == null) factory = new SerializerFactory();

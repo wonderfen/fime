@@ -34,4 +34,17 @@ public class Strings {
         }
         return str;
     }
+
+    public static String[] split(String str, String regex) {
+        return str.split(regex);
+    }
+
+    public static String join(char delimiter, String... strings) {
+        StringBuilder rtn = new StringBuilder();
+        for (String s : strings) {
+            rtn.append(delimiter)
+               .append(s);
+        }
+        return rtn.substring(1);
+    }
 }

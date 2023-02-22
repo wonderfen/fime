@@ -39,14 +39,41 @@ public class PinyinTranslator extends DefaultTranslator {
 
         List<Candidate> candidates = new ArrayList<>(limit);
         StringBuilder normalized = new StringBuilder(code.size() * 6);
+        String last = "";
         for (String py : code) {
             normalized.append(py)
                       .append(" ");
+            last = py;
         }
         normalized.deleteCharAt(normalized.length() - 1);
-        if (normalized.length() > 0) {
+        String remains = null;
+        boolean ok = false;
+        boolean again = false;
+        while (normalized.length() > 0 || again) {
             List<Dict.Item> items = new ArrayList<>(limit);
-            boolean ok = dict.search(normalized.toString(), code.size(), items, limit);
+            if (again) {
+                ok = dict.search(normalized.toString(), code.size() - 1, items, limit);
+            }
+            else {
+                ok = dict.search(normalized.toString(), code.size(), items, limit);
+            }
+            if (ok) {
+                for (Dict.Item item : items) {
+                    candidates.add(new Candidate(item.getCode(), item.getText()));
+                }
+                break;
+            }
+            else {  // 搜索结果为空, 回退一个编码再次查询
+                if (again) break;
+                normalized.delete(normalized.length() - last.length() - 1, normalized.length());
+                remains = last;
+                last = "";
+                again = true;
+            }
+        }
+        if (ok && remains != null) {    // 再查一下剩下的编码
+            List<Dict.Item> items = new ArrayList<>(limit);
+            ok = dict.search(remains, 1, items, limit);
             if (ok) {
                 for (Dict.Item item : items) {
                     candidates.add(new Candidate(item.getCode(), item.getText()));

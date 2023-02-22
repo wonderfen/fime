@@ -1,7 +1,9 @@
 package top.someapp.fimesdk.pinyin;
 
+import android.util.Log;
 import androidx.annotation.Keep;
 import top.someapp.fimesdk.Fime;
+import top.someapp.fimesdk.api.Candidate;
 import top.someapp.fimesdk.api.Syncopate;
 import top.someapp.fimesdk.defaults.DefaultInputEditor;
 import top.someapp.fimesdk.engine.Converter;
@@ -26,9 +28,23 @@ public class PinyinInputEditor extends DefaultInputEditor {
         if (hasInput()) {
             List<String> codes = segments();
             convert(codes);
+            // Candidate selected = getSelected();
+            // if (selected != null) {
+            //     codes = codes.subList(selected.code.split(" ").length, codes.size());
+            // }
+            Log.d(TAG, "searchCodes:" + codes);
             return codes;
         }
         return Collections.EMPTY_LIST;
+    }
+
+    @Override public void select(int index) {
+        Candidate candidate = getCandidateAt(index);
+        if (candidate == null) return;
+        addSelected(candidate);
+        if (getSelected().text.length() >= getSearchCodes().size()) {
+            getEngine().commitText(getSelected().text);
+        }
     }
 
     @Override protected Syncopate createSyncopate() {

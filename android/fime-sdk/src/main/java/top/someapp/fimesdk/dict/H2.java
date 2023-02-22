@@ -6,6 +6,7 @@ import top.someapp.fimesdk.utils.Strings;
 
 import java.io.File;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -17,22 +18,24 @@ import java.sql.SQLException;
 class H2 {
 
     private static final String[] CREATE_SQLS = {
-            "CREATE TABLE IF NOT EXISTS T_DICT (\n"
-                    + "  ID INTEGER NOT NULL AUTO_INCREMENT,\n"
-                    + "  CODE CHARACTER VARYING,\n"
-                    + "  TEXT CHARACTER VARYING,\n"
-                    + "  WEIGHT INTEGER DEFAULT 0,\n"
-                    + "  PRIMARY KEY (ID)\n"
+            "CREATE TABLE if not exists T_USER_DICT (\n"
+                    + "  CODE CHARACTER VARYING NOT NULL,\n"
+                    + "  TEXT CHARACTER VARYING NOT NULL,\n"
+                    + "  INPUT_DATE DATE,\n"
+                    + "  PRIMARY KEY (CODE,TEXT)\n"
                     + ")",
-            "CREATE INDEX IF NOT EXISTS T_DICT_CODE_IDX ON T_DICT (CODE)"
     };
     private final String id;
     private boolean started;
     private String url;
     private Connection conn;
 
-    H2(String dbFile) {
-        this.id = dbFile;
+    H2(String id) {
+        this.id = id;
+    }
+
+    public String getId() {
+        return id;
     }
 
     void start() {
@@ -78,10 +81,10 @@ class H2 {
     void insert(Dict.Item item) {
         try {
             PreparedStatement ps = conn.prepareStatement(
-                    "INSERT INTO T_DICT (CODE, TEXT, WEIGHT) VALUES(?, ?, ?)");
+                    "INSERT INTO T_USER_DICT (CODE, TEXT, DATE) VALUES(?, ?, ?)");
             ps.setString(1, item.getCode());
             ps.setString(2, item.getText());
-            ps.setInt(3, item.getWeight());
+            ps.setDate(3, new Date(System.currentTimeMillis()));
             ps.executeUpdate();
         }
         catch (SQLException e) {

@@ -32,11 +32,11 @@ public interface InputEditor extends ImeEngineAware, Configurable {
     void setSearchCodes(List<String> codes);
 
     /**
-     * 获取格式化后的输入码
+     * 获取输入码提示，如：输入码是双拼，提示为全拼
      *
-     * @return 格式化后的输入码
+     * @return 输入码提示
      */
-    String getFormattedInput();
+    String getPrompt();
 
     /**
      * 清空当前输入码
@@ -148,4 +148,11 @@ public interface InputEditor extends ImeEngineAware, Configurable {
      * @param index 候选项的索引
      */
     void select(int index);
+
+    /**
+     * 获取已接受的候选项
+     *
+     * @return 已接收的候选项
+     */
+    Candidate getSelected();
 }

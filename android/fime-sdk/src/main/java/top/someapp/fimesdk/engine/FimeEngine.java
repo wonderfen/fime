@@ -178,7 +178,7 @@ public class FimeEngine implements ImeEngine {
     }
 
     @Override public void unregisterHandler(@NonNull String name) {
-        if (handlerMap.containsKey(name)) handlerMap.remove(name);
+        handlerMap.remove(name);
     }
 
     @Override public void notifyHandlers(@NonNull Message message) {
@@ -356,8 +356,10 @@ public class FimeEngine implements ImeEngine {
     private void doSearch() {
         InputEditor inputEditor = getInputEditor();
         Translator translator = getTranslator();
-        inputEditor.clearCandidates();
-        inputEditor.setActiveIndex(0);
+        if (inputEditor.getCursor() <= 0) {
+            inputEditor.clearCandidates();
+            inputEditor.setActiveIndex(0);
+        }
         final List<String> searchCodes = inputEditor.getSearchCodes();
         if (searchCodes == null || searchCodes.isEmpty()) return;
 
@@ -365,8 +367,10 @@ public class FimeEngine implements ImeEngine {
         handler.post(() -> {
             List<Candidate> candidates = translator.translate(searchCodes, 512);
             Log.i(TAG, "search(" + searchCodes.size() + ") end, result.size=" + candidates.size());
-            inputEditor.clearCandidates();
-            inputEditor.setActiveIndex(0);
+            if (inputEditor.getCursor() <= 0) {
+                inputEditor.clearCandidates();
+                inputEditor.setActiveIndex(0);
+            }
             for (Candidate candidate : candidates) {
                 inputEditor.appendCandidate(candidate);
             }

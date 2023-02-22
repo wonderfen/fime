@@ -1,5 +1,6 @@
 package top.someapp.fimesdk;
 
+import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
 import android.content.pm.PackageInfo;
@@ -27,6 +28,7 @@ import java.io.Reader;
  */
 public class FimeContext {
 
+    @SuppressLint("StaticFieldLeak")
     private static FimeContext sInstance;
     private final Application app;
     private View rootView;
@@ -159,14 +161,11 @@ public class FimeContext {
     private void init() {
         File dir = getAppHomeDir();
         getCacheDir();
-        File keyboards = new File(dir, Fime.EXPORT_FILES[0]);
-        if (!keyboards.exists() || keyboards.lastModified() < getUpdateTime()) {
-            for (String conf : Fime.EXPORT_FILES) {
-                try (InputStream ins = getAssets().open(conf)) {
-                    FileStorage.copyIfNotExists(ins, new File(dir, conf));
-                }
-                catch (IOException ignored) {
-                }
+        for (String conf : Fime.EXPORT_FILES) {
+            try (InputStream ins = getAssets().open(conf)) {
+                FileStorage.copyIfNotExists(ins, new File(dir, conf));  // 避免把用户修改过的文件覆盖了
+            }
+            catch (IOException ignored) {
             }
         }
     }

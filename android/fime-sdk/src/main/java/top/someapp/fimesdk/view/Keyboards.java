@@ -97,7 +97,8 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
     }
 
     @Override public boolean onLongPress(VirtualKey virtualKey, long durations) {
-        final int count = (int) Math.max(2, durations / 200);
+        int count = (int) Math.max(2, durations / 200);
+        if (count > 10) count = 10;
         VirtualKey key = castIfShiftHold(virtualKey);
         for (int i = 1; i <= count; i++) {
             if (!onTap(key)) return false;
