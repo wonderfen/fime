@@ -233,8 +233,9 @@ public class DefaultInputEditor implements InputEditor {
             prompt.append("'")
                   .append(searchCodes.get(i));
         }
-        if (prompt.length() > 0 && prompt.charAt(0) == '\'') {
-            prompt.deleteCharAt(0);
+        if (prompt.length() > 0) {
+            if (prompt.charAt(0) == '\'') prompt.deleteCharAt(0);
+            if (rawInput.charAt(rawInput.length() - 1) == delimiter) prompt.append(delimiter);
         }
         return prompt.toString();
     }

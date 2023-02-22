@@ -73,46 +73,53 @@ class PinyinSyncopate implements Syncopate {
     private String segmentsBy(char delimiter, String input, int from, List<String> result) {
         StringBuilder seg = new StringBuilder(6);
         int i = from;
-        int lastMatch = 0;
         int index;
         for (int end = input.length(); i < end; i++) {
             char ch = input.charAt(i);
+            if (ch == delimiter) {
+                if (seg.length() > 0) {
+                    StringBuilder temp = new StringBuilder(6);
+                    index = trie.findLongestWord(seg.toString(), 0, seg.length(), temp);
+                    if (index >= 0) {
+                        result.add(temp.toString());
+                        i -= (seg.length() - temp.length());
+                        seg.setLength(0);
+                        continue;
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
             seg.append(ch);
-            if (ch == delimiter) {  // 遇到了分隔符
-                StringBuilder temp = new StringBuilder(6);
-                index = trie.findLongestWord(seg.toString(), 0, seg.length(), temp);
-                if (index >= 0) {
-                    lastMatch = i + 1;  // include delimiter
-                    result.add(temp.toString());
+            if (seg.length() >= 6) {
+                if (trie.contains(seg.toString())) {
+                    result.add(seg.toString());
                     seg.setLength(0);
                 }
                 else {
-                    break;
+                    StringBuilder temp = new StringBuilder(6);
+                    index = trie.findLongestWord(seg.toString(), 0, seg.length(), temp);
+                    if (index >= 0) {
+                        result.add(temp.toString());
+                        i -= (seg.length() - temp.length());
+                        seg.setLength(0);
+                    }
                 }
             }
-            if (seg.length() >= 6) {
-                StringBuilder temp = new StringBuilder(6);
+        }
+        if (seg.length() > 0) {
+            StringBuilder temp = new StringBuilder(12);
+            do {
                 index = trie.findLongestWord(seg.toString(), 0, seg.length(), temp);
-                if (index == 0) {
-                    lastMatch += temp.length();  // include delimiter
+                if (index >= 0) {
                     result.add(temp.toString());
                     seg.delete(0, temp.length());
+                    temp.setLength(0);
                 }
-                else {
-                    break;
-                }
-            }
+            } while (index >= 0);
         }
-        if (lastMatch < input.length()) {
-            String last = seg.toString();
-            StringBuilder temp = new StringBuilder(last.length());
-            index = trie.findLongestWord(last, 0, last.length(), temp);
-            if (index == 0) {
-                result.add(temp.toString());
-                lastMatch += temp.length();
-            }
-        }
-        return input.substring(lastMatch);
+        return seg.toString();
     }
 
     private String segmentsLongest(String input, int from, List<String> result) {
@@ -121,7 +128,7 @@ class PinyinSyncopate implements Syncopate {
         final int end = input.length();
         while (i < end) {
             int index = trie.findLongestWord(input, i, end, seg);
-            if (index != 0) break;
+            if (index < 0) break;
             i += seg.length();
             result.add(seg.toString());
             seg.setLength(0);

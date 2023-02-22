@@ -19,7 +19,7 @@ public class PinyinSyncopateTest {
     private static Syncopate syncopate;
 
     @BeforeClass
-    public static void setUp() throws Exception {
+    public static void setUp() {
         syncopate = new PinyinSyncopate();
     }
 
@@ -72,5 +72,14 @@ public class PinyinSyncopateTest {
         remains = syncopate.segments("xi'anninghaoy", result, '\'');
         assertEquals("y", remains);
         assertEquals(4, result.size());
+    }
+
+    @Test
+    public void testSegment4() {
+        List<String> result = new ArrayList<>(3);
+        String remains = syncopate.segments("yiger", result, '\'');
+        assertEquals("r", remains);
+        assertEquals(2, result.size());
+
     }
 }

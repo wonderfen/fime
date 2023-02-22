@@ -28,10 +28,6 @@ public class PinyinInputEditor extends DefaultInputEditor {
         if (hasInput()) {
             List<String> codes = segments();
             convert(codes);
-            // Candidate selected = getSelected();
-            // if (selected != null) {
-            //     codes = codes.subList(selected.code.split(" ").length, codes.size());
-            // }
             Log.d(TAG, "searchCodes:" + codes);
             return codes;
         }

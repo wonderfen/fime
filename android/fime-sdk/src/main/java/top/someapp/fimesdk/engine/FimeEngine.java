@@ -221,8 +221,7 @@ public class FimeEngine implements ImeEngine {
 
     @Override public boolean onKeyUp(int keyCode, KeyEvent event) {
         Log.d(TAG, "onKeyUp");
-        if (state == ImeState.FREEZE || state == ImeState.QUIT) return false;
-        return true;
+        return state != ImeState.FREEZE && state != ImeState.QUIT;
     }
 
     @Override public boolean onKeyMultiple(int keyCode, int count, KeyEvent event) {
@@ -269,6 +268,7 @@ public class FimeEngine implements ImeEngine {
     private void cnModeInput(VirtualKey virtualKey, Keycode keycode) {
         InputEditor inputEditor = getInputEditor();
         final int code = virtualKey.getCode();
+        assert inputEditor != null;
         if (inputEditor.accept(keycode)) {
             doSearch();
         }
@@ -325,6 +325,7 @@ public class FimeEngine implements ImeEngine {
     private void onFnKeyTap(Keycode keycode) {
         InputEditor inputEditor = getInputEditor();
         if (keycode.code == Keycode.VK_FN_BACKSPACE) {
+            assert inputEditor != null;
             if (inputEditor.hasInput()) {
                 inputEditor.backspace();
                 doSearch();
@@ -340,6 +341,7 @@ public class FimeEngine implements ImeEngine {
             resetInputContext();
         }
         else if (keycode.code == Keycode.VK_FN_ENTER) {
+            assert inputEditor != null;
             if (inputEditor.hasInput()) {
                 commitText(inputEditor.getRawInput());
                 resetInputContext();
@@ -356,6 +358,7 @@ public class FimeEngine implements ImeEngine {
     private void doSearch() {
         InputEditor inputEditor = getInputEditor();
         Translator translator = getTranslator();
+        assert inputEditor != null;
         if (inputEditor.getCursor() <= 0) {
             inputEditor.clearCandidates();
             inputEditor.setActiveIndex(0);
@@ -365,7 +368,14 @@ public class FimeEngine implements ImeEngine {
 
         Log.i(TAG, "search(" + searchCodes.size() + ") start.");
         handler.post(() -> {
-            List<Candidate> candidates = translator.translate(searchCodes, 512);
+            List<Candidate> candidates;
+            assert translator != null;
+            if (inputEditor.getSelected() == null) {
+                candidates = translator.translate(searchCodes, 512);
+            }
+            else {
+                candidates = translator.translate(inputEditor.getSelected().text, searchCodes, 512);
+            }
             Log.i(TAG, "search(" + searchCodes.size() + ") end, result.size=" + candidates.size());
             if (inputEditor.getCursor() <= 0) {
                 inputEditor.clearCandidates();

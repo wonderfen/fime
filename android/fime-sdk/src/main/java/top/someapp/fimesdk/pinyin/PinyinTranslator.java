@@ -26,7 +26,7 @@ public class PinyinTranslator extends DefaultTranslator {
 
     @Override
     public List<Candidate> translate(String selected, @NonNull List<String> code, int limit) {
-        return null;
+        return translate(code.subList(selected.length(), code.size()), limit);
     }
 
     @SuppressWarnings("unchecked")
@@ -39,43 +39,33 @@ public class PinyinTranslator extends DefaultTranslator {
 
         List<Candidate> candidates = new ArrayList<>(limit);
         StringBuilder normalized = new StringBuilder(code.size() * 6);
-        String last = "";
         for (String py : code) {
             normalized.append(py)
                       .append(" ");
-            last = py;
         }
         normalized.deleteCharAt(normalized.length() - 1);
-        String remains = null;
-        boolean ok = false;
-        boolean again = false;
-        while (normalized.length() > 0 || again) {
+        if (normalized.length() > 0) {
             List<Dict.Item> items = new ArrayList<>(limit);
-            if (again) {
-                ok = dict.search(normalized.toString(), code.size() - 1, items, limit);
-            }
-            else {
-                ok = dict.search(normalized.toString(), code.size(), items, limit);
-            }
+            boolean ok = dict.search(normalized.toString(), code.size(), items, limit);
             if (ok) {
                 for (Dict.Item item : items) {
                     candidates.add(new Candidate(item.getCode(), item.getText()));
                 }
-                break;
-            }
-            else {  // 搜索结果为空, 回退一个编码再次查询
-                if (again) break;
-                normalized.delete(normalized.length() - last.length() - 1, normalized.length());
-                remains = last;
-                last = "";
-                again = true;
             }
         }
-        if (ok && remains != null) {    // 再查一下剩下的编码
+        if (code.size() > 1 && candidates.size() < 9) {
             List<Dict.Item> items = new ArrayList<>(limit);
-            ok = dict.search(remains, 1, items, limit);
+            boolean ok = dict.search(normalized.substring(0, normalized.lastIndexOf(" ")),
+                                     code.size() - 1,
+                                     items, limit);
             if (ok) {
                 for (Dict.Item item : items) {
+                    candidates.add(new Candidate(item.getCode(), item.getText()));
+                }
+                int size = items.size();
+                dict.search(code.get(code.size() - 1), 1, items, limit);
+                for (int i = size; i < items.size(); i++) {
+                    Dict.Item item = items.get(i);
                     candidates.add(new Candidate(item.getCode(), item.getText()));
                 }
             }
