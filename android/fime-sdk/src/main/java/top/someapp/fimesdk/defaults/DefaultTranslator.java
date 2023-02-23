@@ -15,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -23,6 +24,7 @@ import java.util.List;
  */
 public class DefaultTranslator implements Translator {
 
+    private static final int kMaxUserWordLength = 4;
     private ImeEngine engine;
     private Config config;
     private Dict dict;
@@ -51,6 +53,18 @@ public class DefaultTranslator implements Translator {
         return innerTranslate(codes, limit);
     }
 
+    @Override public void updateDict(Candidate candidate) {
+        if (dict != null && candidate.text.length() <= kMaxUserWordLength) { // 记录到用户词
+            dict.recordUserWord(new Dict.Item(candidate.text, candidate.code));
+        }
+    }
+
+    @Override public void destroy() {
+        if (dict != null) {
+            dict.close();
+        }
+    }
+
     protected ImeEngine getEngine() {
         return engine;
     }
@@ -64,7 +78,7 @@ public class DefaultTranslator implements Translator {
         for (String code : codes) {
             text.append(code);
         }
-        return Arrays.asList(new Candidate(text.toString(), text.toString()));
+        return Collections.singletonList(new Candidate(text.toString(), text.toString()));
     }
 
     private void initDict() {

@@ -73,7 +73,7 @@ public interface InputEditor extends ImeEngineAware, Configurable {
     InputEditor insert(String code, int index);
 
     /**
-     * 往前删除一个字符
+     * 往前删除一个字符或清楚已选择的候选
      */
     InputEditor backspace();
 

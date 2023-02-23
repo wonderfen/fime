@@ -12,6 +12,7 @@ public class FimeMessage {
     public static final int MSG_CANDIDATE_CHANGE = 0x01 << 1;
     public static final int MSG_CHECK_LONG_PRESS = 0x01 << 2;
     public static final int MSG_SCHEMA_ACTIVE = 0xff01;
+    public static final int MSG_REQUEST_SEARCH = 0xff02;
 
     FimeMessage() {
     }

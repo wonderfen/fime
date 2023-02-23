@@ -17,6 +17,9 @@ public class Candidate {
     }
 
     public Candidate append(@NonNull Candidate other) {
+        if (code == null || code.isEmpty()) {
+            return new Candidate(other.code, text + other.text);
+        }
         return new Candidate(code + " " + other.code, text + other.text);
     }
 

@@ -9,7 +9,11 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author zwz
@@ -18,9 +22,10 @@ import java.sql.SQLException;
 class H2 {
 
     private static final String[] CREATE_SQLS = {
-            "CREATE TABLE if not exists T_USER_DICT (\n"
-                    + "  CODE CHARACTER VARYING NOT NULL,\n"
-                    + "  TEXT CHARACTER VARYING NOT NULL,\n"
+            "CREATE TABLE IF NOT EXISTS T_DICT_USER (\n"
+                    + "  CODE CHARACTER VARYING,\n"
+                    + "  TEXT CHARACTER VARYING,\n"
+                    + "  HIT INTEGER DEFAULT 0,\n"
                     + "  INPUT_DATE DATE,\n"
                     + "  PRIMARY KEY (CODE,TEXT)\n"
                     + ")",
@@ -51,7 +56,7 @@ class H2 {
             conn = DriverManager.getConnection(url);
             for (String sql : CREATE_SQLS) {
                 PreparedStatement ps = conn.prepareStatement(sql);
-                ps.execute();
+                ps.executeUpdate();
                 ps.close();
             }
         }
@@ -78,17 +83,62 @@ class H2 {
         }
     }
 
-    void insert(Dict.Item item) {
+    List<Dict.Item> query(String code, int limit) {
+        List<Dict.Item> items = new ArrayList<>(limit);
         try {
             PreparedStatement ps = conn.prepareStatement(
-                    "INSERT INTO T_USER_DICT (CODE, TEXT, DATE) VALUES(?, ?, ?)");
-            ps.setString(1, item.getCode());
-            ps.setString(2, item.getText());
-            ps.setDate(3, new Date(System.currentTimeMillis()));
-            ps.executeUpdate();
+                    "select text from T_DICT_USER where code = ? order by hit desc");
+            ps.setString(1, code);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                String text = rs.getString(1);
+                items.add(new Dict.Item(text, code));
+            }
+            rs.close();
+            ps.close();
         }
         catch (SQLException e) {
             e.printStackTrace();
         }
+        return items;
+    }
+
+    void insertOrUpdate(Dict.Item item) {
+        try {
+            PreparedStatement ps = conn.prepareStatement(
+                    "select hit from t_dict_user where code = ? and text = ?");
+            ps.setString(1, item.getCode());
+            ps.setString(2, item.getText());
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {    // update
+                int hit = rs.getInt(1);
+                close(rs, ps);
+                ps = conn.prepareStatement(
+                        "update T_DICT_USER set hit = ?, input_date = ? where code = ? and text ="
+                                + " ?");
+                ps.setInt(1, hit + 1);
+                ps.setDate(2, new Date(System.currentTimeMillis()));
+                ps.setString(3, item.getCode());
+                ps.setString(4, item.getText());
+            }
+            else { // insert
+                close(rs, ps);
+                ps = conn.prepareStatement(
+                        "insert into T_DICT_USER (code, text, input_date) values(?, ?, ?)");
+                ps.setString(1, item.getCode());
+                ps.setString(2, item.getText());
+                ps.setDate(3, new Date(System.currentTimeMillis()));
+            }
+            ps.executeUpdate();
+            close(null, ps);
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void close(ResultSet resultSet, Statement statement) throws SQLException {
+        if (resultSet != null) resultSet.close();
+        if (statement != null) statement.close();
     }
 }

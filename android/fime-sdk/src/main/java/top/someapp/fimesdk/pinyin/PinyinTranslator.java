@@ -37,14 +37,15 @@ public class PinyinTranslator extends DefaultTranslator {
             return Collections.EMPTY_LIST;
         }
 
+        Log.d(TAG, "translate: " + code);
         List<Candidate> candidates = new ArrayList<>(limit);
         StringBuilder normalized = new StringBuilder(code.size() * 6);
         for (String py : code) {
             normalized.append(py)
                       .append(" ");
         }
-        normalized.deleteCharAt(normalized.length() - 1);
         if (normalized.length() > 0) {
+            normalized.deleteCharAt(normalized.length() - 1);
             List<Dict.Item> items = new ArrayList<>(limit);
             boolean ok = dict.search(normalized.toString(), code.size(), items, limit);
             if (ok) {

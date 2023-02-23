@@ -35,6 +35,8 @@ public interface ImeEngine extends KeyEvent.Callback {
 
     void onTap(@NonNull VirtualKey virtualKey);
 
+    void requestSearch();
+
     void commitText(String text);
 
     void registerHandler(@NonNull FimeHandler handler);

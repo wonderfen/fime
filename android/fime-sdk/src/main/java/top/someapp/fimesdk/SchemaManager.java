@@ -156,7 +156,7 @@ public class SchemaManager {
                 && config.hasPath("keyboards")
                 && config.hasPath("inputEditor")
                 && config.hasPath("translator")
-                && config.hasPath("committer");
+                && config.hasPath("ejector");
     }
 
     public static void delete(String conf) {

@@ -130,6 +130,9 @@ public class Dict implements Comparator<Dict.Item> {
             int limit, Comparator<Item> comparator) {
         ObjectArrayPriorityQueue<Item> queue = new ObjectArrayPriorityQueue<>(limit * 2,
                                                                               comparator);
+        // 优先查询用户词
+        initH2();
+        List<Item> userItems = h2.query(prefix, limit);
         if (mapTrie.contains(prefix)) { // 全部匹配
             MapPatriciaTrieNode<IntArray> node = mapTrie.getNode(prefix);
             IntArray value = node.getValue();
@@ -157,6 +160,13 @@ public class Dict implements Comparator<Dict.Item> {
         }
         boolean hit = false;
         int count = 0;
+        Iterator<Item> it = userItems.iterator();
+        while (it.hasNext() && count < limit) {
+            if (!hit) hit = true;
+            result.add(it.next());
+            it.remove();
+            count++;
+        }
         while (!queue.isEmpty() && count < limit) {
             if (!hit) hit = true;
             result.add(queue.dequeue());
@@ -209,6 +219,15 @@ public class Dict implements Comparator<Dict.Item> {
         }
         // 编码不同，词长不同，编码短的优先
         return code1.length() - code2.length();
+    }
+
+    public void recordUserWord(Item item) {
+        initH2();
+        h2.insertOrUpdate(item);
+    }
+
+    public void close() {
+        if (h2 != null) h2.stop();
     }
 
     @NonNull @Override public String toString() {

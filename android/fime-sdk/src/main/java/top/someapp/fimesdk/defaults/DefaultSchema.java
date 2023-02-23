@@ -6,7 +6,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigValue;
 import top.someapp.fimesdk.Fime;
 import top.someapp.fimesdk.FimeContext;
-import top.someapp.fimesdk.api.Committer;
+import top.someapp.fimesdk.api.Ejector;
 import top.someapp.fimesdk.api.ImeEngine;
 import top.someapp.fimesdk.api.InputEditor;
 import top.someapp.fimesdk.api.Schema;
@@ -37,7 +37,7 @@ public class DefaultSchema implements Schema {
     private Keyboards keyboards;
     private InputEditor inputEditor;
     private Translator translator;
-    private Committer committer;
+    private Ejector ejector;
     private File appHome;
     private File buildDir;
 
@@ -71,12 +71,12 @@ public class DefaultSchema implements Schema {
         this.translator = translator;
     }
 
-    @Override public Committer getCommitter() {
-        return committer;
+    @Override public Ejector getEjector() {
+        return ejector;
     }
 
-    @Override public void setCommitter(Committer committer) {
-        this.committer = committer;
+    @Override public void setEjector(Ejector ejector) {
+        this.ejector = ejector;
     }
 
     @Override public Keyboards getKeyboards() {
@@ -147,8 +147,8 @@ public class DefaultSchema implements Schema {
         setupKeyboards();
         Log.i(TAG, "setupInputEditor.");
         setupInputEditor();
-        Log.i(TAG, "setupCommitter.");
-        setupCommitter();
+        Log.i(TAG, "setupEjector.");
+        setupEjector();
         Log.i(TAG, "setupTranslator.");
         setupTranslator();
         Log.i(TAG, "schema: " + getName() + " reconfigure OK!");
@@ -159,7 +159,7 @@ public class DefaultSchema implements Schema {
         if (keyboards != null) keyboards.setup(engine);
         inputEditor.setup(engine);
         translator.setup(engine);
-        committer.setup(engine);
+        ejector.setup(engine);
     }
 
     private void configSelf() {
@@ -215,15 +215,15 @@ public class DefaultSchema implements Schema {
         translator.reconfigure(config);
     }
 
-    private void setupCommitter() {
-        Config config = this.config.getConfig("committer");
+    private void setupEjector() {
+        Config config = this.config.getConfig("ejector");
         try {
-            committer = Classes.newInstance(config.getString("type"));
+            ejector = Classes.newInstance(config.getString("type"));
         }
         catch (ReflectiveOperationException e) {
             e.printStackTrace();
-            committer = new DefaultCommitter();
+            ejector = new DefaultEjector();
         }
-        committer.reconfigure(config);
+        ejector.reconfigure(config);
     }
 }

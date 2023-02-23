@@ -36,9 +36,9 @@ public interface Schema extends ImeEngineAware, Configurable {
 
     void setTranslator(Translator translator);
 
-    Committer getCommitter();
+    Ejector getEjector();
 
-    void setCommitter(Committer committer);
+    void setEjector(Ejector ejector);
 
     void build();
 }

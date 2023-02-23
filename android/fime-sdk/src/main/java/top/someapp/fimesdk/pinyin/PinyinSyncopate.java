@@ -82,8 +82,8 @@ class PinyinSyncopate implements Syncopate {
                     index = trie.findLongestWord(seg.toString(), 0, seg.length(), temp);
                     if (index >= 0) {
                         result.add(temp.toString());
-                        i -= (seg.length() - temp.length());
-                        seg.setLength(0);
+                        if (temp.length() < seg.length()) i--;   // 回退
+                        seg.delete(0, temp.length());
                         continue;
                     }
                     else {

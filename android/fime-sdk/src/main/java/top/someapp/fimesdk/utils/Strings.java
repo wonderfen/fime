@@ -40,10 +40,14 @@ public class Strings {
     }
 
     public static String join(char delimiter, String... strings) {
+        return join(delimiter, 0, strings.length, strings);
+    }
+
+    public static String join(char delimiter, int start, int end, String... strings) {
         StringBuilder rtn = new StringBuilder();
-        for (String s : strings) {
+        for (int i = start; i < end; i++) {
             rtn.append(delimiter)
-               .append(s);
+               .append(strings[i]);
         }
         return rtn.substring(1);
     }

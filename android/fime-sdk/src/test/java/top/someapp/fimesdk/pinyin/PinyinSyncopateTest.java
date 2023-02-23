@@ -80,6 +80,13 @@ public class PinyinSyncopateTest {
         String remains = syncopate.segments("yiger", result, '\'');
         assertEquals("r", remains);
         assertEquals(2, result.size());
+    }
 
+    @Test
+    public void testSegment5() {
+        List<String> result = new ArrayList<>(3);
+        String remains = syncopate.segments("yiqu'e", result, '\'');
+        assertEquals(3, result.size());
+        assertTrue(remains == null || remains.isEmpty());
     }
 }

@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * @author zwz
@@ -22,12 +24,25 @@ import java.util.List;
 public class PinyinInputEditor extends DefaultInputEditor {
 
     private static final String TAG = Fime.makeTag("PinyinInputEditor");
+    private Map<String, List<String>> searchCodeCache = new TreeMap<>();
 
     @SuppressWarnings("unchecked")
     @Override public List<String> getSearchCodes() {
         if (hasInput()) {
-            List<String> codes = segments();
-            convert(codes);
+            List<String> codes;
+            if (searchCodeCache.containsKey(getRawInput())) {
+                codes = searchCodeCache.get(getRawInput());
+            }
+            else {
+                codes = segments();
+                convert(codes);
+                if (codes.size() < 3) {
+                    searchCodeCache.clear();
+                }
+                else {
+                    searchCodeCache.put(getRawInput(), codes);
+                }
+            }
             Log.d(TAG, "searchCodes:" + codes);
             return codes;
         }
@@ -37,9 +52,23 @@ public class PinyinInputEditor extends DefaultInputEditor {
     @Override public void select(int index) {
         Candidate candidate = getCandidateAt(index);
         if (candidate == null) return;
-        addSelected(candidate);
-        if (getSelected().text.length() >= getSearchCodes().size()) {
-            getEngine().commitText(getSelected().text);
+
+        boolean accept;
+        List<String> searchCodes = getSearchCodes();
+        Candidate selected = getSelected();
+        if (selected == null) {
+            accept = candidate.code.startsWith(searchCodes.get(0));
+        }
+        else {
+            accept = candidate.code.startsWith(searchCodes.get(selected.text.length()));
+        }
+        if (accept) {
+            addSelected(candidate);
+            if (getSelected().text.length() >= searchCodes.size()) {
+                getEngine().getSchema()
+                           .getEjector()
+                           .eject(this);
+            }
         }
     }
 
