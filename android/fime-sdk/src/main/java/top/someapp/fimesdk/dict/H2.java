@@ -94,8 +94,7 @@ class H2 {
                 String text = rs.getString(1);
                 items.add(new Dict.Item(text, code));
             }
-            rs.close();
-            ps.close();
+            close(rs, ps);
         }
         catch (SQLException e) {
             e.printStackTrace();
