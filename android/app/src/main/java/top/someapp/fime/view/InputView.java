@@ -1,5 +1,6 @@
 package top.someapp.fime.view;
 
+import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -53,13 +54,17 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
     private Paint pathPaint;
     private MotionEvent lastTouchEvent;
     private PointF touchDown;               // 按下的位置
-    private int longPressThreshold = 650;   // 触发长按的阀值
-    private boolean touchHasConsumed;
+    private int longPressThreshold = 500;   // 触发长按的阀值
+    private boolean inLongPressCheck;
 
     public InputView(ImeEngine engine) {
-        super(engine.getContext());
-        Log.d(TAG, Strings.simpleFormat("create InputView: 0x%x.", hashCode()));
+        this(engine.getContext(), engine);
+    }
+
+    public InputView(Context context, ImeEngine engine) {
+        super(context);
         this.engine = engine;
+        Log.d(TAG, Strings.simpleFormat("create InputView: 0x%x.", hashCode()));
         init();
         setupPainter();
     }
@@ -94,62 +99,52 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
     @Override public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();
         float y = event.getY();
-        boolean needRepaint = false;
         final int action = event.getAction();
-        long eventTime = event.getEventTime();  // 事件发生的时间
         switch (action) {
             case MotionEvent.ACTION_DOWN:
+                inLongPressCheck = true;
                 Log.d(TAG, "touchDown @(" + x + "," + y + ")");
                 touchDown = new PointF(x, y);
                 lastTouchEvent = event;
                 path.moveTo(x, y);
-                needRepaint = findWidgetContains(touchDown).onTouchStart(touchDown);
-                painter.sendEmptyMessageDelayed(FimeMessage.MSG_CHECK_LONG_PRESS,
-                                                longPressThreshold);
+                findWidgetContains(touchDown).onTouchStart(touchDown);
+                painter.sendEmptyMessage(FimeMessage.MSG_CHECK_LONG_PRESS);
+                repaint();
                 break;
             case MotionEvent.ACTION_MOVE:
-                Log.d(TAG, "moveTo @(" + x + "," + y + ")");
+                Log.d(TAG,
+                      "inLongPressCheck: " + inLongPressCheck + ", moveTo @(" + x + "," + y + ")");
                 path.lineTo(x, y);
-                if (touchHasConsumed) {
-                    touchHasConsumed = false;
+                PointF pos = new PointF(x, y);
+                double distance = Geometry.distanceBetweenPoints(touchDown, pos);
+                Log.d(TAG, "move distance=" + distance);
+                if (inLongPressCheck && distance >= 32) { // 打断长按！
+                    inLongPressCheck = false;
                 }
-                else {
-                    PointF pos = new PointF(x, y);
-                    double distance = Geometry.distanceBetweenPoints(touchDown, pos);
-                    Log.d(TAG, "move distance=" + distance);
-                    if (distance > 0) {
-                        touchHasConsumed = true;
-                        if (eventTime - event.getDownTime() >= longPressThreshold && distance <= 10) {
-                            needRepaint = findWidgetContains(pos).onLongPress(pos,
-                                                                              eventTime - event.getDownTime());
-                        }
-                        else {
-                            needRepaint = findWidgetContains(pos).onTouchMove(pos);
-                        }
-                    }
+                if (!inLongPressCheck && findWidgetContains(pos).onTouchMove(pos)) {
+                    repaint();
                 }
                 break;
             case MotionEvent.ACTION_UP:
-                Log.d(TAG, "touchUp @(" + x + "," + y + ")");
+                Log.d(TAG,
+                      "inLongPressCheck: " + inLongPressCheck + ", touchUp @(" + x + "," + y +
+                              ")");
                 PointF touchUp = new PointF(x, y);
                 path.reset();
-                if (touchHasConsumed) {
-                    touchHasConsumed = false;
-                }
-                else {
-                    if (Geometry.distanceBetweenPoints(touchDown, touchUp) <= 36) { // 认为是click
-                        PointF center = Geometry.centerOf(touchDown, touchUp);
-                        needRepaint = findWidgetContains(center).onTouchEnd(center);
-                    }
+                inLongPressCheck = false;
+                if (Geometry.distanceBetweenPoints(touchDown, touchUp) <= 36) { // 认为是click
+                    PointF center = Geometry.centerOf(touchDown, touchUp);
+                    findWidgetContains(center).onTouchEnd(center);
                 }
                 touchDown = null;
                 lastTouchEvent = null;
+                performClick();
+                repaint();
                 break;
             default:
                 Log.d(TAG, "Ignored touch event: " + action);
                 break;
         }
-        if (needRepaint) repaint();
         return true;
     }
 
@@ -178,7 +173,7 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
                 return true;
             case FimeMessage.MSG_CHECK_LONG_PRESS:
                 Log.d(TAG, "MSG_CHECK_LONG_PRESS");
-                if (touchDown != null && lastTouchEvent != null) {
+                if (inLongPressCheck && touchDown != null && lastTouchEvent != null) {
                     long eventTime = lastTouchEvent.getEventTime();
                     long downTime = lastTouchEvent.getDownTime();
                     Log.d(TAG, "eventTime=" + eventTime + ", downTime=" + downTime);

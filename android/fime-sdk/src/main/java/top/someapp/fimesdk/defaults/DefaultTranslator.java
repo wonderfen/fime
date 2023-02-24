@@ -14,7 +14,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -24,7 +23,7 @@ import java.util.List;
  */
 public class DefaultTranslator implements Translator {
 
-    private static final int kMaxUserWordLength = 4;
+    private static final int kMaxUserWordLength = 7;
     private ImeEngine engine;
     private Config config;
     private Dict dict;

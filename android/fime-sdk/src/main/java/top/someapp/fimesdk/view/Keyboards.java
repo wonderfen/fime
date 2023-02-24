@@ -128,9 +128,11 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
         VirtualKey key = virtualKey;
         if (current.shiftHold) {
             if (Keycode.isLetterLowerCode(virtualKey.getCode())) {  // lower -> UPPER
+                Log.d(TAG, "castIfShiftHold: lower -> UPPER.");
                 key = new VirtualKey(virtualKey.getCode() - Keycode.VK_a + Keycode.VK_A);
             }
             else if (Keycode.isLetterUpperCode(virtualKey.getCode())) { // UPPER -> lower
+                Log.d(TAG, "castIfShiftHold: UPPER -> lower.");
                 key = new VirtualKey(virtualKey.getCode() - Keycode.VK_A + Keycode.VK_a);
             }
         }
