@@ -76,16 +76,13 @@ public class TableTranslator extends DefaultTranslator implements Comparator<Dic
         String code1 = o1.getCode();
         String code2 = o2.getCode();
         if (code1.equals(code2)) { // 编码相同时，短词优先
-            return o1.getLength() - o2.getLength();
+            return o1.getLength() <= o2.getLength() ? -1 : o1.getLength() - o2.getLength();
         }
         if (code1.length() == code2.length()) {
-            return o2.getWeight() - o1.getWeight();
+            return o2.getWeight() >= o1.getWeight() ? -1 : o2.getWeight() - o1.getWeight();
         }
-        if (o1.getWeight() > 0 && o2.getWeight() > 0) {
-            return code1.length() - code2.length();
-        }
-        else {
-            return o2.getWeight() - o1.getWeight();
-        }
+        if (o1.getWeight() >= o2.getWeight()) return -1;
+        if (code1.length() <= code2.length()) return -1;
+        return o2.getWeight() - o1.getWeight();
     }
 }

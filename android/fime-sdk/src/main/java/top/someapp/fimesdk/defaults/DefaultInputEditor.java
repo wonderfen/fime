@@ -77,6 +77,7 @@ public class DefaultInputEditor implements InputEditor {
 
     @SuppressWarnings("unchecked")
     @Override public List<String> getSearchCodes() {
+        if (selectedCursor.isEmpty()) return Collections.singletonList(getRawInput());
         if (getCursor() >= rawInput.length()) return Collections.EMPTY_LIST;
         return Collections.singletonList(rawInput.substring(getCursor()));
     }
@@ -197,7 +198,8 @@ public class DefaultInputEditor implements InputEditor {
     }
 
     @Override public void select(int index) {
-        // 具体子类实现!
+        setActiveIndex(index);
+        getEngine().eject();
     }
 
     @Override public Candidate getSelected() {

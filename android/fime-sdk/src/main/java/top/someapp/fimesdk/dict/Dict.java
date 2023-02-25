@@ -68,6 +68,21 @@ public class Dict implements Comparator<Dict.Item> {
         return dict;
     }
 
+    static int compareItems(Item o1, Item o2) {
+        String code1 = o1.getCode();
+        String code2 = o2.getCode();
+        if (code1.equals(code2)) { // 编码相同时，weight 优先
+            if (o1.getWeight() >= o2.getWeight()) return -1;
+            return o2.getWeight() - o1.getWeight();
+        }
+        if (o1.getLength() == o2.getLength()) { // 编码不同，词长相同， weight 优先
+            if (o1.getWeight() >= o2.getWeight()) return -1;
+            return o2.getWeight() - o1.getWeight();
+        }
+        // 编码不同，词长不同，编码短的优先
+        return code1.length() - code2.length();
+    }
+
     public String getName() {
         return name;
     }
@@ -208,19 +223,6 @@ public class Dict implements Comparator<Dict.Item> {
         return hit;
     }
 
-    @Override public int compare(Item o1, Item o2) {
-        String code1 = o1.getCode();
-        String code2 = o2.getCode();
-        if (code1.equals(code2)) { // 编码相同时，weight 优先
-            return o2.getWeight() - o1.getWeight();
-        }
-        if (o1.getLength() == o2.getLength()) { // 编码不同，词长相同， weight 优先
-            return o2.getWeight() - o1.getWeight();
-        }
-        // 编码不同，词长不同，编码短的优先
-        return code1.length() - code2.length();
-    }
-
     public void recordUserWord(Item item) {
         initH2();
         h2.insertOrUpdate(item);
@@ -236,6 +238,10 @@ public class Dict implements Comparator<Dict.Item> {
                 ", size=" + size +
                 ", sealed=" + sealed +
                 '}';
+    }
+
+    @Override public int compare(Item o1, Item o2) {
+        return Dict.compareItems(o1, o2);
     }
 
     protected Dict put(@NonNull Item item) {
@@ -291,7 +297,7 @@ public class Dict implements Comparator<Dict.Item> {
     }
 
     @Keep
-    public static class Item implements Serializable {
+    public static class Item implements Serializable, Comparable {
 
         private /*final*/ String text;  // for Serializable
         private /*final*/ String code;  // for Serializable
@@ -348,6 +354,10 @@ public class Dict implements Comparator<Dict.Item> {
                     ", " + text +
                     ", weight=" + weight +
                     '}';
+        }
+
+        @Override public int compareTo(Object o) {
+            return Dict.compareItems(this, (Item) o);
         }
     }
 }

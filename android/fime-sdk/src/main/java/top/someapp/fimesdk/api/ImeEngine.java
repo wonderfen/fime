@@ -37,6 +37,8 @@ public interface ImeEngine extends KeyEvent.Callback {
 
     void requestSearch();
 
+    void eject();
+
     void commitText(String text);
 
     void registerHandler(@NonNull FimeHandler handler);

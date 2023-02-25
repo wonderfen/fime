@@ -2,6 +2,8 @@ package top.someapp.fimesdk.api;
 
 import androidx.annotation.NonNull;
 
+import java.util.Objects;
+
 /**
  * @author zwz
  * Created on 2022-12-26
@@ -14,6 +16,22 @@ public class Candidate {
     public Candidate(String code, String text) {
         this.code = code;
         this.text = text;
+    }
+
+    @Override public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Candidate candidate = (Candidate) o;
+        if (!Objects.equals(code, candidate.code)) return false;
+
+        return Objects.equals(text, candidate.text);
+    }
+
+    @Override public int hashCode() {
+        int result = code != null ? code.hashCode() : 0;
+        result = 31 * result + (text != null ? text.hashCode() : 0);
+        return result;
     }
 
     public Candidate append(@NonNull Candidate other) {

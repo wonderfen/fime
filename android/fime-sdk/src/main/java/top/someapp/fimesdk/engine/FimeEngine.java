@@ -17,6 +17,7 @@ import top.someapp.fimesdk.SchemaManager;
 import top.someapp.fimesdk.Setting;
 import top.someapp.fimesdk.api.Candidate;
 import top.someapp.fimesdk.api.Ejector;
+import top.someapp.fimesdk.api.Filter;
 import top.someapp.fimesdk.api.FimeHandler;
 import top.someapp.fimesdk.api.FimeMessage;
 import top.someapp.fimesdk.api.ImeEngine;
@@ -28,15 +29,18 @@ import top.someapp.fimesdk.defaults.DefaultSchema;
 import top.someapp.fimesdk.utils.Nulls;
 import top.someapp.fimesdk.view.VirtualKey;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author zwz
  * Create on 2023-01-31
  */
-public class FimeEngine implements ImeEngine {
+public class FimeEngine implements ImeEngine, Filter<Candidate> {
 
     private static final String TAG = Fime.makeTag("FimeEngine");
     private ImeState state = ImeState.FREEZE;
@@ -181,6 +185,10 @@ public class FimeEngine implements ImeEngine {
         doSearch();
     }
 
+    @Override public void eject() {
+        getEjector().eject(getInputEditor());
+    }
+
     @Override public void registerHandler(@NonNull FimeHandler handler) {
         handlerMap.put(handler.getName(), handler);
     }
@@ -243,6 +251,15 @@ public class FimeEngine implements ImeEngine {
                .commitText(text, 1);    // <=0: 提交的文字在光标前，> 0: 在光标后
         }
         resetInputContext();
+    }
+
+    @Override public void filter(Collection<Candidate> items, Schema schema) {
+        if (items == null || items.size() < 2) return;
+        Set<Candidate> candidateSet = new LinkedHashSet<>(items.size());
+        candidateSet.addAll(items);
+        items.clear();
+        items.addAll(candidateSet);
+        candidateSet.clear();
     }
 
     void notifyHandlers(int what) {
@@ -392,6 +409,7 @@ public class FimeEngine implements ImeEngine {
             else {
                 candidates = translator.translate(inputEditor.getSelected().text, searchCodes, 512);
             }
+            filter(candidates, getSchema());
             Log.i(TAG, "search(" + searchCodes + ") end, result.size=" + candidates.size());
             inputEditor.clearCandidates();
             inputEditor.setActiveIndex(0);

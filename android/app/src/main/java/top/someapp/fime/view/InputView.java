@@ -16,6 +16,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import androidx.annotation.NonNull;
+import top.someapp.fime.BuildConfig;
 import top.someapp.fimesdk.Fime;
 import top.someapp.fimesdk.api.DefaultFimeHandler;
 import top.someapp.fimesdk.api.FimeHandler;
@@ -67,6 +68,14 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
         Log.d(TAG, Strings.simpleFormat("create InputView: 0x%x.", hashCode()));
         init();
         setupPainter();
+    }
+
+    public static boolean isDrawPath() {
+        return drawPath;
+    }
+
+    public static void setDrawPath(boolean drawPath) {
+        InputView.drawPath = drawPath;
     }
 
     @Override public void surfaceCreated(@NonNull SurfaceHolder holder) {
@@ -218,6 +227,7 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
         actionBar = new ActionBar(new Box(displayMetrics.widthPixels, actionBarHeight));
         keyboards = engine.getSchema()
                           .getKeyboards();
+        if (BuildConfig.DEBUG) setDrawPath(true);
     }
 
     private void setupPainter() {

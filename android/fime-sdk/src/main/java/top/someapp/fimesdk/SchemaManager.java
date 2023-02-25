@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author zwz
@@ -93,6 +94,7 @@ public class SchemaManager {
         return ok;
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public static boolean build(SchemaInfo info, Config config) {
         if (info == null || info.precompiled || config == null) return false;
 
@@ -112,7 +114,8 @@ public class SchemaManager {
         File compiledFile = new File(buildDir, Strings.simpleFormat("%s.s", info.conf));
         if (buildInfo.containsKey(info.conf)) {
             FileStorage.deleteFile(
-                    fimeContext.fileInCacheDir(buildInfo.get(info.conf).first));
+                    fimeContext.fileInCacheDir(
+                            Objects.requireNonNull(buildInfo.get(info.conf)).first));
         }
         try {
             Configs.serialize(config, new FileOutputStream(compiledFile));

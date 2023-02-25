@@ -65,9 +65,7 @@ public class PinyinInputEditor extends DefaultInputEditor {
         if (accept) {
             addSelected(candidate);
             if (getSelected().text.length() >= searchCodes.size()) {
-                getEngine().getSchema()
-                           .getEjector()
-                           .eject(this);
+                getEngine().eject();
             }
         }
     }

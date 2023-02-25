@@ -25,10 +25,10 @@ import androidx.core.view.inputmethod.InputConnectionCompat;
 import androidx.core.view.inputmethod.InputContentInfoCompat;
 import top.someapp.fime.view.InputView;
 import top.someapp.fimesdk.FimeContext;
-import top.someapp.fimesdk.Setting;
 import top.someapp.fimesdk.api.ImeEngine;
 import top.someapp.fimesdk.engine.FimeEngine;
 import top.someapp.fimesdk.engine.PinyinService;
+import top.someapp.fimesdk.utils.Strings;
 
 import java.io.File;
 
@@ -45,7 +45,7 @@ public class FimeService extends InputMethodService implements ServiceConnection
 
     @Override public void onCreate() {
         super.onCreate();
-        Log.d(TAG, "App=" + getApplication().hashCode());
+        Log.d(TAG, Strings.simpleFormat("create FimeService: 0x%x.", hashCode()));
         setupEngine();
         Intent bindIntent = new Intent(this, PinyinService.class);
         bindService(bindIntent, this, Context.BIND_AUTO_CREATE);
