@@ -2,6 +2,7 @@ package top.someapp.fimesdk.view;
 
 import android.graphics.Canvas;
 import android.graphics.PointF;
+import top.someapp.fimesdk.api.FimeHandler;
 
 /**
  * @author zwz
@@ -11,15 +12,15 @@ public interface Widget {
 
     Box getContainer();
 
-    void onDraw(Canvas canvas, Box box);
+    void onDraw(Canvas canvas, Box box, FimeHandler painter);
 
-    boolean onTouchStart(PointF pos);
+    void onTouchStart(PointF pos);
 
-    boolean onTouchMove(PointF pos);
+    void onTouchMove(PointF pos);
 
-    boolean onTouchEnd(PointF pos);
+    void onTouchEnd(PointF pos);
 
-    boolean onLongPress(PointF pos, long durations);
+    void onLongPress(PointF pos, long durations);
 
     void setOnVirtualKeyListener(OnVirtualKeyListener virtualKeyListener);
 

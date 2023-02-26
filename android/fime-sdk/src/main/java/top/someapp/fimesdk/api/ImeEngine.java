@@ -2,6 +2,7 @@ package top.someapp.fimesdk.api;
 
 import android.content.Context;
 import android.inputmethodservice.InputMethodService;
+import android.os.Looper;
 import android.os.Message;
 import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
@@ -27,6 +28,8 @@ public interface ImeEngine extends KeyEvent.Callback {
 
     Context getContext();
 
+    Looper getWorkLopper();
+
     Schema getSchema();
 
     ImeEngine useSchema(String conf);
@@ -46,6 +49,8 @@ public interface ImeEngine extends KeyEvent.Callback {
     void unregisterHandler(@NonNull String name);
 
     void notifyHandlers(@NonNull Message message);
+
+    void notifyHandlersDelay(@NonNull Message message, int delayMills);
 
     void post(Runnable work);
 

@@ -9,16 +9,21 @@ import android.os.Message;
 public class FimeMessage {
 
     public static final int MSG_REPAINT = 0x01;
-    public static final int MSG_CANDIDATE_CHANGE = 0x01 << 1;
-    public static final int MSG_CHECK_LONG_PRESS = 0x01 << 2;
+    // public static final int MSG_REPAINT_ACTION_BAR = 0x02;
+    // public static final int MSG_REPAINT_KEYBOARD = 0x03;
+    public static final int MSG_CANDIDATE_CHANGE = 0x04;
+    public static final int MSG_CHECK_LONG_PRESS = 0x05;
     public static final int MSG_SCHEMA_ACTIVE = 0xff01;
     public static final int MSG_REQUEST_SEARCH = 0xff02;
+    public static final int MSG_INPUT_CHANGE = 0xff03;
 
     FimeMessage() {
     }
 
-    public static Message createRepaintMessage() {
-        return create(MSG_REPAINT, null);
+    public static Message create(int what) {
+        Message message = new Message();
+        message.what = what;
+        return message;
     }
 
     public static Message create(int what, Object obj) {

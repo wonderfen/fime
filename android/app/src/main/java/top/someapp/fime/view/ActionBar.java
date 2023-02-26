@@ -11,6 +11,8 @@ import top.someapp.fime.R;
 import top.someapp.fimesdk.Fime;
 import top.someapp.fimesdk.FimeContext;
 import top.someapp.fimesdk.api.Candidate;
+import top.someapp.fimesdk.api.FimeHandler;
+import top.someapp.fimesdk.api.FimeMessage;
 import top.someapp.fimesdk.api.InputEditor;
 import top.someapp.fimesdk.utils.Fonts;
 import top.someapp.fimesdk.utils.Geometry;
@@ -33,6 +35,7 @@ class ActionBar implements Widget {
     private final int activeLabelColor = 0xff50a96c;
     private Box container;
     private Paint paint = new Paint();
+    private FimeHandler painter;
     private Bitmap icon;
     private float gutter;               // 候选之间的间隔
     private List<Float> candidatePos;
@@ -56,9 +59,10 @@ class ActionBar implements Widget {
         return container;
     }
 
-    @Override public void onDraw(Canvas canvas, Box box) {
+    @Override public void onDraw(Canvas canvas, Box box, FimeHandler painter) {
         Log.d(TAG, "onDraw, candidateOffset=" + candidateOffset);
         container = box;
+        this.painter = painter;
         paint.setColor(backgroundColor);
         canvas.drawRect(box.toRectF(), paint);
         candidatePos.clear();
@@ -110,21 +114,21 @@ class ActionBar implements Widget {
         }
     }
 
-    @Override public boolean onTouchStart(PointF pos) {
+    @Override public void onTouchStart(PointF pos) {
         Log.d(TAG, "onTouchStart");
         moveStartAt = new PointF(pos.x, pos.y);
-        return false;
+        // return false;
     }
 
-    @Override public boolean onTouchMove(PointF pos) {
+    @Override public void onTouchMove(PointF pos) {
         if (inputEditor == null || !inputEditor.hasCandidate() || candidatePos.isEmpty() ||
                 moveStartAt == null) {
-            return false;
+            return;
         }
 
         float dx = pos.x - moveStartAt.x;
         Log.d(TAG, "onTouchMove, dx=" + dx);
-        if (Math.abs(dx) < 10) return false; // 这个叫消抖？
+        if (Math.abs(dx) < 10) return; // 这个叫消抖？
 
         int activeIndex = inputEditor.getActiveIndex();
         float first = candidatePos.get(0);
@@ -165,10 +169,10 @@ class ActionBar implements Widget {
             }
         }
         moveStartAt = new PointF(pos.x, pos.y);
-        return true;
+        requestRepaint();   // TODO: 2023/2/26 可以再优化，减少重绘的次数 
     }
 
-    @Override public boolean onTouchEnd(PointF pos) {
+    @Override public void onTouchEnd(PointF pos) {
         moveStartAt = null;
         if (inputEditor != null && inputEditor.hasInput() && inputEditor.hasCandidate() &&
                 pos.x < candidatePos.get(candidatePos.size() - 1)) {
@@ -189,7 +193,7 @@ class ActionBar implements Widget {
             }
             inputEditor.select(inputEditor.getActiveIndex() + (min + max) / 2);
             candidateOffset = 0;
-            return true;
+            requestRepaint();
         }
         // TODO: 2023/1/14 Show popup
         // if (inputContext == null || !inputContext.hasInput() && pos.x <= 1.5f * icon.getWidth
@@ -207,12 +211,12 @@ class ActionBar implements Widget {
         //     window.showAtLocation(FimeContext.getInstance()
         //                                      .getRootView(), Gravity.CENTER_HORIZONTAL, 0, 0);
         // }
-        return false;
+        // return false;
     }
 
-    @Override public boolean onLongPress(PointF pos, long durations) {
+    @Override public void onLongPress(PointF pos, long durations) {
         Log.d(TAG, "onLongPress");
-        return false;
+        // return false;
     }
 
     @Override public void setOnVirtualKeyListener(OnVirtualKeyListener virtualKeyListener) {
@@ -221,5 +225,9 @@ class ActionBar implements Widget {
     void setInputEditor(InputEditor inputEditor) {
         Log.d(TAG, Strings.simpleFormat("setInputEditor: 0x%x.", inputEditor.hashCode()));
         this.inputEditor = inputEditor;
+    }
+
+    private void requestRepaint() {
+        if (painter != null) painter.sendEmptyMessage(FimeMessage.MSG_REPAINT);
     }
 }

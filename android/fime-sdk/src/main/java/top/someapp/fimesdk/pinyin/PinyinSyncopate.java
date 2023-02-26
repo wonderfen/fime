@@ -112,12 +112,12 @@ class PinyinSyncopate implements Syncopate {
             StringBuilder temp = new StringBuilder(12);
             do {
                 index = trie.findLongestWord(seg.toString(), 0, seg.length(), temp);
-                if (index >= 0) {
+                if (index == 0) {
                     result.add(temp.toString());
                     seg.delete(0, temp.length());
                     temp.setLength(0);
                 }
-            } while (index >= 0);
+            } while (index == 0);
         }
         return seg.toString();
     }

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.inputmethodservice.InputMethodService;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -122,6 +123,10 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
         return ims;
     }
 
+    @Override public Looper getWorkLopper() {
+        return workThread.getLooper();
+    }
+
     @Override public Schema getSchema() {
         return schema;
     }
@@ -170,6 +175,7 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
 
         if (virtualKey.isFunctional()) {
             onFnKeyTap(keycode);
+            notifyHandlers(FimeMessage.MSG_INPUT_CHANGE);
             return;
         }
 
@@ -179,14 +185,17 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
         else {
             asciiModeInput(virtualKey, keycode);
         }
+        notifyHandlers(FimeMessage.MSG_INPUT_CHANGE);
     }
 
     @Override public void requestSearch() {
         doSearch();
     }
 
+    @SuppressWarnings("all")
     @Override public void eject() {
         getEjector().eject(getInputEditor());
+        notifyHandlers(FimeMessage.MSG_INPUT_CHANGE);
     }
 
     @Override public void registerHandler(@NonNull FimeHandler handler) {
@@ -201,6 +210,10 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
         for (FimeHandler handler : handlerMap.values()) {
             handler.handleMessage(message);
         }
+    }
+
+    @Override public void notifyHandlersDelay(@NonNull Message message, int delayMills) {
+        handler.postDelayed(() -> notifyHandlers(message), delayMills);
     }
 
     @Override public void post(Runnable work) {
@@ -224,7 +237,7 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
         Keycode keycode = Keycode.convertNativeKey(keyCode, event);
         if (keycode != null) {
             onTap(new VirtualKey(keycode.code, keycode.label));
-            notifyHandlers(FimeMessage.MSG_REPAINT);
+            // notifyHandlers(FimeMessage.MSG_REPAINT);
             return true;
         }
         return false;

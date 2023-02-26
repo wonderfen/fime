@@ -89,4 +89,12 @@ public class PinyinSyncopateTest {
         assertEquals(3, result.size());
         assertTrue(remains == null || remains.isEmpty());
     }
+
+    @Test
+    public void testSegment6() {
+        List<String> result = new ArrayList<>(3);
+        String remains = syncopate.segments("fe", result, '\'');
+        assertEquals(0, result.size());
+        assertEquals("fe", remains);
+    }
 }

@@ -16,17 +16,22 @@ public class Fime {
     public static final String SCHEMA_RESULT_DELETE = "kSchemaDelete";
 
     static final String[] EXPORT_FILES = {
+            "pinyin_dict.csv",
             "fime_keyboards.conf",
             "fime_pinyin_schema.conf",
-            "pinyin_dict.csv",
-            "pinyin_t9_schema.conf",
+            "zrm_schema.conf",
+            "pinyin93_keyboards.conf",
+            "pinyin93_schema.conf",
+
+            // "pinyin_t9_schema.conf",
+            // "t9_keyboards.conf",
+
             "stroke5_dict.csv",
             "stroke5_keyboards.conf",
             "stroke5_schema.conf",
-            "t9_keyboards.conf",
+
             "wubi86_dict.csv",
             "wubi86_schema.conf",
-            "zrm_schema.conf",
     };
     private static final String TAG_PREFIX = "Fime";
 

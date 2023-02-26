@@ -6,7 +6,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
-import android.os.HandlerThread;
 import android.os.Message;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -46,7 +45,6 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
     private final ImeEngine engine;
     private ActionBar actionBar;
     private Keyboards keyboards;
-    private HandlerThread workThread;
     private FimeHandler painter;
     private Box container;
     private Canvas canvas;
@@ -100,8 +98,7 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
 
     @Override public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
         Log.i(TAG, "surfaceDestroyed");
-        if (workThread != null) workThread.quit();
-        workThread = null;
+        engine.unregisterHandler(TAG + "-handler");
         painter = null;
     }
 
@@ -118,7 +115,6 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
                 path.moveTo(x, y);
                 findWidgetContains(touchDown).onTouchStart(touchDown);
                 painter.sendEmptyMessage(FimeMessage.MSG_CHECK_LONG_PRESS);
-                repaint();
                 break;
             case MotionEvent.ACTION_MOVE:
                 Log.d(TAG,
@@ -130,9 +126,7 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
                 if (inLongPressCheck && distance >= 32) { // 打断长按！
                     inLongPressCheck = false;
                 }
-                if (!inLongPressCheck && findWidgetContains(pos).onTouchMove(pos)) {
-                    repaint();
-                }
+                if (!inLongPressCheck) findWidgetContains(pos).onTouchMove(pos);
                 break;
             case MotionEvent.ACTION_UP:
                 Log.d(TAG,
@@ -148,7 +142,6 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
                 touchDown = null;
                 lastTouchEvent = null;
                 performClick();
-                repaint();
                 break;
             default:
                 Log.d(TAG, "Ignored touch event: " + action);
@@ -174,7 +167,7 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
         setMeasuredDimension((int) container.getWidth(), (int) container.getHeight());
     }
 
-    boolean handle(@NonNull Message msg) {
+    private boolean handle(@NonNull Message msg) {
         switch (msg.what) {
             case FimeMessage.MSG_REPAINT:
             case FimeMessage.MSG_CANDIDATE_CHANGE:
@@ -200,6 +193,7 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
                     }
                     painter.sendEmptyMessageDelayed(msg.what, 100);
                 }
+                return true;
         }
         return false;
     }
@@ -232,12 +226,7 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
 
     private void setupPainter() {
         engine.unregisterHandler(TAG + "-handler");
-        if (workThread == null || !workThread.isAlive()) {
-            workThread = new HandlerThread(TAG + "-painter");
-            workThread.start();
-            painter = new DefaultFimeHandler(workThread.getLooper(), TAG + "-handler",
-                                             this::handle);
-        }
+        painter = new DefaultFimeHandler(engine.getWorkLopper(), TAG + "-handler", this::handle);
         engine.registerHandler(painter);
     }
 
@@ -249,11 +238,11 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
                 Log.w(TAG, "Canvas is null, can not paint!");
             }
             else {
-                actionBar.onDraw(canvas, actionBar.getContainer());
+                actionBar.onDraw(canvas, actionBar.getContainer(), painter);
                 keyboards.getCurrent()
                          .onDraw(canvas,
                                  new Box(new PointF(0, actionBarHeight), container.getWidth(),
-                                         container.getHeight() - actionBarHeight));
+                                         container.getHeight() - actionBarHeight), painter);
                 if (drawPath) canvas.drawPath(path, pathPaint);
             }
         }

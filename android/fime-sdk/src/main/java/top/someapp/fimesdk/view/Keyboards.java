@@ -4,10 +4,13 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.os.Message;
 import android.util.Log;
 import androidx.annotation.NonNull;
 import com.typesafe.config.Config;
 import top.someapp.fimesdk.Fime;
+import top.someapp.fimesdk.api.DefaultFimeHandler;
+import top.someapp.fimesdk.api.FimeHandler;
 import top.someapp.fimesdk.api.FimeMessage;
 import top.someapp.fimesdk.api.ImeEngine;
 import top.someapp.fimesdk.api.ImeEngineAware;
@@ -21,6 +24,7 @@ import top.someapp.fimesdk.utils.Strings;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -37,10 +41,10 @@ import java.util.regex.Pattern;
 public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
 
     private static final String TAG = Fime.makeTag("Keyboards");
-    private static Pattern kOnTapActionReg = Pattern.compile(
+    private static final Pattern kOnTapActionReg = Pattern.compile(
             "([A-Za-z][0-9]?)+[(]([A-Za-z0-9]+,?)+[)]");
     private final Map<String, Keyboard> keyboardMap = new LinkedHashMap<>();
-    private Config config;
+    private final Config config;
     private ImeEngine engine;
     private int width;  // px
     private String name;
@@ -83,6 +87,9 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
 
     @Override public void setup(@NonNull ImeEngine engine) {
         this.engine = engine;
+        engine.unregisterHandler("KeyLabelUpdater");
+        engine.registerHandler(new DefaultFimeHandler(engine.getWorkLopper(), "KeyLabelUpdater",
+                                                      this::handle));
     }
 
     @Override public boolean onTap(VirtualKey virtualKey) {
@@ -99,9 +106,8 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
     @Override public boolean onLongPress(VirtualKey virtualKey, long durations) {
         int count = (int) Math.max(2, durations / 200);
         if (count > 10) count = 10;
-        VirtualKey key = castIfShiftHold(virtualKey);
         for (int i = 1; i <= count; i++) {
-            if (!onTap(key)) return false;
+            if (!onTap(virtualKey)) return false;
         }
         return true;
     }
@@ -122,6 +128,18 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
     Keyboard getKeyboard(String name) {
         if (keyboardMap.containsKey(name)) return keyboardMap.get(name);
         return null;
+    }
+
+    private boolean handle(@NonNull Message msg) {
+        if (msg.what == FimeMessage.MSG_INPUT_CHANGE) {
+            Log.d(TAG, "handle MSG_INPUT_CHANGE.");
+            String code = engine.getSchema()
+                                .getInputEditor()
+                                .getRawInput();
+            current.updateKeyLabels(code);
+            return true;
+        }
+        return false;
     }
 
     private VirtualKey castIfShiftHold(VirtualKey virtualKey) {
@@ -161,11 +179,12 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
             if (engine != null) {
                 if (current.id.equals(defaultKeyboardId)) {
                     engine.setMode(ImeEngine.CN_MODE);
+                    current.updateKeyLabels("");
                 }
                 else {
                     engine.setMode(ImeEngine.ASCII_MODE);
                 }
-                engine.notifyHandlers(FimeMessage.createRepaintMessage());
+                engine.notifyHandlers(FimeMessage.create(FimeMessage.MSG_REPAINT));
                 engine.enterState(ImeEngine.ImeState.READY);
             }
         }
@@ -220,14 +239,19 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
         private final int width;
         private final Style style;
         private final String id;
+        private FimeHandler painter;
         private String name;
         private Box container;
         private OnVirtualKeyListener keyListener;
         private Bitmap bitmap;
+        private Canvas canvas;
         private boolean dirty;
         private boolean shiftHold;  // shift 键是否被按下
+        @SuppressWarnings("unused")
         private VirtualKey prevKey;
         private PointF firstTouchAt;
+        private Config dynamicLabel;
+        private Set<VirtualKey> dynamicLabelKeys;
 
         Keyboard(int width, String id, @NonNull Config config) {
             this.width = width;
@@ -252,49 +276,45 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
             return container;
         }
 
-        @Override public void onDraw(Canvas canvas, Box box) {
+        @Override public void onDraw(Canvas canvas, Box box, FimeHandler painter) {
             Log.d(TAG, "onDraw, dirty=" + dirty);
             container = box;
+            this.painter = painter;
             int width = (int) box.getWidth();
             int height = (int) box.getHeight();
             PointF offset = box.getPosition();
             paint.reset();  // 重置使抗锯齿再次生效
             paint.setAntiAlias(true);   // 抗锯齿
+            this.canvas = canvas;
             if (bitmap == null || dirty || bitmap.getWidth() != width || bitmap.getHeight() != height) {
                 bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-                Canvas kbdCanvas = new Canvas(bitmap);
-                kbdCanvas.drawColor(style.getBackgroundColor());
-                for (VirtualKey key : keyList) {
-                    drawKey(kbdCanvas, key);
-                }
-                kbdCanvas.save();
+                drawKeyboard();
                 dirty = false;
             }
-            canvas.drawBitmap(bitmap, offset.x, offset.y, paint);
+            else {
+                canvas.drawBitmap(bitmap, offset.x, offset.y, paint);
+            }
         }
 
-        @Override public boolean onTouchStart(PointF pos) {
+        @Override public void onTouchStart(PointF pos) {
             firstTouchAt = new PointF(pos.x, pos.y);
             releaseKeys();
             VirtualKey key = findKeyAt(pos);
             if (key == null) {
-                dirty = false;
-                return false;
+                return;
             }
             pressKeyDown(key);
             if (key.isShift()) shiftHold = !shiftHold;
-            dirty = true;
             prevKey = key;
             Effects.playSound();
-            return true;
         }
 
-        @Override public boolean onTouchMove(PointF pos) {
+        @Override public void onTouchMove(PointF pos) {
             if (firstTouchAt != null) {
                 double distance = Geometry.distanceBetweenPoints(firstTouchAt, pos);
                 Log.d(TAG, "onTouchMove, distance=" + distance);
                 if (holdOnKeyIndex.isEmpty()) {
-                    return false;
+                    return;
                 }
                 if (keyListener != null && distance <= 16) {
                     VirtualKey key = findKeyAt(pos);
@@ -302,33 +322,27 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
                         keyListener.onTap(key);
                     }
                 }
-                dirty = releaseKeys();
-                return dirty;
+                releaseKeys();
             }
-            return false;
         }
 
-        @Override public boolean onTouchEnd(PointF pos) {
+        @Override public void onTouchEnd(PointF pos) {
             VirtualKey key = findKeyAt(pos);
             if (key == null || keyList.isEmpty()) {
-                dirty = releaseKeys();
-                return dirty;
+                releaseKeys();
+                return;
             }
 
-            dirty = true;
             if (keyListener != null) keyListener.onTap(key);
             releaseKeys();
-            return true;
         }
 
-        @Override public boolean onLongPress(PointF pos, long durations) {
+        @Override public void onLongPress(PointF pos, long durations) {
             Log.d(TAG, "onLongPress, durations=" + durations);
             VirtualKey key = findKeyAt(pos);
             if (key != null && keyListener != null) {
                 keyListener.onLongPress(key, durations);
-                return true;
             }
-            return false;
         }
 
         @Override public void setOnVirtualKeyListener(OnVirtualKeyListener virtualKeyListener) {
@@ -346,27 +360,6 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
             return null;
         }
 
-        private boolean releaseKeys() {
-            if (holdOnKeyIndex.isEmpty()) return false;
-
-            Iterator<Integer> it = holdOnKeyIndex.iterator();
-            int size = holdOnKeyIndex.size();
-            while (it.hasNext()) {
-                VirtualKey key = keyList.get(it.next());
-                if (key.isShift() && shiftHold) {
-                    continue;
-                }
-                it.remove();
-            }
-            return size != holdOnKeyIndex.size();
-        }
-
-        private boolean pressKeyDown(VirtualKey key) {
-            if (holdOnKeyIndex.contains(key.index)) return false;
-            holdOnKeyIndex.add(key.index);
-            return true;
-        }
-
         private void init(Config config) {
             // 简单的.9图在线生成器 http://inloop.github.io/shadow4android/
             if (config.hasPath("name")) this.name = config.getString("name");
@@ -375,6 +368,12 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
             float keyWidth = config.getNumber("keyWidth")
                                    .floatValue() * width / 100.0f;
             float keyHeight = Geometry.dp2px(config.getDouble("keyHeight"));   // dp -> px
+            dynamicLabel = config.hasPath("dynamic-label") ? config.getConfig(
+                    "dynamic-label") : null;
+            if (config.hasPath("dynamic-label")) {
+                dynamicLabel = config.getConfig("dynamic-label");
+                dynamicLabelKeys = new HashSet<>();
+            }
             if (config.hasPath("style")) {
                 style.applyFrom(new Style(config.getConfig("style")));
             }
@@ -393,6 +392,9 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
                 if (item.hasPath("name")) {
                     Keycode keycode = Keycode.getByName(item.getString("name"));
                     key = new VirtualKey(keycode.code);
+                    if (dynamicLabel != null && dynamicLabel.hasPath(keycode.name)) {
+                        dynamicLabelKeys.add(key);
+                    }
                     if (item.hasPath("label")) key.setLabel(item.getString("label"));
                     if (item.hasPath("text")) key.setText(item.getString("text"));
                     if (item.hasPath("width")) {
@@ -460,44 +462,89 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
             }
         }
 
-        private void drawKey(Canvas canvas, VirtualKey key) {
-            Style style = key.getStyle();
-            if (holdOnKeyIndex.contains(key.index) || (shiftHold && key.isShift())) {
-                style = style.reverseColors();
+        private void updateKeyLabels(final String input) {
+            if (dynamicLabel == null || dynamicLabelKeys == null || dynamicLabelKeys.isEmpty()) {
+                return;
             }
-            key.getContainer()
-               .render(canvas, paint, style);
-            // 使用矢量图作为按键背景的示例
-            //     Rect content = key.getContainer()
-            //                       .toRect();
-            //     PointF margin = style.getMargin();
-            //     content.left += margin.x / 2;
-            //     content.top += margin.y / 2;
-            //     content.right -= margin.x / 2;
-            //     content.bottom -= margin.y / 2;
-            //     if (key.isFunctional()) {
-            //         Bitmap bitmap = Geometry.drawableToBitmap(fnKeyBackground, content.width(),
-            //                                                   content.height());
-            //         canvas.drawBitmap(bitmap, content.left, content.top, paint);
-            //     }
-            //     else {
-            //         Bitmap bitmap = Geometry.drawableToBitmap(keyBackground, content.width(),
-            //                                                   content.height());
-            //         canvas.drawBitmap(bitmap, content.left, content.top, paint);
-            //     }
-            // paint 使用过后，好像抗锯齿会恢复为默认值!
-            paint.reset();
-            paint.setAntiAlias(true);
-            paint.setColor(style.getColor());
-            paint.setStyle(Paint.Style.FILL_AND_STROKE);
-            paint.setTextSize(style.getFontSize()); // style already using dp
-            String label = shiftHold ? key.getLabel()
-                                          .toUpperCase(Locale.US) : key.getLabel();
-            Box textBounds = Fonts.getTextBounds(paint, label);
-            float dx = Math.max(0, (key.getWidth() - textBounds.getWidth()) / 2);
-            float dy = key.getHeight() * 0.20f;
-            canvas.drawText(label, key.getPosition().x + dx, key.getCenter().y + dy,
-                            paint);
+            Map<Integer, String> labelMap = new HashMap<>();
+            Set<String> names = dynamicLabel.root()
+                                            .unwrapped()
+                                            .keySet();
+            for (String name : names) {
+                Keycode keycode = Keycode.getByName(name);
+                List<String> regexs = dynamicLabel.getConfig(name)
+                                                  .getStringList("regexs");
+                List<String> labels = dynamicLabel.getConfig(name)
+                                                  .getStringList("labels");
+                for (int i = 0; i < regexs.size(); i++) {
+                    if (input.matches(regexs.get(i))) {
+                        labelMap.put(keycode.code, labels.get(i));
+                        break;
+                    }
+                }
+            }
+            for (VirtualKey key : dynamicLabelKeys) {
+                if (labelMap.containsKey(key.getCode())) {
+                    key.setLabel(labelMap.get(key.getCode()));
+                }
+            }
+            Log.d(TAG, labelMap.toString());
+            if (!labelMap.isEmpty()) requestRepaint();
+        }
+
+        private void releaseKeys() {
+            if (holdOnKeyIndex.isEmpty()) return;
+
+            Iterator<Integer> it = holdOnKeyIndex.iterator();
+            int size = holdOnKeyIndex.size();
+            while (it.hasNext()) {
+                VirtualKey key = keyList.get(it.next());
+                if (key.isShift() && shiftHold) {
+                    continue;
+                }
+                it.remove();
+            }
+            if (size != holdOnKeyIndex.size()) requestRepaint();
+        }
+
+        private void pressKeyDown(VirtualKey key) {
+            if (holdOnKeyIndex.contains(key.index)) return;
+            holdOnKeyIndex.add(key.index);
+            requestRepaint();
+        }
+
+        private void requestRepaint() {
+            dirty = true;
+            if (painter != null) painter.sendEmptyMessage(FimeMessage.MSG_REPAINT);
+        }
+
+        private void drawKeyboard() {
+            PointF offset = container.getPosition();
+            Canvas kbdCanvas = new Canvas(bitmap);
+            kbdCanvas.drawColor(style.getBackgroundColor());
+            for (VirtualKey key : keyList) {
+                Style style = key.getStyle();
+                if (holdOnKeyIndex.contains(key.index) || (shiftHold && key.isShift())) {
+                    style = style.reverseColors();
+                }
+                key.getContainer()
+                   .render(kbdCanvas, paint, style);
+                // paint 使用过后，好像抗锯齿会恢复为默认值!
+                paint.reset();
+                paint.setAntiAlias(true);
+                paint.setColor(style.getColor());
+                paint.setStyle(Paint.Style.FILL_AND_STROKE);
+                paint.setTextSize(style.getFontSize()); // style already using dp
+                String label = shiftHold ? key.getLabel()
+                                              .toUpperCase(Locale.US) : key.getLabel();
+                Box textBounds = Fonts.getTextBounds(paint, label);
+                float dx = Math.max(0, (key.getWidth() - textBounds.getWidth()) / 2);
+                float dy = key.getHeight() * 0.20f;
+                kbdCanvas.drawText(label, key.getPosition().x + dx, key.getCenter().y + dy,
+                                   paint);
+            }
+            canvas.drawBitmap(bitmap, offset.x, offset.y, paint);
+            kbdCanvas.save();
         }
     }
 }
