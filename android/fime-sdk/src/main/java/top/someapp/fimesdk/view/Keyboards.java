@@ -132,11 +132,16 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
 
     private boolean handle(@NonNull Message msg) {
         if (msg.what == FimeMessage.MSG_INPUT_CHANGE) {
-            Log.d(TAG, "handle MSG_INPUT_CHANGE.");
-            String code = engine.getSchema()
-                                .getInputEditor()
-                                .getLastSegment();
-            current.updateKeyLabels(code);
+            if (current.dynamicLabel == null) {
+                current.requestRepaint();
+            }
+            else {
+                Log.d(TAG, "handle MSG_INPUT_CHANGE.");
+                String code = engine.getSchema()
+                                    .getInputEditor()
+                                    .getLastSegment();
+                current.updateKeyLabels(code);
+            }
             return true;
         }
         return false;

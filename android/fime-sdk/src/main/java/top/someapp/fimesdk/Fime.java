@@ -19,12 +19,11 @@ public class Fime {
             "pinyin_dict.csv",
             "fime_keyboards.conf",
             "fime_pinyin_schema.conf",
+
             "zrm_schema.conf",
+
             "pinyin93_keyboards.conf",
             "pinyin93_schema.conf",
-
-            // "pinyin_t9_schema.conf",
-            // "t9_keyboards.conf",
 
             "stroke5_dict.csv",
             "stroke5_keyboards.conf",

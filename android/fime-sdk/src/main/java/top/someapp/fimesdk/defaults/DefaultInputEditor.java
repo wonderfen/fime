@@ -116,6 +116,7 @@ public class DefaultInputEditor implements InputEditor {
         rawInput.setLength(0);
         selected = null;
         selectedCursor.clear();
+        getSearchCodes();
         return this;
     }
 

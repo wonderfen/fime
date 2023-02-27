@@ -384,15 +384,18 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
                 ims.getCurrentInputConnection()
                    .sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DEL));
             }
+            notifyHandlers(FimeMessage.MSG_INPUT_CHANGE);
         }
         else if (keycode.code == Keycode.VK_FN_CLEAR) {
             resetInputContext();
+            notifyHandlers(FimeMessage.MSG_INPUT_CHANGE);
         }
         else if (keycode.code == Keycode.VK_FN_ENTER) {
             assert inputEditor != null;
             if (inputEditor.hasInput()) {
                 commitText(inputEditor.getRawInput());
                 resetInputContext();
+                notifyHandlers(FimeMessage.MSG_INPUT_CHANGE);
             }
             else {
                 ims.getCurrentInputConnection()

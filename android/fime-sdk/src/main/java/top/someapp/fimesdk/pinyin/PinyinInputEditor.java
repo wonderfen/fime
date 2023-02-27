@@ -35,7 +35,6 @@ public class PinyinInputEditor extends DefaultInputEditor {
         lastSegment = "";
         if (hasInput()) {
             List<String> codes = segments();    // 分段
-
             while (!searchCodes.isEmpty() && searchCodes.size() >= codes.size()) {
                 searchCodes.pop();
             }
