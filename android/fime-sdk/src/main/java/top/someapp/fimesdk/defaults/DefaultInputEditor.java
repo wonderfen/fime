@@ -228,13 +228,12 @@ public class DefaultInputEditor implements InputEditor {
         if (config.hasPath("syncopate") && config.getBoolean("syncopate")) {
             syncopate = createSyncopate();
         }
-        converter = null;
+        converter = new Converter();
         if (config.hasPath("converter")) {
-            Config converter = config.getConfig("converter");
-            this.converter = new Converter();
-            if (converter.hasPath("rules")) {
-                for (String rule : converter.getStringList("rules")) {
-                    this.converter.addRule(rule);
+            Config c = config.getConfig("converter");
+            if (c.hasPath("rules")) {
+                for (String rule : c.getStringList("rules")) {
+                    converter.addRule(rule);
                 }
             }
         }
