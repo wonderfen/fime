@@ -27,6 +27,7 @@ import java.util.Stack;
 public class DefaultInputEditor implements InputEditor {
 
     private static final String TAG = Fime.makeTag("DefaultInputEditor");
+    private static final int kMaxInputCodeLength = 64;
     private ImeEngine engine;
     private Config config;
     private StringBuilder rawInput;         // 已输入的原始编码
@@ -57,6 +58,10 @@ public class DefaultInputEditor implements InputEditor {
         if (Keycode.isFnKeyCode(code) || Strings.isNullOrEmpty(keycode.label)) return false;
 
         if (hasInput()) {
+            if (rawInput.length() >= kMaxInputCodeLength) {
+                Log.w(TAG, "input too long!");
+                return false;
+            }
             if (alphabet.contains(keycode.label)) {
                 append(keycode.label);
                 return true;

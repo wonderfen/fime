@@ -27,6 +27,15 @@ public interface InputEditor extends ImeEngineAware, Configurable {
      */
     String getRawInput();
 
+    /**
+     * 获取最后一个编码段，如拼音方案输入码为 xi'an 时，最后一个编码断为 an
+     *
+     * @return
+     */
+    default String getLastSegment() {
+        return getRawInput();
+    }
+
     List<String> getSearchCodes();
 
     void setSearchCodes(List<String> codes);

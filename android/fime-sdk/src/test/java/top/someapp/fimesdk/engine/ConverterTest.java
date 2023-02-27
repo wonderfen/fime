@@ -8,6 +8,8 @@ import org.junit.Test;
 import top.someapp.fimesdk.config.Configs;
 import top.someapp.fimesdk.utils.Strings;
 
+import java.util.List;
+
 /**
  * @author zwz
  * Create on 2023-02-13
@@ -75,6 +77,23 @@ public class ConverterTest {
                 // else {
                 //     assertEquals(input, output);
                 // }
+            }
+        }
+    }
+
+    @Test
+    public void testConvert2() {
+        Config config = Configs.load(ConverterTest.class.getResourceAsStream("/pinyin93.conf"),
+                                     false);
+        List<String> rules = config.getStringList("rules");
+        for (String rule : rules) {
+            converter.addRule(rule);
+        }
+        for (int i = 1; i <= 9; i++) {
+            for (int j = 1; j <= 9; j++) {
+                String input = i + "" + j;
+                String output = converter.convert(input);
+                System.out.println(input + " => " + output);
             }
         }
     }

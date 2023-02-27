@@ -135,7 +135,7 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
             Log.d(TAG, "handle MSG_INPUT_CHANGE.");
             String code = engine.getSchema()
                                 .getInputEditor()
-                                .getRawInput();
+                                .getLastSegment();
             current.updateKeyLabels(code);
             return true;
         }
@@ -370,9 +370,10 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
             float keyHeight = Geometry.dp2px(config.getDouble("keyHeight"));   // dp -> px
             dynamicLabel = config.hasPath("dynamic-label") ? config.getConfig(
                     "dynamic-label") : null;
+            List<String> dynamicLabelNames = new ArrayList<>();
             if (config.hasPath("dynamic-label")) {
-                dynamicLabel = config.getConfig("dynamic-label");
                 dynamicLabelKeys = new HashSet<>();
+                dynamicLabelNames = dynamicLabel.getStringList("names");
             }
             if (config.hasPath("style")) {
                 style.applyFrom(new Style(config.getConfig("style")));
@@ -392,7 +393,7 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
                 if (item.hasPath("name")) {
                     Keycode keycode = Keycode.getByName(item.getString("name"));
                     key = new VirtualKey(keycode.code);
-                    if (dynamicLabel != null && dynamicLabel.hasPath(keycode.name)) {
+                    if (dynamicLabel != null && dynamicLabelNames.contains(keycode.name)) {
                         dynamicLabelKeys.add(key);
                     }
                     if (item.hasPath("label")) key.setLabel(item.getString("label"));
@@ -464,24 +465,20 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
 
         private void updateKeyLabels(final String input) {
             if (dynamicLabel == null || dynamicLabelKeys == null || dynamicLabelKeys.isEmpty()) {
+                requestRepaint();
                 return;
             }
+
             Map<Integer, String> labelMap = new HashMap<>();
-            Set<String> names = dynamicLabel.root()
-                                            .unwrapped()
-                                            .keySet();
-            for (String name : names) {
-                Keycode keycode = Keycode.getByName(name);
-                List<String> regexs = dynamicLabel.getConfig(name)
-                                                  .getStringList("regexs");
-                List<String> labels = dynamicLabel.getConfig(name)
-                                                  .getStringList("labels");
-                for (int i = 0; i < regexs.size(); i++) {
-                    if (input.matches(regexs.get(i))) {
-                        labelMap.put(keycode.code, labels.get(i));
-                        break;
-                    }
-                }
+            Config labels = dynamicLabel.getConfig("labels");
+            List<String> names = dynamicLabel.getStringList("names");
+            final Keycode first = Keycode.getByName(names.get(0));
+            List<String> newLabels = dynamicLabel.getStringList("init");
+            if (!Strings.isNullOrEmpty(input) && labels.hasPath(input)) {
+                newLabels = labels.getStringList(input);
+            }
+            for (int i = 0; i < newLabels.size(); i++) {
+                labelMap.put(i + first.code, newLabels.get(i));
             }
             for (VirtualKey key : dynamicLabelKeys) {
                 if (labelMap.containsKey(key.getCode())) {
@@ -504,7 +501,7 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
                 }
                 it.remove();
             }
-            if (size != holdOnKeyIndex.size()) requestRepaint();
+            // if (size != holdOnKeyIndex.size()) requestRepaint();
         }
 
         private void pressKeyDown(VirtualKey key) {

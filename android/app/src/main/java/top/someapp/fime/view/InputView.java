@@ -143,8 +143,14 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
                 lastTouchEvent = null;
                 performClick();
                 break;
+            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_OUTSIDE:
             default:
                 Log.d(TAG, "Ignored touch event: " + action);
+                path.reset();
+                touchDown = null;
+                lastTouchEvent = null;
+                inLongPressCheck = false;
                 break;
         }
         return true;
