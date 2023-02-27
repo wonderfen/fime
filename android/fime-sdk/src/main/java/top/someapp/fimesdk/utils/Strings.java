@@ -1,5 +1,7 @@
 package top.someapp.fimesdk.utils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -37,6 +39,20 @@ public class Strings {
 
     public static String[] split(String str, String regex) {
         return str.split(regex);
+    }
+
+    public static List<String> splitByLength(String input, int codeLength) {
+        assert codeLength > 0;
+        final int len = input.length();
+        final int count = (len + codeLength - 1) / codeLength;
+        List<String> codes = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            int start = i * codeLength;
+            if (start < len) {
+                codes.add(input.substring(start, Math.min(start + codeLength, len)));
+            }
+        }
+        return codes;
     }
 
     public static String join(char delimiter, String... strings) {

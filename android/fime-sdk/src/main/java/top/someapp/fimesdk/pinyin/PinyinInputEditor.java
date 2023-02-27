@@ -51,13 +51,6 @@ public class PinyinInputEditor extends DefaultInputEditor {
         return Collections.EMPTY_LIST;
     }
 
-    @Override public boolean accept(Keycode keycode) {
-        if (super.accept(keycode)) {
-            return true;
-        }
-        return false;
-    }
-
     @Override public void select(int index) {
         Candidate candidate = getCandidateAt(index);
         if (candidate == null) return;
@@ -96,17 +89,7 @@ public class PinyinInputEditor extends DefaultInputEditor {
             }
             else if (codeLength != null && codeLength > 0) {
                 String rawInput = getRawInput();
-                StringBuilder temp = new StringBuilder(codeLength);
-                for (char ch : rawInput.toCharArray()) {
-                    if (temp.length() < codeLength) {
-                        temp.append(ch);
-                        continue;
-                    }
-                    groups.add(temp.toString());
-                    temp.setLength(0);
-                    temp.append(ch);
-                }
-                if (temp.length() > 0) groups.add(temp.toString());
+                groups.addAll(Strings.splitByLength(rawInput, codeLength));
             }
             else {
                 groups.add(getRawInput());

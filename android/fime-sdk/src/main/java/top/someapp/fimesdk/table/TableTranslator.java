@@ -48,20 +48,14 @@ public class TableTranslator extends DefaultTranslator implements Comparator<Dic
         }
 
         List<Candidate> candidates = new ArrayList<>(limit);
-        StringBuilder normalized = new StringBuilder(codes.size() * 6);
-        for (String py : codes) {
-            normalized.append(py)
-                      .append(" ");
-        }
-        normalized.deleteCharAt(normalized.length() - 1);
-        if (normalized.length() > 0) {
+        for (String code : codes) {
             List<Dict.Item> items = new ArrayList<>(limit);
             boolean ok;
             if ("search".equals(searchMethod)) {
-                ok = dict.search(normalized.toString(), codes.size() + 1, items, limit, this);
+                ok = dict.search(code, codes.size() + 1, items, limit, this);
             }
             else {
-                ok = dict.searchPrefix(normalized.toString(), codes.size() + 1, items, limit, this);
+                ok = dict.searchPrefix(code, codes.size() + 1, items, limit, this);
             }
             if (ok) {
                 for (Dict.Item item : items) {
@@ -72,6 +66,7 @@ public class TableTranslator extends DefaultTranslator implements Comparator<Dic
         return candidates;
     }
 
+    @SuppressWarnings("all")
     @Override public int compare(Dict.Item o1, Dict.Item o2) {
         String code1 = o1.getCode();
         String code2 = o2.getCode();

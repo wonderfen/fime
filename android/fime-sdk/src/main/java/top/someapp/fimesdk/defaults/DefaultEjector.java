@@ -45,7 +45,7 @@ public class DefaultEjector implements Ejector {
         return engine;
     }
 
-    private void commit(Candidate candidate) {
+    protected void commit(Candidate candidate) {
         if (engine == null || candidate.text.isEmpty()) return;
         engine.commitText(candidate.text);
         try {

@@ -64,12 +64,14 @@ public class DefaultInputEditor implements InputEditor {
             }
             if (alphabet.contains(keycode.label)) {
                 append(keycode.label);
+                afterAccept();
                 return true;
             }
         }
         else {
             if (initials.contains(keycode.label)) {
                 append(keycode.label);
+                afterAccept();
                 return true;
             }
         }
@@ -240,6 +242,9 @@ public class DefaultInputEditor implements InputEditor {
         }
     }
 
+    protected void afterAccept() {
+    }
+
     protected String rawInputAsPrompt() {
         return getRawInput();
     }
@@ -263,7 +268,7 @@ public class DefaultInputEditor implements InputEditor {
         StringBuilder prompt = new StringBuilder();
         if (selected != null) prompt.append(selected.text);
         ConfigObject map = config.getObject("prompt");
-        for (int i = getCursor(), len = rawInput.length(); i < len; i++) {
+        for (int i = 0, len = rawInput.length(); i < len; i++) {
             String key = rawInput.substring(i, i + 1);
             if (map.containsKey(key)) {
                 prompt.append(map.toConfig()
