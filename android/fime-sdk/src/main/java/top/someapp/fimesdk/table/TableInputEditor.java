@@ -1,6 +1,8 @@
 package top.someapp.fimesdk.table;
 
 import androidx.annotation.Keep;
+import com.typesafe.config.Config;
+import top.someapp.fimesdk.config.Keycode;
 import top.someapp.fimesdk.defaults.DefaultInputEditor;
 import top.someapp.fimesdk.utils.Strings;
 
@@ -14,19 +16,48 @@ import java.util.List;
 @Keep
 public class TableInputEditor extends DefaultInputEditor {
 
-    @SuppressWarnings("unchecked")
-    @Override public List<String> getSearchCodes() {
-        if (!hasInput()) return Collections.EMPTY_LIST;
+    private boolean canOverflow;
+    private String overflowWithEmpty; // clear | accept | reject
+
+    @Override public boolean accept(Keycode keycode) {
+        if (!canOverflow || hasCandidate()) return super.accept(keycode);
+
         Integer codeLength = getCodeLength();
-        if (codeLength == null || codeLength < 1 || getRawInput().length() <= codeLength) {
-            return Collections.singletonList(getRawInput());
+        if (codeLength == null || codeLength < 1) return super.accept(keycode);
+        if (getRawInput().length() >= codeLength) {
+            if ("clear".equals(overflowWithEmpty)) {
+                clearInput();
+                return true;
+            }
+            if ("reject".equals(overflowWithEmpty)) {
+                return true;
+            }
         }
-        List<String> codes;
-        codes = Strings.splitByLength(getRawInput(), codeLength);
-        return codes;
+        return super.accept(keycode);
     }
 
-    @Override protected void afterAccept() {
-        getEngine().eject();
+    @SuppressWarnings("unchecked")
+    @Override public List<String> getSearchCodes() {
+        if (canOverflow) {
+            if (!hasInput()) return Collections.EMPTY_LIST;
+            Integer codeLength = getCodeLength();
+            if (codeLength == null || codeLength < 1 || getRawInput().length() <= codeLength) {
+                return Collections.singletonList(getRawInput());
+            }
+            List<String> codes;
+            codes = Strings.splitByLength(getRawInput(), codeLength);
+            return codes;
+        }
+        return super.getSearchCodes();
+    }
+
+    @Override public void reconfigure(Config config) {
+        super.reconfigure(config);
+        if (config.hasPath("can-overflow")) {
+            canOverflow = config.getBoolean("can-overflow");
+        }
+        if (config.hasPath("overflow-with-empty")) {
+            overflowWithEmpty = config.getString("overflow-with-empty");
+        }
     }
 }

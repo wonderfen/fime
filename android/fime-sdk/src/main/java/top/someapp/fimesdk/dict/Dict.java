@@ -191,12 +191,13 @@ public class Dict implements Comparator<Dict.Item> {
         return hit;
     }
 
-    public boolean searchPrefix(@NonNull String prefix, final int wordLength,
-            @NonNull List<Item> result,
-            int limit, Comparator<Item> comparator) {
+    public boolean searchPrefix(@NonNull String prefix, final int extendCodeLength,
+            @NonNull List<Item> result, int limit,
+            Comparator<Item> comparator) {
         ObjectArrayPriorityQueue<Item> queue = new ObjectArrayPriorityQueue<>(limit * 2,
                                                                               comparator);
         // 前缀预测匹配
+        final int maxCodeLength = prefix.length() + extendCodeLength;
         for (Map.Entry<String, IntArray> entry : mapTrie.predictiveSearchEntries(
                 prefix)) {
             IntArray value = entry.getValue();
@@ -204,10 +205,8 @@ public class Dict implements Comparator<Dict.Item> {
             final int size = value.get(1);
             for (int i = 0; i < size; i++) {
                 Item item = items.get(index + i);
-                if (wordLength > 1) { // 词组查询
-                    queue.enqueue(item);
-                }
-                else if (item.getLength() == wordLength) {  // 单字查询
+                if (item.getCode()
+                        .length() <= maxCodeLength) {
                     queue.enqueue(item);
                 }
             }
@@ -244,6 +243,7 @@ public class Dict implements Comparator<Dict.Item> {
         return Dict.compareItems(o1, o2);
     }
 
+    @SuppressWarnings("all")
     protected Dict put(@NonNull Item item) {
         if (sealed) return this;
         if (itemMap == null) itemMap = new Object2ObjectRBTreeMap<>();
@@ -297,7 +297,7 @@ public class Dict implements Comparator<Dict.Item> {
     }
 
     @Keep
-    public static class Item implements Serializable, Comparable {
+    public static class Item implements Serializable, Comparable<Item> {
 
         private /*final*/ String text;  // for Serializable
         private /*final*/ String code;  // for Serializable
@@ -356,8 +356,8 @@ public class Dict implements Comparator<Dict.Item> {
                     '}';
         }
 
-        @Override public int compareTo(Object o) {
-            return Dict.compareItems(this, (Item) o);
+        @Override public int compareTo(Item o) {
+            return Dict.compareItems(this, o);
         }
     }
 }

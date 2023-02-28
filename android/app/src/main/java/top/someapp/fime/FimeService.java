@@ -40,7 +40,7 @@ public class FimeService extends InputMethodService implements ServiceConnection
 
     private static final String TAG = "FimeService";
     private static final String AUTHORITY = "com.example.android.commitcontent.ime.inputcontent";
-    private ImeEngine imeService;
+    private ImeEngine engine;
     private InputView inputView;
 
     @Override public void onCreate() {
@@ -53,7 +53,7 @@ public class FimeService extends InputMethodService implements ServiceConnection
 
     @Override public View onCreateInputView() {
         Log.d(TAG, "onCreateInputView");
-        inputView = new InputView(imeService); // 无条件创建一个新的 view，因为它不一定可以重用
+        inputView = new InputView(engine); // 无条件创建一个新的 view，因为它不一定可以重用
         return inputView;
     }
 
@@ -62,19 +62,22 @@ public class FimeService extends InputMethodService implements ServiceConnection
         FimeContext.getInstance()
                    .setRootView(inputView);
         Log.d(TAG, "onWindowShown");
-        imeService.enterState(ImeEngine.ImeState.READY);
+        ImeEngine.ImeState state = engine.getState();
+        if (state == ImeEngine.ImeState.FREEZE || state == ImeEngine.ImeState.QUIT) {
+            engine.enterState(ImeEngine.ImeState.READY);
+        }
     }
 
     @Override public void onWindowHidden() {
         super.onWindowHidden();
         Log.d(TAG, "onWindowHidden");
-        imeService.enterState(ImeEngine.ImeState.FREEZE);
+        engine.enterState(ImeEngine.ImeState.FREEZE);
     }
 
     @Override public void onStartInput(EditorInfo attribute, boolean restarting) {
         super.onStartInput(attribute, restarting);
         Log.d(TAG, "onStartInput, restarting=" + restarting);
-        imeService.onStartInput(attribute, restarting);
+        engine.onStartInput(attribute, restarting);
     }
 
     @Override public void onFinishInput() {
@@ -86,15 +89,15 @@ public class FimeService extends InputMethodService implements ServiceConnection
         super.onDestroy();
         Log.d(TAG, "onDestroy");
         unbindService(this);
-        imeService.enterState(ImeEngine.ImeState.QUIT);
+        engine.enterState(ImeEngine.ImeState.QUIT);
     }
 
     @Override public boolean onKeyDown(int keyCode, KeyEvent event) {
-        return imeService.onKeyDown(keyCode, event);
+        return engine.onKeyDown(keyCode, event);
     }
 
     @Override public boolean onKeyUp(int keyCode, KeyEvent event) {
-        return imeService.onKeyUp(keyCode, event);
+        return engine.onKeyUp(keyCode, event);
     }
 
     @Override public void onServiceConnected(ComponentName name, IBinder binder) {
@@ -106,7 +109,7 @@ public class FimeService extends InputMethodService implements ServiceConnection
     }
 
     private void setupEngine() {
-        imeService = new FimeEngine(this);
+        engine = new FimeEngine(this);
     }
 
     private boolean isCommitContentSupported(
@@ -228,7 +231,7 @@ public class FimeService extends InputMethodService implements ServiceConnection
         }
 
         final PackageManager packageManager = getPackageManager();
-        final String possiblePackageNames[] = packageManager.getPackagesForUid(packageUid);
+        final String[] possiblePackageNames = packageManager.getPackagesForUid(packageUid);
         for (final String possiblePackageName : possiblePackageNames) {
             if (packageName.equals(possiblePackageName)) {
                 return true;

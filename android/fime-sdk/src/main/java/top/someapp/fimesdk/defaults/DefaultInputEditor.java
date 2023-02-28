@@ -115,6 +115,7 @@ public class DefaultInputEditor implements InputEditor {
     }
 
     @Override public InputEditor clearInput() {
+        Log.d(TAG, "clearInput.");
         rawInput.setLength(0);
         selected = null;
         selectedCursor.clear();
@@ -132,6 +133,7 @@ public class DefaultInputEditor implements InputEditor {
     }
 
     @Override public InputEditor append(String code) {
+        Log.d(TAG, "append: [" + code + "]");
         rawInput.append(code);
         return this;
     }
@@ -153,6 +155,7 @@ public class DefaultInputEditor implements InputEditor {
                     removeLastSelected();
                 }
                 else {
+                    Log.d(TAG, "backspace input code.");
                     rawInput.deleteCharAt(rawInput.length() - 1);
                 }
             }
@@ -189,6 +192,7 @@ public class DefaultInputEditor implements InputEditor {
     }
 
     @Override public boolean hasInput() {
+        Log.d(TAG, "input.length=" + rawInput.length());
         return rawInput.length() > 0;
     }
 
@@ -207,7 +211,7 @@ public class DefaultInputEditor implements InputEditor {
 
     @Override public void select(int index) {
         setActiveIndex(index);
-        getEngine().eject();
+        getEngine().manualEject();
     }
 
     @Override public Candidate getSelected() {

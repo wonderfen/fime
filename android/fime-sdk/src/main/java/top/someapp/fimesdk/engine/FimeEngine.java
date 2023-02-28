@@ -66,6 +66,7 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
     }
 
     @Override public void enterState(ImeState newState) {
+        ImeState oldState = state;
         switch (state) {
             case QUIT:
             case FREEZE:
@@ -102,7 +103,7 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
         if (newState == ImeState.QUIT) {
             stop();
         }
-        resetInputContext();
+        if (oldState != newState) resetInputContext();
     }
 
     @Override public void setMode(int mode) {
@@ -193,8 +194,8 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
     }
 
     @SuppressWarnings("all")
-    @Override public void eject() {
-        getEjector().eject(getInputEditor());
+    @Override public void manualEject() {
+        getEjector().manualEject(getInputEditor());
         notifyHandlers(FimeMessage.MSG_INPUT_CHANGE);
     }
 
@@ -311,7 +312,7 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
             doSearch();
         }
         else if (Keycode.isSpaceCode(code)) {
-            getEjector().eject(inputEditor);
+            manualEject();
         }
         else if (Keycode.isEnterCode(code)) {
             if (inputEditor.hasInput()) {
@@ -406,6 +407,7 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
         }
     }
 
+    @SuppressWarnings("all")
     private void doSearch() {
         InputEditor inputEditor = getInputEditor();
         Translator translator = getTranslator();
@@ -433,6 +435,9 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
                 inputEditor.appendCandidate(candidate);
             }
             notifyHandlers(FimeMessage.MSG_CANDIDATE_CHANGE);
+            if (!candidates.isEmpty()) {
+                getEjector().ejectOnCandidateChange(getInputEditor());
+            }
         });
     }
 }

@@ -67,6 +67,7 @@ class ActionBar implements Widget {
         canvas.drawRect(box.toRectF(), paint);
         candidatePos.clear();
         if (inputEditor == null || !inputEditor.hasInput()) {
+            Log.d(TAG, "no input code!");
             canvas.drawBitmap(icon, 0.5f * gutter, 0.5f * (box.getHeight() - icon.getHeight()),
                               paint);
             candidateOffset = 0;
@@ -79,6 +80,7 @@ class ActionBar implements Widget {
         canvas.drawText(inputEditor.getPrompt(), box.getLeft() + 16, paint.getTextSize(),
                         paint);
         if (inputEditor.hasCandidate()) {
+            Log.d(TAG, "draw candidate.");
             paint.setTextSize(0.33f * box.getHeight());
             float x = box.getLeft() + candidateOffset + 10.0f;
             float y = 0.8f * box.getHeight();
@@ -110,6 +112,7 @@ class ActionBar implements Widget {
             // candidatePos.add(x);
         }
         else {
+            Log.d(TAG, "no candidate!");
             candidateOffset = 0;
         }
     }

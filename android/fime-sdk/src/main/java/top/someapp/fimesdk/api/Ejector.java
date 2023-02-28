@@ -10,5 +10,7 @@ import androidx.annotation.NonNull;
  */
 public interface Ejector extends ImeEngineAware, Configurable {
 
-    void eject(@NonNull InputEditor editor);
+    void manualEject(@NonNull InputEditor editor);
+
+    void ejectOnCandidateChange(@NonNull InputEditor editor);
 }

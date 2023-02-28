@@ -5,7 +5,6 @@ import androidx.annotation.Keep;
 import top.someapp.fimesdk.Fime;
 import top.someapp.fimesdk.api.Candidate;
 import top.someapp.fimesdk.api.Syncopate;
-import top.someapp.fimesdk.config.Keycode;
 import top.someapp.fimesdk.defaults.DefaultInputEditor;
 import top.someapp.fimesdk.utils.Strings;
 
@@ -67,7 +66,7 @@ public class PinyinInputEditor extends DefaultInputEditor {
         if (accept) {
             addSelected(candidate);
             if (getSelected().text.length() >= searchCodes.size()) {
-                getEngine().eject();
+                getEngine().manualEject();
             }
         }
     }

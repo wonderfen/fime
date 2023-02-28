@@ -22,15 +22,15 @@ import java.util.List;
 public class TableTranslator extends DefaultTranslator implements Comparator<Dict.Item> {
 
     private static final String TAG = Fime.makeTag("TableTranslator");
-    private String searchMethod = "search";
+    private int searchCodeExtend = 0;
 
     public TableTranslator() {
     }
 
     @Override public void reconfigure(Config config) {
         super.reconfigure(config);
-        if (config.hasPath("search-method")) {
-            searchMethod = config.getString("search-method");
+        if (config.hasPath("search-code-extend")) {
+            searchCodeExtend = Math.max(config.getInt("search-code-extend"), 0);
         }
     }
 
@@ -50,17 +50,14 @@ public class TableTranslator extends DefaultTranslator implements Comparator<Dic
         List<Candidate> candidates = new ArrayList<>(limit);
         for (String code : codes) {
             List<Dict.Item> items = new ArrayList<>(limit);
-            boolean ok;
-            if ("search".equals(searchMethod)) {
-                ok = dict.search(code, codes.size() + 1, items, limit, this);
-            }
-            else {
-                ok = dict.searchPrefix(code, codes.size() + 1, items, limit, this);
-            }
+            boolean ok = dict.searchPrefix(code, searchCodeExtend, items, limit, this);
             if (ok) {
                 for (Dict.Item item : items) {
                     candidates.add(new Candidate(item.getCode(), item.getText()));
                 }
+            }
+            else {
+                break;
             }
         }
         return candidates;

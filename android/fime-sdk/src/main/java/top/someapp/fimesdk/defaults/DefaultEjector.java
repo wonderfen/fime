@@ -28,7 +28,7 @@ public class DefaultEjector implements Ejector {
         this.engine = engine;
     }
 
-    @Override public void eject(@NonNull InputEditor editor) {
+    @Override public void manualEject(@NonNull InputEditor editor) {
         if (editor.hasInput()) {
             Candidate candidate = new Candidate("", "");
             if (editor.getSelected() != null) {
@@ -37,17 +37,30 @@ public class DefaultEjector implements Ejector {
             if (editor.getActiveCandidate() != null) {
                 candidate = candidate.append(editor.getActiveCandidate());
             }
-            commit(candidate);
+            commit(candidate, editor);
         }
+    }
+
+    @Override public void ejectOnCandidateChange(@NonNull InputEditor editor) {
+
     }
 
     protected ImeEngine getEngine() {
         return engine;
     }
 
-    protected void commit(Candidate candidate) {
+    protected void commit(Candidate candidate, InputEditor editor) {
         if (engine == null || candidate.text.isEmpty()) return;
+        String remains = null;
+        if (editor.getCursor() > candidate.code.length()) {
+            remains = editor.getRawInput()
+                            .substring(candidate.code.length());
+        }
         engine.commitText(candidate.text);
+        if (remains != null) {
+            editor.append(remains);
+            engine.requestSearch();
+        }
         try {
             engine.post(() -> engine.getSchema()
                                     .getTranslator()

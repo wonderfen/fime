@@ -40,7 +40,7 @@ public interface ImeEngine extends KeyEvent.Callback {
 
     void requestSearch();
 
-    void eject();
+    void manualEject();
 
     void commitText(String text);
 
