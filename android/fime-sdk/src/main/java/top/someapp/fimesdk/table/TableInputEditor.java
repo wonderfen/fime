@@ -2,12 +2,14 @@ package top.someapp.fimesdk.table;
 
 import androidx.annotation.Keep;
 import com.typesafe.config.Config;
+import top.someapp.fimesdk.api.Syncopate;
 import top.someapp.fimesdk.config.Keycode;
 import top.someapp.fimesdk.defaults.DefaultInputEditor;
-import top.someapp.fimesdk.utils.Strings;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Stack;
 
 /**
  * @author zwz
@@ -16,39 +18,46 @@ import java.util.List;
 @Keep
 public class TableInputEditor extends DefaultInputEditor {
 
+    private Stack<String> searchCodes = new Stack<>();
+    private String lastSegment = "";
     private boolean canOverflow;
     private String overflowWithEmpty; // clear | accept | reject
 
     @Override public boolean accept(Keycode keycode) {
-        if (!canOverflow || hasCandidate()) return super.accept(keycode);
-
-        Integer codeLength = getCodeLength();
-        if (codeLength == null || codeLength < 1) return super.accept(keycode);
-        if (getRawInput().length() >= codeLength) {
-            if ("clear".equals(overflowWithEmpty)) {
-                clearInput();
-                return true;
-            }
-            if ("reject".equals(overflowWithEmpty)) {
-                return true;
-            }
-        }
+        // if (!canOverflow || hasCandidate()) return super.accept(keycode);
+        //
+        // Integer codeLength = getCodeLength();
+        // if (codeLength == null || codeLength < 1) return super.accept(keycode);
+        // if (getRawInput().length() >= codeLength) {
+        //     if ("clear".equals(overflowWithEmpty)) {
+        //         clearInput();
+        //         return true;
+        //     }
+        //     if ("reject".equals(overflowWithEmpty)) {
+        //         return true;
+        //     }
+        // }
         return super.accept(keycode);
     }
 
     @SuppressWarnings("unchecked")
     @Override public List<String> getSearchCodes() {
-        if (canOverflow) {
-            if (!hasInput()) return Collections.EMPTY_LIST;
-            Integer codeLength = getCodeLength();
-            if (codeLength == null || codeLength < 1 || getRawInput().length() <= codeLength) {
-                return Collections.singletonList(getRawInput());
+        lastSegment = "";
+        if (hasInput()) {
+            List<String> codes = segments();    // 分段
+            while (!searchCodes.isEmpty() && searchCodes.size() >= codes.size()) {
+                searchCodes.pop();
             }
-            List<String> codes;
-            codes = Strings.splitByLength(getRawInput(), codeLength);
-            return codes;
+            if (codes.isEmpty()) {
+                searchCodes.push("");
+            }
+            else {
+                lastSegment = codes.get(codes.size() - 1);
+                searchCodes.push(getConverter().convert(lastSegment));
+            }
+            return searchCodes;
         }
-        return super.getSearchCodes();
+        return Collections.EMPTY_LIST;
     }
 
     @Override public void reconfigure(Config config) {
@@ -59,5 +68,18 @@ public class TableInputEditor extends DefaultInputEditor {
         if (config.hasPath("overflow-with-empty")) {
             overflowWithEmpty = config.getString("overflow-with-empty");
         }
+    }
+
+    private List<String> segments() {
+        final Syncopate syncopate = getSyncopate();
+        List<String> groups = new ArrayList<>();
+        char delimiter = getDelimiter();
+        if (delimiter > '\0') {
+            syncopate.segments(getRawInput(), groups, delimiter);
+        }
+        else {
+            syncopate.segments(getRawInput(), groups);
+        }
+        return groups;
     }
 }

@@ -28,6 +28,7 @@ public class DefaultTranslator implements Translator {
     private Config config;
     private Dict dict;
     private transient File target;
+    private int limit = kLimit;
 
     @Override public Config getConfig() {
         return config;
@@ -35,6 +36,9 @@ public class DefaultTranslator implements Translator {
 
     @Override public void reconfigure(Config config) {
         this.config = config;
+        if (config.hasPath("limit")) {
+            limit = Math.max(1, config.getInt("limit"));
+        }
         initDict();
     }
 
@@ -62,6 +66,10 @@ public class DefaultTranslator implements Translator {
         if (dict != null) {
             dict.close();
         }
+    }
+
+    @Override public int getLimit() {
+        return limit;
     }
 
     protected ImeEngine getEngine() {

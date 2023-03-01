@@ -1,4 +1,4 @@
-package top.someapp.fimesdk.pinyin;
+package top.someapp.fimesdk.syncopate;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;

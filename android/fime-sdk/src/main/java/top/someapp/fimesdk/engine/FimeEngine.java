@@ -422,10 +422,10 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
             List<Candidate> candidates;
             assert translator != null;
             if (inputEditor.getSelected() == null) {
-                candidates = translator.translate(searchCodes, 512);
+                candidates = translator.translate(searchCodes);
             }
             else {
-                candidates = translator.translate(inputEditor.getSelected().text, searchCodes, 512);
+                candidates = translator.translate(inputEditor.getSelected().text, searchCodes);
             }
             filter(candidates, getSchema());
             Log.i(TAG, "search(" + searchCodes + ") end, result.size=" + candidates.size());

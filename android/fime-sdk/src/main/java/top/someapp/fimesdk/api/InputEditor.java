@@ -12,6 +12,8 @@ import java.util.List;
  */
 public interface InputEditor extends ImeEngineAware, Configurable {
 
+    int MAX_INPUT_LENGTH = 64;
+
     /**
      * 是否接受按键值 keycode
      *

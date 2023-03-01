@@ -9,7 +9,6 @@ import top.someapp.fimesdk.defaults.DefaultInputEditor;
 import top.someapp.fimesdk.utils.Strings;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
@@ -71,43 +70,22 @@ public class PinyinInputEditor extends DefaultInputEditor {
         }
     }
 
-    @Override protected Syncopate createSyncopate() {
-        return new PinyinSyncopate();
-    }
-
     private List<String> segments() {
+        final Syncopate syncopate = getSyncopate();
         List<String> groups = new ArrayList<>(64);
-        Syncopate syncopate = getSyncopate();
         char delimiter = getDelimiter();
-        Integer codeLength = getCodeLength();
-        if (syncopate == null) {
-            if (delimiter > '\0') {
-                groups.addAll(
-                        Arrays.asList(getRawInput().split(
-                                Strings.simpleFormat("[\\u%04x]", (int) delimiter))));
-            }
-            else if (codeLength != null && codeLength > 0) {
-                String rawInput = getRawInput();
-                groups.addAll(Strings.splitByLength(rawInput, codeLength));
-            }
-            else {
-                groups.add(getRawInput());
-            }
+        if (syncopate.isValidCode(getRawInput())) {
+            groups.add(getRawInput());
         }
         else {
-            if (syncopate.isValidCode(getRawInput())) {
-                groups.add(getRawInput());
+            String remains;
+            if (delimiter > '\0') {
+                remains = syncopate.segments(getRawInput(), groups, delimiter);
             }
             else {
-                String remains;
-                if (delimiter > '\0') {
-                    remains = syncopate.segments(getRawInput(), groups, delimiter);
-                }
-                else {
-                    remains = syncopate.segments(getRawInput(), groups);
-                }
-                if (!Strings.isNullOrEmpty(remains)) groups.add(remains);
+                remains = syncopate.segments(getRawInput(), groups);
             }
+            if (!Strings.isNullOrEmpty(remains)) groups.add(remains);
         }
         return groups;
     }

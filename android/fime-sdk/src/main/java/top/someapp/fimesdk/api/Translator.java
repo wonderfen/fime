@@ -12,6 +12,20 @@ import java.util.List;
  */
 public interface Translator extends ImeEngineAware, Configurable {
 
+    int kLimit = 512;
+
+    default List<Candidate> translate(@NonNull List<String> codes) {
+        return translate(codes, getLimit());
+    }
+
+    default List<Candidate> translate(String selected, @NonNull List<String> codes) {
+        return translate(selected, codes, getLimit());
+    }
+
+    default int getLimit() {
+        return kLimit;
+    }
+
     List<Candidate> translate(String selected, @NonNull List<String> codes, int limit);
 
     List<Candidate> translate(@NonNull List<String> codes, int limit);

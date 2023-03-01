@@ -13,6 +13,7 @@ import top.someapp.fimesdk.api.InputEditor;
 import top.someapp.fimesdk.api.Syncopate;
 import top.someapp.fimesdk.config.Keycode;
 import top.someapp.fimesdk.engine.Converter;
+import top.someapp.fimesdk.syncopate.Syncopates;
 import top.someapp.fimesdk.utils.Strings;
 
 import java.util.ArrayList;
@@ -27,7 +28,6 @@ import java.util.Stack;
 public class DefaultInputEditor implements InputEditor {
 
     private static final String TAG = Fime.makeTag("DefaultInputEditor");
-    private static final int kMaxInputCodeLength = 64;
     private ImeEngine engine;
     private Config config;
     private StringBuilder rawInput;         // 已输入的原始编码
@@ -39,7 +39,8 @@ public class DefaultInputEditor implements InputEditor {
     private String alphabet = "qwertyuiopasdfghjklzxcvbnm";
     private String initials = "qwertyuiopasdfghjklzxcvbnm";
     private char delimiter = '\0';
-    private Integer codeLength;
+    private int maxInputLength = MAX_INPUT_LENGTH;
+    private String lengthOverflow = "accept";    // clear: 清空; accpet: 继续输入; reject: 拒绝输入
     private Syncopate syncopate;
     private Converter converter;
 
@@ -58,20 +59,29 @@ public class DefaultInputEditor implements InputEditor {
         if (Keycode.isFnKeyCode(code) || Strings.isNullOrEmpty(keycode.label)) return false;
 
         if (hasInput()) {
-            if (rawInput.length() >= kMaxInputCodeLength) {
-                Log.w(TAG, "input too long!");
-                return false;
-            }
             if (alphabet.contains(keycode.label)) {
-                append(keycode.label);
-                afterAccept();
+                if (getRawInput().length() >= maxInputLength) {
+                    Log.w(TAG, "input length overflow!");
+                    if ("clear".equals(lengthOverflow)) {
+                        clearInput();
+                    }
+                    else if ("accept".equals(lengthOverflow)) {
+                        append(keycode.label);
+                    }
+                    else if ("reject".equals(lengthOverflow)) {
+                        // do nothing!
+                        return true;
+                    }
+                }
+                else {
+                    append(keycode.label);
+                }
                 return true;
             }
         }
         else {
             if (initials.contains(keycode.label)) {
                 append(keycode.label);
-                afterAccept();
                 return true;
             }
         }
@@ -135,6 +145,7 @@ public class DefaultInputEditor implements InputEditor {
     @Override public InputEditor append(String code) {
         Log.d(TAG, "append: [" + code + "]");
         rawInput.append(code);
+        afterAccept();
         return this;
     }
 
@@ -230,20 +241,14 @@ public class DefaultInputEditor implements InputEditor {
             delimiter = config.getString("delimiter")
                               .charAt(0);
         }
-        codeLength = null;
-        if (config.hasPath("code-length")) codeLength = config.getInt("code-length");
-        if (config.hasPath("syncopate") && config.getBoolean("syncopate")) {
-            syncopate = createSyncopate();
+        if (config.hasPath("max-input-length")) {
+            maxInputLength = config.getInt("max-input-length");
         }
-        converter = new Converter();
-        if (config.hasPath("converter")) {
-            Config c = config.getConfig("converter");
-            if (c.hasPath("rules")) {
-                for (String rule : c.getStringList("rules")) {
-                    converter.addRule(rule);
-                }
-            }
+        if (config.hasPath("length-overflow")) {
+            lengthOverflow = config.getString("length-overflow");
         }
+        createSyncopate();
+        createConverter();
     }
 
     protected void afterAccept() {
@@ -285,8 +290,25 @@ public class DefaultInputEditor implements InputEditor {
         return prompt.toString();
     }
 
-    protected Syncopate createSyncopate() {
-        return null;
+    protected final void createSyncopate() {
+        if (config.hasPath("syncopate")) {
+            syncopate = Syncopates.create(config.getString("syncopate"));
+        }
+        else {
+            syncopate = Syncopates.create(null);
+        }
+    }
+
+    protected void createConverter() {
+        converter = new Converter();
+        if (config.hasPath("converter")) {
+            Config c = config.getConfig("converter");
+            if (c.hasPath("rules")) {
+                for (String rule : c.getStringList("rules")) {
+                    converter.addRule(rule);
+                }
+            }
+        }
     }
 
     protected ImeEngine getEngine() {
@@ -334,15 +356,15 @@ public class DefaultInputEditor implements InputEditor {
         return delimiter;
     }
 
-    protected Integer getCodeLength() {
-        return codeLength;
-    }
+    // protected Integer getCodeLength() {
+    //     return codeLength;
+    // }
 
-    protected Syncopate getSyncopate() {
+    @NonNull protected Syncopate getSyncopate() {
         return syncopate;
     }
 
-    protected Converter getConverter() {
+    @NonNull protected Converter getConverter() {
         return converter;
     }
 }

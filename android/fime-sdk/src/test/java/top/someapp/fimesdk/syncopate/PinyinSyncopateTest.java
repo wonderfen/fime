@@ -1,4 +1,4 @@
-package top.someapp.fimesdk.pinyin;
+package top.someapp.fimesdk.syncopate;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

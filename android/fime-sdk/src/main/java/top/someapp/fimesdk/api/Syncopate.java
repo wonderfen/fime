@@ -1,6 +1,7 @@
 package top.someapp.fimesdk.api;
 
 import androidx.annotation.NonNull;
+import top.someapp.fimesdk.utils.Strings;
 
 import java.util.List;
 
@@ -12,7 +13,9 @@ import java.util.List;
  */
 public interface Syncopate {
 
-    boolean isValidCode(@NonNull String code);
+    default boolean isValidCode(@NonNull String code) {
+        return !Strings.isNullOrEmpty(code);
+    }
 
     String segments(@NonNull String input, @NonNull List<String> result);
 

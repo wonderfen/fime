@@ -10,6 +10,9 @@ import java.util.Locale;
  */
 public class Strings {
 
+    public static final String EMPTY_STRING = "";
+    public static final String SPACE = " ";
+
     private Strings() {
         // no instance
     }
