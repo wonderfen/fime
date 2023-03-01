@@ -38,7 +38,7 @@ android {
 dependencies {
   implementation 'androidx.appcompat:appcompat:1.2.0'
   implementation 'com.google.android.material:material:1.3.0'
-  implementation 'com.typesafe:config:1.4.2'
+  implementation 'com.typesafe:config:1.2.1' // for jdk 7 compatible ?
 
   // fast util
   implementation 'it.unimi.dsi:fastutil:7.2.1' // for jdk 7 compatible
@@ -50,7 +50,7 @@ dependencies {
   implementation 'com.caucho:hessian:4.0.60'
 
   // h2database
-  implementation 'com.h2database:h2:2.1.214'
+  implementation 'com.h2database:h2:1.4.200' // for jdk 7 compatible ?
 
   testImplementation 'junit:junit:4.12'
   androidTestImplementation 'androidx.test.ext:junit:1.1.2'
