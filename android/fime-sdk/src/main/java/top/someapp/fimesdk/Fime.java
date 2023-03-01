@@ -32,9 +32,9 @@ public class Fime {
             // 五笔86
             "wubi86_dict.csv",
             "wubi86_schema.conf",
-            // 声笔飞码单字
-            "sbfm_single.csv",
-            "sbfm_single_schema.conf",
+            // 声笔飞竞
+            "sbfj.csv",
+            "sbfj_schema.conf",
     };
     private static final String TAG_PREFIX = "Fime";
 
