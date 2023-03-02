@@ -5,6 +5,7 @@ import com.typesafe.config.Config;
 import top.someapp.fimesdk.api.Syncopate;
 import top.someapp.fimesdk.config.Keycode;
 import top.someapp.fimesdk.defaults.DefaultInputEditor;
+import top.someapp.fimesdk.utils.Strings;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -74,12 +75,14 @@ public class TableInputEditor extends DefaultInputEditor {
         final Syncopate syncopate = getSyncopate();
         List<String> groups = new ArrayList<>();
         char delimiter = getDelimiter();
+        String remains;
         if (delimiter > '\0') {
-            syncopate.segments(getRawInput(), groups, delimiter);
+            remains = syncopate.segments(getRawInput(), groups, delimiter);
         }
         else {
-            syncopate.segments(getRawInput(), groups);
+            remains = syncopate.segments(getRawInput(), groups);
         }
+        if (!Strings.isNullOrEmpty(remains)) groups.add(remains);
         return groups;
     }
 }

@@ -39,7 +39,9 @@ public class TableEjector extends DefaultEjector {
             String action = null;
             final String input = editor.getRawInput();
             for (Config c : codeConfig) {
-                if (input.matches(c.getString("match"))) {
+                String match = c.getString("match");
+                if (input.matches(match)) {
+                    Log.d(TAG, input + " matches " + match);
                     action = c.getString("action");
                     break;
                 }
