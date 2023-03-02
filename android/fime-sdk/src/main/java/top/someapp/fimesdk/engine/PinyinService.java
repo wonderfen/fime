@@ -4,11 +4,11 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.os.IBinder;
-import android.util.Log;
 import androidx.annotation.Keep;
 import androidx.annotation.Nullable;
 import top.someapp.fimesdk.api.Candidate;
 import top.someapp.fimesdk.api.SearchService;
+import top.someapp.fimesdk.utils.Logs;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -31,8 +31,7 @@ public class PinyinService extends Service implements SearchService {
             System.loadLibrary("jni_pinyinime");
         }
         catch (UnsatisfiedLinkError ule) {
-            Log.e("PinyinDecoderService",
-                  "WARNING: Could not load jni_pinyinime natives");
+            Logs.e("WARNING: Could not load jni_pinyinime natives");
         }
     }
 
@@ -174,7 +173,7 @@ public class PinyinService extends Service implements SearchService {
             afd.close();
         }
         catch (IOException e) {
-            Log.e("Fime/PinyinService", e.toString());
+            Logs.e("Fime/PinyinService", e.toString());
         }
     }
 }

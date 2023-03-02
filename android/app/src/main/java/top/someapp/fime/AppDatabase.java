@@ -1,7 +1,6 @@
 package top.someapp.fime;
 
 import android.content.Context;
-import android.util.Log;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
@@ -10,6 +9,7 @@ import top.someapp.fime.entity.HmmEmission;
 import top.someapp.fime.entity.HmmStart;
 import top.someapp.fime.entity.HmmStartAndEmission;
 import top.someapp.fime.entity.HmmTransition;
+import top.someapp.fimesdk.utils.Logs;
 
 /**
  * @author zwz
@@ -22,11 +22,10 @@ import top.someapp.fime.entity.HmmTransition;
                 HmmTransition.class
         },
         views = { HmmStartAndEmission.class },
-        version = AppDatabase.version,
-        exportSchema = true)
+        version = AppDatabase.version
+)
 public abstract class AppDatabase extends RoomDatabase {
 
-    private static final String TAG = "AppDatabase";
     public static final int version = 108;
     private static final int initVersion = 99; // 0.0.99
     private static final String fileName = "fime.db";
@@ -36,7 +35,7 @@ public abstract class AppDatabase extends RoomDatabase {
     public static AppDatabase getInstance(Context context) {
         synchronized (lock) {
             if (INSTANCE == null) {
-                Log.i(TAG, "create AppDatabase instance.");
+                Logs.i("create AppDatabase instance.");
                 // 从应用资源预填充数据库
                 Builder<AppDatabase> builder = Room
                         .databaseBuilder(context, AppDatabase.class, fileName)

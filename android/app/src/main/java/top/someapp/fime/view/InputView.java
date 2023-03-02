@@ -8,7 +8,6 @@ import android.graphics.Path;
 import android.graphics.PointF;
 import android.os.Message;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -16,13 +15,13 @@ import android.view.SurfaceView;
 import android.view.View;
 import androidx.annotation.NonNull;
 import top.someapp.fime.BuildConfig;
-import top.someapp.fimesdk.Fime;
 import top.someapp.fimesdk.api.DefaultFimeHandler;
 import top.someapp.fimesdk.api.FimeHandler;
 import top.someapp.fimesdk.api.FimeMessage;
 import top.someapp.fimesdk.api.ImeEngine;
 import top.someapp.fimesdk.config.Keycode;
 import top.someapp.fimesdk.utils.Geometry;
+import top.someapp.fimesdk.utils.Logs;
 import top.someapp.fimesdk.utils.Strings;
 import top.someapp.fimesdk.view.Box;
 import top.someapp.fimesdk.view.Keyboards;
@@ -39,7 +38,7 @@ import top.someapp.fimesdk.view.Widget;
  */
 public class InputView extends SurfaceView implements SurfaceHolder.Callback, View.OnKeyListener {
 
-    private static final String TAG = Fime.makeTag("InputView");
+    private static final String TAG = "InputView";
     private static final int actionBarHeight = Geometry.dp2px(64);
     private static boolean drawPath;
     private final ImeEngine engine;
@@ -63,7 +62,7 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
     public InputView(Context context, ImeEngine engine) {
         super(context);
         this.engine = engine;
-        Log.d(TAG, Strings.simpleFormat("create InputView: 0x%x.", hashCode()));
+        Logs.d(Strings.simpleFormat("create InputView: 0x%x.", hashCode()));
         init();
         setupPainter();
     }
@@ -77,7 +76,7 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
     }
 
     @Override public void surfaceCreated(@NonNull SurfaceHolder holder) {
-        Log.i(TAG, "surfaceCreated");
+        Logs.i("surfaceCreated");
         this.surfaceHolder = holder;
         if (actionBar != null) {
             actionBar.setInputEditor(engine.getSchema()
@@ -91,13 +90,13 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
 
     @Override
     public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
-        Log.i(TAG, "surfaceChanged");
+        Logs.i("surfaceChanged");
         this.surfaceHolder = holder;
         repaint();
     }
 
     @Override public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-        Log.i(TAG, "surfaceDestroyed");
+        Logs.i("surfaceDestroyed");
         engine.unregisterHandler(TAG + "-handler");
         painter = null;
     }
@@ -109,7 +108,7 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
         switch (action) {
             case MotionEvent.ACTION_DOWN:
                 inLongPressCheck = true;
-                Log.d(TAG, "touchDown @(" + x + "," + y + ")");
+                Logs.d("touchDown @(" + x + "," + y + ")");
                 touchDown = new PointF(x, y);
                 lastTouchEvent = event;
                 path.moveTo(x, y);
@@ -117,21 +116,22 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
                 painter.sendEmptyMessage(FimeMessage.MSG_CHECK_LONG_PRESS);
                 break;
             case MotionEvent.ACTION_MOVE:
-                Log.d(TAG,
-                      "inLongPressCheck: " + inLongPressCheck + ", moveTo @(" + x + "," + y + ")");
+                Logs.d(
+                        "inLongPressCheck: " + inLongPressCheck + ", moveTo @(" + x + "," + y +
+                                ")");
                 path.lineTo(x, y);
                 PointF pos = new PointF(x, y);
                 double distance = Geometry.distanceBetweenPoints(touchDown, pos);
-                Log.d(TAG, "move distance=" + distance);
+                Logs.d("move distance=" + distance);
                 if (inLongPressCheck && distance >= 32) { // 打断长按！
                     inLongPressCheck = false;
                 }
                 if (!inLongPressCheck) findWidgetContains(pos).onTouchMove(pos);
                 break;
             case MotionEvent.ACTION_UP:
-                Log.d(TAG,
-                      "inLongPressCheck: " + inLongPressCheck + ", touchUp @(" + x + "," + y +
-                              ")");
+                Logs.d(
+                        "inLongPressCheck: " + inLongPressCheck + ", touchUp @(" + x + "," + y +
+                                ")");
                 PointF touchUp = new PointF(x, y);
                 path.reset();
                 inLongPressCheck = false;
@@ -146,7 +146,7 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
             case MotionEvent.ACTION_CANCEL:
             case MotionEvent.ACTION_OUTSIDE:
             default:
-                Log.d(TAG, "Ignored touch event: " + action);
+                Logs.d("Ignored touch event: " + action);
                 path.reset();
                 touchDown = null;
                 lastTouchEvent = null;
@@ -180,11 +180,11 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
                 painter.post(this::repaint);
                 return true;
             case FimeMessage.MSG_CHECK_LONG_PRESS:
-                Log.d(TAG, "MSG_CHECK_LONG_PRESS");
+                Logs.d("MSG_CHECK_LONG_PRESS");
                 if (inLongPressCheck && touchDown != null && lastTouchEvent != null) {
                     long eventTime = lastTouchEvent.getEventTime();
                     long downTime = lastTouchEvent.getDownTime();
-                    Log.d(TAG, "eventTime=" + eventTime + ", downTime=" + downTime);
+                    Logs.d("eventTime=" + eventTime + ", downTime=" + downTime);
                     if (eventTime == downTime) { // 没有触发移动事件
                         if (msg.getWhen() - downTime >= longPressThreshold) {
                             findWidgetContains(touchDown).onLongPress(touchDown,
@@ -201,6 +201,7 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
                 }
                 return true;
         }
+        Logs.d("Ignored message:0x%02x", msg.what);
         return false;
     }
 
@@ -237,11 +238,11 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
     }
 
     private void repaint() {
-        Log.d(TAG, "repaint");
+        Logs.d("repaint");
         try {
             canvas = surfaceHolder.lockCanvas();
             if (canvas == null) {
-                Log.w(TAG, "Canvas is null, can not paint!");
+                Logs.w("Canvas is null, can not paint!");
             }
             else {
                 actionBar.onDraw(canvas, actionBar.getContainer(), painter);

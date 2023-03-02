@@ -1,12 +1,10 @@
 package top.someapp.fimesdk.defaults;
 
-import android.util.Log;
 import android.util.Pair;
 import androidx.annotation.NonNull;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigObject;
 import com.typesafe.config.ConfigValueType;
-import top.someapp.fimesdk.Fime;
 import top.someapp.fimesdk.api.Candidate;
 import top.someapp.fimesdk.api.ImeEngine;
 import top.someapp.fimesdk.api.InputEditor;
@@ -14,6 +12,7 @@ import top.someapp.fimesdk.api.Syncopate;
 import top.someapp.fimesdk.config.Keycode;
 import top.someapp.fimesdk.engine.Converter;
 import top.someapp.fimesdk.syncopate.Syncopates;
+import top.someapp.fimesdk.utils.Logs;
 import top.someapp.fimesdk.utils.Strings;
 
 import java.util.ArrayList;
@@ -27,7 +26,7 @@ import java.util.Stack;
  */
 public class DefaultInputEditor implements InputEditor {
 
-    private static final String TAG = Fime.makeTag("DefaultInputEditor");
+    // private static final String TAG = Fime.makeTag("DefaultInputEditor");
     private ImeEngine engine;
     private Config config;
     private StringBuilder rawInput;         // 已输入的原始编码
@@ -61,7 +60,7 @@ public class DefaultInputEditor implements InputEditor {
         if (hasInput()) {
             if (alphabet.contains(keycode.label)) {
                 if (getRawInput().length() >= maxInputLength) {
-                    Log.w(TAG, "input length overflow!");
+                    Logs.w("input length overflow!");
                     if ("clear".equals(lengthOverflow)) {
                         clearInput();
                     }
@@ -120,12 +119,12 @@ public class DefaultInputEditor implements InputEditor {
                     break;
             }
         }
-        Log.d(TAG, "prompt: [" + prompt + "]");
+        Logs.d("prompt: [%s]", prompt);
         return prompt;
     }
 
     @Override public InputEditor clearInput() {
-        Log.d(TAG, "clearInput.");
+        Logs.d("clearInput.");
         rawInput.setLength(0);
         selected = null;
         selectedCursor.clear();
@@ -143,7 +142,7 @@ public class DefaultInputEditor implements InputEditor {
     }
 
     @Override public InputEditor append(String code) {
-        Log.d(TAG, "append: [" + code + "]");
+        Logs.d("append: [" + code + "]");
         rawInput.append(code);
         afterAccept();
         return this;
@@ -157,7 +156,7 @@ public class DefaultInputEditor implements InputEditor {
     @Override public InputEditor backspace() {
         if (hasInput()) {
             if (selectedCursor.isEmpty()) {
-                Log.d(TAG, "backspace input code.");
+                Logs.d("backspace input code.");
                 rawInput.deleteCharAt(rawInput.length() - 1);
             }
             else {
@@ -166,7 +165,7 @@ public class DefaultInputEditor implements InputEditor {
                     removeLastSelected();
                 }
                 else {
-                    Log.d(TAG, "backspace input code.");
+                    Logs.d("backspace input code.");
                     rawInput.deleteCharAt(rawInput.length() - 1);
                 }
             }
@@ -203,7 +202,7 @@ public class DefaultInputEditor implements InputEditor {
     }
 
     @Override public boolean hasInput() {
-        Log.d(TAG, "input.length=" + rawInput.length());
+        Logs.d("input.length=" + rawInput.length());
         return rawInput.length() > 0;
     }
 
@@ -330,7 +329,7 @@ public class DefaultInputEditor implements InputEditor {
     protected void removeLastSelected() {
         if (selectedCursor.isEmpty()) return;
 
-        Log.d(TAG, "removeLastSelected.");
+        Logs.d("removeLastSelected.");
         selectedCursor.pop();
         if (selectedCursor.isEmpty()) {
             selected = null;

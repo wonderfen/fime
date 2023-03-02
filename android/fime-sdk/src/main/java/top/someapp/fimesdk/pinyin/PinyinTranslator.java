@@ -1,12 +1,11 @@
 package top.someapp.fimesdk.pinyin;
 
-import android.util.Log;
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
-import top.someapp.fimesdk.Fime;
 import top.someapp.fimesdk.api.Candidate;
 import top.someapp.fimesdk.defaults.DefaultTranslator;
 import top.someapp.fimesdk.dict.Dict;
+import top.someapp.fimesdk.utils.Logs;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,8 +17,6 @@ import java.util.List;
  */
 @Keep
 public class PinyinTranslator extends DefaultTranslator {
-
-    private static final String TAG = Fime.makeTag("PinyinTranslator");
 
     public PinyinTranslator() {
     }
@@ -33,11 +30,11 @@ public class PinyinTranslator extends DefaultTranslator {
     @Override public List<Candidate> translate(@NonNull List<String> code, int limit) {
         Dict dict = getDict();
         if (dict == null) {
-            Log.w(TAG, "dict is invalid!");
+            Logs.w("dict is invalid!");
             return Collections.EMPTY_LIST;
         }
 
-        Log.d(TAG, "translate: " + code);
+        Logs.d("translate: " + code);
         List<Candidate> candidates = new ArrayList<>(limit);
         StringBuilder normalized = new StringBuilder(code.size() * 6);
         for (String py : code) {

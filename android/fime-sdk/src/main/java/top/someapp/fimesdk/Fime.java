@@ -33,21 +33,12 @@ public class Fime {
             "wubi86_dict.csv",
             "wubi86_schema.conf",
             // 声笔飞竞
-            "sbfj.csv",
+            "sbfj_dict.csv",
             "sbfj_schema.conf",
     };
     private static final String TAG_PREFIX = "Fime";
 
     private Fime() {
         // no instance.
-    }
-
-    public static String makeTag() {
-        return TAG_PREFIX;
-    }
-
-    public static String makeTag(String suffix) {
-        if (suffix == null || suffix.length() == 0) return TAG_PREFIX;
-        return TAG_PREFIX + "/" + suffix;
     }
 }

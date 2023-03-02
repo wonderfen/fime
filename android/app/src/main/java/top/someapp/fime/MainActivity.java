@@ -8,7 +8,6 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.inputmethod.InputMethodInfo;
 import android.view.inputmethod.InputMethodManager;
 import androidx.annotation.NonNull;
@@ -23,6 +22,7 @@ import io.flutter.plugin.common.MethodChannel;
 import top.someapp.fimesdk.Fime;
 import top.someapp.fimesdk.FimeContext;
 import top.someapp.fimesdk.utils.FileStorage;
+import top.someapp.fimesdk.utils.Logs;
 import top.someapp.fimesdk.utils.Strings;
 
 import java.io.IOException;
@@ -36,7 +36,7 @@ import java.util.Map;
 
 public class MainActivity extends FlutterFragmentActivity implements MethodChannel.MethodCallHandler {
 
-    private static final String TAG = Fime.makeTag("MainActivity");
+    private static final String TAG = "MainActivity";
     private static final String kFlutterEngineId = "fime_flutter_engine";
     private static final String[] PERMISSIONS = {
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -116,7 +116,7 @@ public class MainActivity extends FlutterFragmentActivity implements MethodChann
 
     @Override protected void onResume() {
         super.onResume();
-        Log.d(TAG, "App=" + getApplication().hashCode());
+        Logs.d("App=" + getApplication().hashCode());
         checkPermissions();
     }
 
@@ -125,7 +125,7 @@ public class MainActivity extends FlutterFragmentActivity implements MethodChann
         if (resultCode == RESULT_OK) {
             if (requestCode == Fime.REQUEST_READ_URI) {
                 Uri uriToRead = data.getData();
-                Log.d(TAG, "selected uir=" + uriToRead.getPath());
+                Logs.d("selected uir=" + uriToRead.getPath());
                 String name = Strings.afterLastChar(uriToRead.getPath(), '/');
                 boolean accept = name.endsWith(".conf") || name.endsWith(".csv");
                 if (accept) {
@@ -139,7 +139,7 @@ public class MainActivity extends FlutterFragmentActivity implements MethodChann
             }
             else if (requestCode == Fime.REQUEST_WRITE_URI) {
                 Uri uriToWrite = data.getData();
-                Log.d(TAG, "selected uir=" + uriToWrite.getPath());
+                Logs.d("selected uir=" + uriToWrite.getPath());
                 ContentResolver contentResolver = getContentResolver();
                 try (OutputStream out = contentResolver.openOutputStream(uriToWrite)) {
                     out.write("export from fime\n".getBytes(StandardCharsets.UTF_8));

@@ -13,6 +13,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.RawRes;
 import top.someapp.fimesdk.utils.FileStorage;
+import top.someapp.fimesdk.utils.Logs;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -161,6 +162,13 @@ public class FimeContext {
     private void init() {
         File dir = getAppHomeDir();
         getCacheDir();
+        if (BuildConfig.DEBUG) {
+            Logs.setup(true, null);
+        }
+        else {
+            Logs.setup(false, fileInCacheDir("fime.log"));
+        }
+
         for (String conf : Fime.EXPORT_FILES) {
             try (InputStream ins = getAssets().open(conf)) {
                 FileStorage.copyIfNotExists(ins, new File(dir, conf));  // 避免把用户修改过的文件覆盖了

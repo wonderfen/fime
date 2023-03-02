@@ -1,12 +1,12 @@
 package top.someapp.fimesdk.table;
 
-import android.util.Log;
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import com.typesafe.config.Config;
 import top.someapp.fimesdk.api.Candidate;
 import top.someapp.fimesdk.api.InputEditor;
 import top.someapp.fimesdk.defaults.DefaultEjector;
+import top.someapp.fimesdk.utils.Logs;
 
 import java.util.List;
 
@@ -17,8 +17,6 @@ import java.util.List;
 @Keep
 public class TableEjector extends DefaultEjector {
 
-    private static final String TAG = "TableEjector";
-
     @Override public void ejectOnCandidateChange(@NonNull InputEditor editor) {
         Config config = getConfig();
         boolean ejected = false;
@@ -27,7 +25,7 @@ public class TableEjector extends DefaultEjector {
                                      .getString("unique"))) {
                 if (editor.hasCandidate() && editor.getCandidateList()
                                                    .size() == 1) {
-                    Log.d(TAG, "Will eject unique candidate.");
+                    Logs.d("Will eject unique candidate.");
                     Candidate candidate = editor.getActiveCandidate();
                     commit(candidate, editor);
                     ejected = true;
@@ -41,7 +39,7 @@ public class TableEjector extends DefaultEjector {
             for (Config c : codeConfig) {
                 String match = c.getString("match");
                 if (input.matches(match)) {
-                    Log.d(TAG, input + " matches " + match);
+                    Logs.d(input + " matches " + match);
                     action = c.getString("action");
                     break;
                 }

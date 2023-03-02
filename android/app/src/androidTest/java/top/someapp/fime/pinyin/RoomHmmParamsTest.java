@@ -3,9 +3,9 @@ package top.someapp.fime.pinyin;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import android.util.Log;
 import org.junit.Before;
 import org.junit.Test;
+import top.someapp.fimesdk.utils.Logs;
 
 import java.util.List;
 
@@ -19,7 +19,7 @@ public class RoomHmmParamsTest {
     private HmmParams hmmParams;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         hmmParams = new RoomHmmParams();
     }
 
@@ -27,14 +27,14 @@ public class RoomHmmParamsTest {
     public void testStart() {
         double start = hmmParams.start("一", -1);
         assertTrue(start != -1);
-        Log.i(TAG, "一, start=" + start);
+        Logs.i("一, start=" + start);
     }
 
     @Test
     public void testEmission() {
         double emission = hmmParams.emission("和", "he", -1);
         assertTrue(emission != -1);
-        Log.i(TAG, "和(he), emission=" + emission);
+        Logs.i("和(he), emission=" + emission);
     }
 
     @Test
@@ -45,7 +45,7 @@ public class RoomHmmParamsTest {
         assertFalse(transition == null || transition.isEmpty());
         for (int i = 0, len = transition.size(); i < Math.min(len, 3); i++) {
             HmmParams.Transition t = transition.get(i);
-            Log.i(TAG, t.getFrom() + " -> " + t.getTo() + ", transition=" + t.getTransition());
+            Logs.i(t.getFrom() + " -> " + t.getTo() + ", transition=" + t.getTransition());
         }
     }
 

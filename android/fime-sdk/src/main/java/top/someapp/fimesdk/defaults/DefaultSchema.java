@@ -1,10 +1,8 @@
 package top.someapp.fimesdk.defaults;
 
-import android.util.Log;
 import androidx.annotation.NonNull;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigValue;
-import top.someapp.fimesdk.Fime;
 import top.someapp.fimesdk.FimeContext;
 import top.someapp.fimesdk.api.Ejector;
 import top.someapp.fimesdk.api.ImeEngine;
@@ -14,6 +12,7 @@ import top.someapp.fimesdk.api.Translator;
 import top.someapp.fimesdk.config.Configs;
 import top.someapp.fimesdk.utils.Classes;
 import top.someapp.fimesdk.utils.FileStorage;
+import top.someapp.fimesdk.utils.Logs;
 import top.someapp.fimesdk.view.Keyboards;
 
 import java.io.File;
@@ -28,7 +27,6 @@ import java.util.Map;
  */
 public class DefaultSchema implements Schema {
 
-    private static final String TAG = Fime.makeTag("DefaultSchema");
     private ImeEngine engine;
     private Config config;
     private String name;
@@ -143,15 +141,15 @@ public class DefaultSchema implements Schema {
     @Override public void reconfigure(Config config) {
         this.config = config;
         configSelf();
-        Log.i(TAG, "setupKeyboards.");
+        Logs.i("setupKeyboards.");
         setupKeyboards();
-        Log.i(TAG, "setupInputEditor.");
+        Logs.i("setupInputEditor.");
         setupInputEditor();
-        Log.i(TAG, "setupEjector.");
+        Logs.i("setupEjector.");
         setupEjector();
-        Log.i(TAG, "setupTranslator.");
+        Logs.i("setupTranslator.");
         setupTranslator();
-        Log.i(TAG, "schema: " + getName() + " reconfigure OK!");
+        Logs.i("schema: " + getName() + " reconfigure OK!");
     }
 
     @Override public void setup(@NonNull ImeEngine engine) {

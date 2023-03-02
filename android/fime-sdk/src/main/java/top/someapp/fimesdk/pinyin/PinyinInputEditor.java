@@ -1,11 +1,10 @@
 package top.someapp.fimesdk.pinyin;
 
-import android.util.Log;
 import androidx.annotation.Keep;
-import top.someapp.fimesdk.Fime;
 import top.someapp.fimesdk.api.Candidate;
 import top.someapp.fimesdk.api.Syncopate;
 import top.someapp.fimesdk.defaults.DefaultInputEditor;
+import top.someapp.fimesdk.utils.Logs;
 import top.someapp.fimesdk.utils.Strings;
 
 import java.util.ArrayList;
@@ -20,7 +19,6 @@ import java.util.Stack;
 @Keep
 public class PinyinInputEditor extends DefaultInputEditor {
 
-    private static final String TAG = Fime.makeTag("PinyinInputEditor");
     private Stack<String> searchCodes = new Stack<>();
     private String lastSegment = "";
 
@@ -43,7 +41,7 @@ public class PinyinInputEditor extends DefaultInputEditor {
                 lastSegment = codes.get(codes.size() - 1);
                 searchCodes.push(getConverter().convert(lastSegment));
             }
-            Log.d(TAG, "searchCodes:" + searchCodes);
+            Logs.d("searchCodes:", searchCodes);
             return searchCodes;
         }
         return Collections.EMPTY_LIST;

@@ -11,7 +11,6 @@ import android.inputmethodservice.InputMethodService;
 import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -28,7 +27,7 @@ import top.someapp.fimesdk.FimeContext;
 import top.someapp.fimesdk.api.ImeEngine;
 import top.someapp.fimesdk.engine.FimeEngine;
 import top.someapp.fimesdk.engine.PinyinService;
-import top.someapp.fimesdk.utils.Strings;
+import top.someapp.fimesdk.utils.Logs;
 
 import java.io.File;
 
@@ -45,14 +44,14 @@ public class FimeService extends InputMethodService implements ServiceConnection
 
     @Override public void onCreate() {
         super.onCreate();
-        Log.d(TAG, Strings.simpleFormat("create FimeService: 0x%x.", hashCode()));
+        Logs.d("create FimeService: 0x%x.", hashCode());
         setupEngine();
         Intent bindIntent = new Intent(this, PinyinService.class);
         bindService(bindIntent, this, Context.BIND_AUTO_CREATE);
     }
 
     @Override public View onCreateInputView() {
-        Log.d(TAG, "onCreateInputView");
+        Logs.d("onCreateInputView");
         inputView = new InputView(engine); // 无条件创建一个新的 view，因为它不一定可以重用
         return inputView;
     }
@@ -61,7 +60,7 @@ public class FimeService extends InputMethodService implements ServiceConnection
         super.onWindowShown();
         FimeContext.getInstance()
                    .setRootView(inputView);
-        Log.d(TAG, "onWindowShown");
+        Logs.d("onWindowShown");
         ImeEngine.ImeState state = engine.getState();
         if (state == ImeEngine.ImeState.FREEZE || state == ImeEngine.ImeState.QUIT) {
             engine.enterState(ImeEngine.ImeState.READY);
@@ -70,24 +69,24 @@ public class FimeService extends InputMethodService implements ServiceConnection
 
     @Override public void onWindowHidden() {
         super.onWindowHidden();
-        Log.d(TAG, "onWindowHidden");
+        Logs.d("onWindowHidden");
         engine.enterState(ImeEngine.ImeState.FREEZE);
     }
 
     @Override public void onStartInput(EditorInfo attribute, boolean restarting) {
         super.onStartInput(attribute, restarting);
-        Log.d(TAG, "onStartInput, restarting=" + restarting);
+        Logs.d("onStartInput, restarting=" + restarting);
         engine.onStartInput(attribute, restarting);
     }
 
     @Override public void onFinishInput() {
         super.onFinishInput();
-        Log.d(TAG, "onFinishInput");
+        Logs.d("onFinishInput");
     }
 
     @Override public void onDestroy() {
         super.onDestroy();
-        Log.d(TAG, "onDestroy");
+        Logs.d("onDestroy");
         unbindService(this);
         engine.enterState(ImeEngine.ImeState.QUIT);
     }
@@ -171,8 +170,8 @@ public class FimeService extends InputMethodService implements ServiceConnection
                         editorInfo.packageName, contentUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
             }
             catch (Exception e) {
-                Log.e(TAG, "grantUriPermission failed packageName=" + editorInfo.packageName
-                        + " contentUri=" + contentUri, e);
+                Logs.e("grantUriPermission failed packageName=" + editorInfo.packageName
+                               + " contentUri=" + contentUri, e);
             }
         }
 
@@ -212,8 +211,8 @@ public class FimeService extends InputMethodService implements ServiceConnection
             // Due to b.android.com/225029, it is possible that getCurrentInputBinding() returns
             // null even after onStartInputView() is called.
             // TODO: Come up with a way to work around this bug....
-            Log.e(TAG, "inputBinding should not be null here. "
-                    + "You are likely to be hitting b.android.com/225029");
+            Logs.e("inputBinding should not be null here. You are likely to be hitting b.android"
+                           + ".com/225029");
             return false;
         }
         final int packageUid = inputBinding.getUid();

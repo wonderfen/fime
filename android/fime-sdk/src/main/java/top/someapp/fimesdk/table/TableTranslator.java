@@ -1,13 +1,12 @@
 package top.someapp.fimesdk.table;
 
-import android.util.Log;
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import com.typesafe.config.Config;
-import top.someapp.fimesdk.Fime;
 import top.someapp.fimesdk.api.Candidate;
 import top.someapp.fimesdk.defaults.DefaultTranslator;
 import top.someapp.fimesdk.dict.Dict;
+import top.someapp.fimesdk.utils.Logs;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,7 +20,6 @@ import java.util.List;
 @Keep
 public class TableTranslator extends DefaultTranslator implements Comparator<Dict.Item> {
 
-    private static final String TAG = Fime.makeTag("TableTranslator");
     private int searchCodeExtend = 0;
 
     public TableTranslator() {
@@ -43,7 +41,7 @@ public class TableTranslator extends DefaultTranslator implements Comparator<Dic
     @Override public List<Candidate> translate(@NonNull List<String> codes, int limit) {
         Dict dict = getDict();
         if (dict == null) {
-            Log.w(TAG, "dict is invalid!");
+            Logs.w("dict is invalid!");
             return Collections.EMPTY_LIST;
         }
 

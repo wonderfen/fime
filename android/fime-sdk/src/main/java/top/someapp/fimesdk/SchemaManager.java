@@ -3,6 +3,7 @@ package top.someapp.fimesdk;
 import android.util.Pair;
 import com.typesafe.config.Config;
 import top.someapp.fimesdk.config.Configs;
+import top.someapp.fimesdk.dict.Dict;
 import top.someapp.fimesdk.utils.FileStorage;
 import top.someapp.fimesdk.utils.Strings;
 
@@ -123,6 +124,15 @@ public class SchemaManager {
             if (!FileStorage.hasFile(fimeContext.fileInCacheDir(keyboards + ".s"))) {
                 Configs.serialize(Configs.load(fimeContext.fileInAppHome(keyboards), true),
                                   new FileOutputStream(new File(buildDir, keyboards + ".s")));
+            }
+            Config c = config.getConfig("translator.dict");
+            String dictName = c.getString("name");
+            if (!FileStorage.hasFile(fimeContext.fileInCacheDir(dictName + ".s"))) {
+                Dict dict = new Dict(dictName);
+                ok = dict.loadFromCsv(fimeContext.fileInAppHome(c.getString("file")));
+                if (!ok) throw new IOException("词典生成失败！");
+                dict.compileTo(new FileOutputStream(fimeContext.fileInCacheDir(dictName + ".s")));
+                dict.close();
             }
             buildInfo.put(info.conf, new Pair<>(compiledFile.getName(), info.getName()));
             updateBuildTxt(buildTxt, buildInfo);

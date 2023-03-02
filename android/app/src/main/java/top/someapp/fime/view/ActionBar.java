@@ -6,9 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.RectF;
-import android.util.Log;
 import top.someapp.fime.R;
-import top.someapp.fimesdk.Fime;
 import top.someapp.fimesdk.FimeContext;
 import top.someapp.fimesdk.api.Candidate;
 import top.someapp.fimesdk.api.FimeHandler;
@@ -16,7 +14,7 @@ import top.someapp.fimesdk.api.FimeMessage;
 import top.someapp.fimesdk.api.InputEditor;
 import top.someapp.fimesdk.utils.Fonts;
 import top.someapp.fimesdk.utils.Geometry;
-import top.someapp.fimesdk.utils.Strings;
+import top.someapp.fimesdk.utils.Logs;
 import top.someapp.fimesdk.view.Box;
 import top.someapp.fimesdk.view.Widget;
 
@@ -29,7 +27,7 @@ import java.util.List;
  */
 class ActionBar implements Widget {
 
-    private static final String TAG = Fime.makeTag("ActionBar");
+    private static final String TAG = "ActionBar";
     private final int backgroundColor = 0xffe3e3e8;
     private final int activeBackgroundColor = 0xfffafafa;
     private final int activeLabelColor = 0xff50a96c;
@@ -60,14 +58,14 @@ class ActionBar implements Widget {
     }
 
     @Override public void onDraw(Canvas canvas, Box box, FimeHandler painter) {
-        Log.d(TAG, "onDraw, candidateOffset=" + candidateOffset);
+        Logs.d("onDraw, candidateOffset=" + candidateOffset);
         container = box;
         this.painter = painter;
         paint.setColor(backgroundColor);
         canvas.drawRect(box.toRectF(), paint);
         candidatePos.clear();
         if (inputEditor == null || !inputEditor.hasInput()) {
-            Log.d(TAG, "no input code!");
+            Logs.d("no input code!");
             canvas.drawBitmap(icon, 0.5f * gutter, 0.5f * (box.getHeight() - icon.getHeight()),
                               paint);
             candidateOffset = 0;
@@ -80,7 +78,7 @@ class ActionBar implements Widget {
         canvas.drawText(inputEditor.getPrompt(), box.getLeft() + 16, paint.getTextSize(),
                         paint);
         if (inputEditor.hasCandidate()) {
-            Log.d(TAG, "draw candidate.");
+            Logs.d("draw candidate.");
             paint.setTextSize(0.33f * box.getHeight());
             float x = box.getLeft() + candidateOffset + 10.0f;
             float y = 0.8f * box.getHeight();
@@ -112,15 +110,14 @@ class ActionBar implements Widget {
             // candidatePos.add(x);
         }
         else {
-            Log.d(TAG, "no candidate!");
+            Logs.d("no candidate!");
             candidateOffset = 0;
         }
     }
 
     @Override public void onTouchStart(PointF pos) {
-        Log.d(TAG, "onTouchStart");
+        Logs.d("onTouchStart");
         moveStartAt = new PointF(pos.x, pos.y);
-        // return false;
     }
 
     @Override public void onTouchMove(PointF pos) {
@@ -130,7 +127,7 @@ class ActionBar implements Widget {
         }
 
         float dx = pos.x - moveStartAt.x;
-        Log.d(TAG, "onTouchMove, dx=" + dx);
+        Logs.d("onTouchMove, dx=" + dx);
         if (Math.abs(dx) < 10) return; // 这个叫消抖？
 
         int activeIndex = inputEditor.getActiveIndex();
@@ -218,15 +215,14 @@ class ActionBar implements Widget {
     }
 
     @Override public void onLongPress(PointF pos, long durations) {
-        Log.d(TAG, "onLongPress");
-        // return false;
+        Logs.d("onLongPress");
     }
 
     @Override public void setOnVirtualKeyListener(OnVirtualKeyListener virtualKeyListener) {
     }
 
     void setInputEditor(InputEditor inputEditor) {
-        Log.d(TAG, Strings.simpleFormat("setInputEditor: 0x%x.", inputEditor.hashCode()));
+        Logs.d("setInputEditor: 0x%x.", inputEditor.hashCode());
         this.inputEditor = inputEditor;
     }
 

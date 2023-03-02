@@ -6,13 +6,11 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import androidx.annotation.NonNull;
 import com.typesafe.config.Config;
-import top.someapp.fimesdk.Fime;
 import top.someapp.fimesdk.FimeContext;
 import top.someapp.fimesdk.SchemaManager;
 import top.someapp.fimesdk.Setting;
@@ -27,6 +25,7 @@ import top.someapp.fimesdk.api.Schema;
 import top.someapp.fimesdk.api.Translator;
 import top.someapp.fimesdk.config.Keycode;
 import top.someapp.fimesdk.defaults.DefaultSchema;
+import top.someapp.fimesdk.utils.Logs;
 import top.someapp.fimesdk.utils.Nulls;
 import top.someapp.fimesdk.view.VirtualKey;
 
@@ -43,7 +42,7 @@ import java.util.Set;
  */
 public class FimeEngine implements ImeEngine, Filter<Candidate> {
 
-    private static final String TAG = Fime.makeTag("FimeEngine");
+    private static final String TAG = "FimeEngine";
     private ImeState state = ImeState.FREEZE;
     private int mode = CN_MODE;
     private InputMethodService ims;
@@ -133,12 +132,12 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
     }
 
     @Override public ImeEngine useSchema(String conf) {
-        Log.i(TAG, "use schema by: " + conf);
+        Logs.i("use schema by: " + conf);
         schemaInfo = SchemaManager.find(conf);
         try {
             Config config = schemaInfo.loadConfig();
             if (config == null) {
-                Log.e(TAG, "invalid schema config: " + conf);
+                Logs.e("invalid schema config: " + conf);
                 return this;
             }
             schema = new DefaultSchema();
@@ -162,7 +161,7 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
     }
 
     @Override public void onTap(@NonNull VirtualKey virtualKey) {
-        Log.d(TAG, "onTap");
+        Logs.d("onTap");
         final Keycode keycode = Keycode.getByCode(virtualKey.getCode());
         switch (getState()) {
             case FREEZE:
@@ -227,7 +226,7 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
     }
 
     @Override public boolean onKeyDown(int keyCode, KeyEvent event) {
-        Log.d(TAG, "onKeyDown");
+        Logs.d("onKeyDown");
         if (state == ImeState.FREEZE || state == ImeState.QUIT) return false;
 
         if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -245,17 +244,17 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
     }
 
     @Override public boolean onKeyLongPress(int keyCode, KeyEvent event) {
-        Log.d(TAG, "onKeyLongPress");
+        Logs.d("onKeyLongPress");
         return false;
     }
 
     @Override public boolean onKeyUp(int keyCode, KeyEvent event) {
-        Log.d(TAG, "onKeyUp");
+        Logs.d("onKeyUp");
         return state != ImeState.FREEZE && state != ImeState.QUIT;
     }
 
     @Override public boolean onKeyMultiple(int keyCode, int count, KeyEvent event) {
-        Log.d(TAG, "onKeyMultiple");
+        Logs.d("onKeyMultiple");
         return false;
     }
 
@@ -278,6 +277,7 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
 
     void notifyHandlers(int what) {
         for (FimeHandler handler : handlerMap.values()) {
+            Logs.d("send message:0x%02x to handler:%s.", what, handler.getName());
             if (handler.sendEmptyMessage(what)) break;
         }
     }
@@ -334,9 +334,9 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
     }
 
     private void start() {
-        Log.i(TAG, "start.");
+        Logs.i("start.");
         if (schema == null) {
-            Log.e(TAG, "invalid schema!");
+            Logs.e("invalid schema!");
         }
         else {
             resetInputContext();
@@ -344,7 +344,7 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
     }
 
     private void stop() {
-        Log.i(TAG, "stop.");
+        Logs.i("stop.");
         if (schema != null) {
             // TODO: 2023/2/23 do something clean up.
         }
@@ -417,7 +417,7 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
         final List<String> searchCodes = inputEditor.getSearchCodes();
         if (searchCodes == null || searchCodes.isEmpty()) return;
 
-        Log.i(TAG, "search(" + searchCodes + ") start.");
+        Logs.i("search(" + searchCodes + ") start.");
         handler.post(() -> {
             List<Candidate> candidates;
             assert translator != null;
@@ -428,7 +428,7 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
                 candidates = translator.translate(inputEditor.getSelected().text, searchCodes);
             }
             filter(candidates, getSchema());
-            Log.i(TAG, "search(" + searchCodes + ") end, result.size=" + candidates.size());
+            Logs.i("search(" + searchCodes + ") end, result.size=" + candidates.size());
             inputEditor.clearCandidates();
             inputEditor.setActiveIndex(0);
             for (Candidate candidate : candidates) {

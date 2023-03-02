@@ -8,7 +8,6 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import androidx.annotation.Keep;
-import top.someapp.fimesdk.Fime;
 import top.someapp.fimesdk.FimeContext;
 import top.someapp.fimesdk.api.Candidate;
 import top.someapp.fimesdk.api.CandidateHandler;
@@ -23,7 +22,7 @@ import java.util.List;
 @Keep
 public class ImeEngine implements ServiceConnection {
 
-    private static final String TAG = Fime.makeTag("ImeEngine");
+    private static final String TAG = "ImeEngine";
     private HandlerThread workThread;
     private Handler handler;
     private SearchService searchService;

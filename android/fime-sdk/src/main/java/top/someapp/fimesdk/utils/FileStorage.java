@@ -3,7 +3,6 @@ package top.someapp.fimesdk.utils;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
-import android.util.Log;
 import androidx.annotation.NonNull;
 
 import java.io.File;
@@ -20,8 +19,6 @@ import java.nio.charset.StandardCharsets;
  */
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class FileStorage {
-
-    public static final String TAG = "FileStorage";
 
     private FileStorage() {
         // no instance
@@ -73,7 +70,7 @@ public class FileStorage {
             }
         }
         catch (IOException e) {
-            Log.e(TAG, e.toString());
+            Logs.e(e.toString());
         }
     }
 
@@ -102,7 +99,7 @@ public class FileStorage {
             copyToFile(ins, destFile, true);
         }
         catch (Exception e) {
-            Log.e(TAG, " copy file uri to inner storage e = " + e.toString());
+            Logs.e(" copy file uri to inner storage e = " + e.toString());
         }
     }
 
@@ -123,7 +120,7 @@ public class FileStorage {
             File sandFile = new File(filePath);
             if (sandFile.exists()) {
                 inputStream = new FileInputStream(sandFile);
-                int readCount = 0;
+                int readCount;
                 byte[] buffer = new byte[1024];
                 while ((readCount = inputStream.read(buffer)) != -1) {
                     outputStream.write(buffer, 0, readCount);
@@ -133,7 +130,7 @@ public class FileStorage {
             ret = true;
         }
         catch (Exception e) {
-            Log.e(TAG, "copy SandFile To ExternalUri. e = " + e.toString());
+            Logs.e("copy SandFile To ExternalUri. e = " + e.toString());
             ret = false;
         }
         finally {
@@ -144,14 +141,14 @@ public class FileStorage {
                 if (inputStream != null) {
                     inputStream.close();
                 }
-                Log.d(TAG, " input stream and output stream close successful.");
+                Logs.d(" input stream and output stream close successful.");
             }
             catch (Exception e) {
                 e.printStackTrace();
-                Log.e(TAG, " input stream and output stream close fail. e = " + e.toString());
+                Logs.e(" input stream and output stream close fail. e = " + e.toString());
             }
-            return ret;
         }
+        return ret;
     }
 
     public static String hash(File file) {

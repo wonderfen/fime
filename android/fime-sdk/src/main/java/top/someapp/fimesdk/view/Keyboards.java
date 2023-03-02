@@ -5,10 +5,8 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PointF;
 import android.os.Message;
-import android.util.Log;
 import androidx.annotation.NonNull;
 import com.typesafe.config.Config;
-import top.someapp.fimesdk.Fime;
 import top.someapp.fimesdk.api.DefaultFimeHandler;
 import top.someapp.fimesdk.api.FimeHandler;
 import top.someapp.fimesdk.api.FimeMessage;
@@ -20,6 +18,7 @@ import top.someapp.fimesdk.config.Keycode;
 import top.someapp.fimesdk.utils.Effects;
 import top.someapp.fimesdk.utils.Fonts;
 import top.someapp.fimesdk.utils.Geometry;
+import top.someapp.fimesdk.utils.Logs;
 import top.someapp.fimesdk.utils.Strings;
 
 import java.io.File;
@@ -40,7 +39,6 @@ import java.util.regex.Pattern;
  */
 public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
 
-    private static final String TAG = Fime.makeTag("Keyboards");
     private static final Pattern kOnTapActionReg = Pattern.compile(
             "([A-Za-z][0-9]?)+[(]([A-Za-z0-9]+,?)+[)]");
     private final Map<String, Keyboard> keyboardMap = new LinkedHashMap<>();
@@ -121,7 +119,7 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
             onTapAction(action_, args);
         }
         else {
-            Log.w(TAG, "Invalid onTapAction: " + action);
+            Logs.w("Invalid onTapAction: ", action);
         }
     }
 
@@ -136,7 +134,7 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
                 current.requestRepaint();
             }
             else {
-                Log.d(TAG, "handle MSG_INPUT_CHANGE.");
+                Logs.d("handle MSG_INPUT_CHANGE.");
                 String code = engine.getSchema()
                                     .getInputEditor()
                                     .getLastSegment();
@@ -151,11 +149,11 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
         VirtualKey key = virtualKey;
         if (current.shiftHold) {
             if (Keycode.isLetterLowerCode(virtualKey.getCode())) {  // lower -> UPPER
-                Log.d(TAG, "castIfShiftHold: lower -> UPPER.");
+                Logs.d("castIfShiftHold: lower -> UPPER.");
                 key = new VirtualKey(virtualKey.getCode() - Keycode.VK_a + Keycode.VK_A);
             }
             else if (Keycode.isLetterUpperCode(virtualKey.getCode())) { // UPPER -> lower
-                Log.d(TAG, "castIfShiftHold: UPPER -> lower.");
+                Logs.d("castIfShiftHold: UPPER -> lower.");
                 key = new VirtualKey(virtualKey.getCode() - Keycode.VK_A + Keycode.VK_a);
             }
         }
@@ -228,7 +226,7 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
                 keyboardMap.put(id, keyboard);
             }
             else {
-                Log.w(TAG, "Keyboard " + id + " is missing!");
+                Logs.w("Keyboard " + id + " is missing!");
             }
         }
         defaultKeyboardId = keyboards.get(0);
@@ -237,7 +235,6 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
 
     static class Keyboard implements Widget {
 
-        private static final String TAG = Fime.makeTag("Keyboard");
         private final List<VirtualKey> keyList = new ArrayList<>(32);
         private final Set<Integer> holdOnKeyIndex = new HashSet<>(3);
         private final Paint paint = new Paint();
@@ -282,7 +279,7 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
         }
 
         @Override public void onDraw(Canvas canvas, Box box, FimeHandler painter) {
-            Log.d(TAG, "onDraw, dirty=" + dirty);
+            Logs.d("onDraw, dirty=" + dirty);
             container = box;
             this.painter = painter;
             int width = (int) box.getWidth();
@@ -317,7 +314,7 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
         @Override public void onTouchMove(PointF pos) {
             if (firstTouchAt != null) {
                 double distance = Geometry.distanceBetweenPoints(firstTouchAt, pos);
-                Log.d(TAG, "onTouchMove, distance=" + distance);
+                Logs.d("onTouchMove, distance=" + distance);
                 if (holdOnKeyIndex.isEmpty()) {
                     return;
                 }
@@ -343,7 +340,7 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
         }
 
         @Override public void onLongPress(PointF pos, long durations) {
-            Log.d(TAG, "onLongPress, durations=" + durations);
+            Logs.d("onLongPress, durations=" + durations);
             VirtualKey key = findKeyAt(pos);
             if (key != null && keyListener != null) {
                 keyListener.onLongPress(key, durations);
@@ -490,7 +487,7 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
                     key.setLabel(labelMap.get(key.getCode()));
                 }
             }
-            Log.d(TAG, labelMap.toString());
+            Logs.d(labelMap.toString());
             if (!labelMap.isEmpty()) requestRepaint();
         }
 
@@ -506,7 +503,7 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
                 }
                 it.remove();
             }
-            // if (size != holdOnKeyIndex.size()) requestRepaint();
+            if (size != holdOnKeyIndex.size()) requestRepaint();
         }
 
         private void pressKeyDown(VirtualKey key) {
