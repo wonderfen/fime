@@ -63,13 +63,13 @@ public class FimeContext {
 
     public void showToastShortCenter(String message) {
         Toast toast = Toast.makeText(getContext(), message, Toast.LENGTH_SHORT);
-        toast.setGravity(Gravity.CENTER, 0, 0);
+        toast.setGravity(Gravity.CENTER, 0, 0); // Android 12+ setGravity() 无效
         toast.show();
     }
 
     public void showToastLongCenter(String message) {
         Toast toast = Toast.makeText(getContext(), message, Toast.LENGTH_LONG);
-        toast.setGravity(Gravity.CENTER, 0, 0);
+        toast.setGravity(Gravity.CENTER, 0, 0); // Android 12+ setGravity() 无效
         toast.show();
     }
 

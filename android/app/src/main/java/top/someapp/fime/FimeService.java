@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.IBinder;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputBinding;
 import android.view.inputmethod.InputConnection;
@@ -58,9 +59,15 @@ public class FimeService extends InputMethodService implements ServiceConnection
 
     @Override public void onWindowShown() {
         super.onWindowShown();
+        Logs.d("onWindowShown");
+        if (!inputView.isPainterValid()) {  // android 12 上 inputView 被隐藏后再次显示， surfaceView 会被销毁!
+            ViewGroup parent = (ViewGroup) inputView.getParent();
+            parent.removeAllViews();
+            inputView = new InputView(engine); // 创建一个新的 view
+            parent.addView(inputView);
+        }
         FimeContext.getInstance()
                    .setRootView(inputView);
-        Logs.d("onWindowShown");
         ImeEngine.ImeState state = engine.getState();
         if (state == ImeEngine.ImeState.FREEZE || state == ImeEngine.ImeState.QUIT) {
             engine.enterState(ImeEngine.ImeState.READY);
