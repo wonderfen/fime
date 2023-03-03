@@ -9,6 +9,7 @@ import top.someapp.fimesdk.api.Translator;
 import top.someapp.fimesdk.dict.Dict;
 import top.someapp.fimesdk.engine.Converter;
 import top.someapp.fimesdk.utils.FileStorage;
+import top.someapp.fimesdk.utils.Logs;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -120,6 +121,7 @@ public class DefaultTranslator implements Translator {
         }
         catch (IOException e) {
             e.printStackTrace();
+            Logs.w(e.getMessage());
         }
     }
 
@@ -132,6 +134,7 @@ public class DefaultTranslator implements Translator {
                 }
                 catch (IOException e) {
                     e.printStackTrace();
+                    Logs.w(e.getMessage());
                 }
                 target = null;
             });

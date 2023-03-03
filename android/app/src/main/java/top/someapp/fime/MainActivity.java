@@ -116,7 +116,7 @@ public class MainActivity extends FlutterFragmentActivity implements MethodChann
 
     @Override protected void onResume() {
         super.onResume();
-        Logs.d("App=" + getApplication().hashCode());
+        Logs.d("App=0x%02x", getApplication().hashCode());
         checkPermissions();
     }
 

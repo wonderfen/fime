@@ -47,7 +47,7 @@ public class Logs {
     public static final int ASSERT = 7;
 
     private static boolean setup_;
-    private static int level = ERROR;
+    private static int level = WARN;
 
     private Logs() {
         // no instance.
@@ -92,7 +92,7 @@ public class Logs {
     }
 
     private static boolean needRecord(int lv) {
-        return lv <= level;
+        return lv >= level; // smaller is higher
     }
 
     private static class TimberTree extends Timber.DebugTree {
@@ -127,7 +127,7 @@ public class Logs {
                         writer = new FileWriter(logFile);
                     }
                 }
-                log(INFO, "init LogToFileTree, logFile=%s", logFile.getAbsoluteFile());
+                log(9, "init LogToFileTree, logFile=%s", logFile.getAbsoluteFile());
             }
             catch (IOException e) {
                 e.printStackTrace();
@@ -137,6 +137,7 @@ public class Logs {
         @Override
         protected void log(int level, @Nullable String tag, @NonNull String message,
                 @Nullable Throwable e) {
+            if (!needRecord(level)) return;
             if (writer == null) {
                 super.log(level, tag, message, e);
             }

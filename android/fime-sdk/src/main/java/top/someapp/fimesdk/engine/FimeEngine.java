@@ -152,6 +152,7 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
         }
         catch (Exception e) {
             e.printStackTrace();
+            Logs.w(e.getMessage());
         }
         return this;
     }
@@ -231,6 +232,7 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
         }
         catch (Exception e) {
             e.printStackTrace();
+            Logs.w(e.getMessage());
         }
     }
 

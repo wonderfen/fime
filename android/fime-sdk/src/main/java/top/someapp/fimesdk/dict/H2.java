@@ -2,6 +2,7 @@ package top.someapp.fimesdk.dict;
 
 import top.someapp.fimesdk.FimeContext;
 import top.someapp.fimesdk.utils.FileStorage;
+import top.someapp.fimesdk.utils.Logs;
 import top.someapp.fimesdk.utils.Strings;
 
 import java.io.File;
@@ -62,6 +63,7 @@ class H2 {
         }
         catch (SQLException e) {
             e.printStackTrace();
+            Logs.w(e.getMessage());
         }
         started = conn != null;
     }
@@ -75,6 +77,7 @@ class H2 {
         }
         catch (SQLException e) {
             e.printStackTrace();
+            Logs.w(e.getMessage());
         }
         finally {
             File logFile = FimeContext.getInstance()
@@ -98,6 +101,7 @@ class H2 {
         }
         catch (SQLException e) {
             e.printStackTrace();
+            Logs.w(e.getMessage());
         }
         return items;
     }
@@ -133,6 +137,7 @@ class H2 {
         }
         catch (SQLException e) {
             e.printStackTrace();
+            Logs.w(e.getMessage());
         }
     }
 

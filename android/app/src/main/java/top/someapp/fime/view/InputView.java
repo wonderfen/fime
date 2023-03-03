@@ -274,6 +274,7 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
         }
         catch (Exception e) {
             e.printStackTrace();
+            Logs.d("repaint error:%s", e.getMessage());
         }
         finally {
             if (canvas != null) surfaceHolder.unlockCanvasAndPost(canvas);

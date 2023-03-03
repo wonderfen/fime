@@ -7,6 +7,7 @@ import io.flutter.plugin.common.MethodCall;
 import top.someapp.fimesdk.Fime;
 import top.someapp.fimesdk.SchemaManager;
 import top.someapp.fimesdk.Setting;
+import top.someapp.fimesdk.utils.Logs;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -81,6 +82,7 @@ class SettingMethodCall {
         }
         catch (Exception e) {
             e.printStackTrace();
+            Logs.e("getSchemas error:%s", e.getMessage());
         }
         rtn.put("schemas", schemas);
         rtn.put("active", setting.getString(Setting.kActiveSchema));

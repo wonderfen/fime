@@ -32,6 +32,7 @@ public class Effects {
             }
             catch (IOException e) {
                 e.printStackTrace();
+                Logs.w(e.getMessage());
             }
         }
         soundPool.play(soundId, 1f, 1f, 1, 0, 1);

@@ -6,6 +6,7 @@ import top.someapp.fimesdk.api.Candidate;
 import top.someapp.fimesdk.api.Ejector;
 import top.someapp.fimesdk.api.ImeEngine;
 import top.someapp.fimesdk.api.InputEditor;
+import top.someapp.fimesdk.utils.Logs;
 
 /**
  * @author zwz
@@ -68,6 +69,7 @@ public class DefaultEjector implements Ejector {
         }
         catch (Exception e) {
             e.printStackTrace();
+            Logs.w(e.getMessage());
         }
     }
 }

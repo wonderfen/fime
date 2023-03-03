@@ -5,6 +5,7 @@ import com.typesafe.config.Config;
 import top.someapp.fimesdk.config.Configs;
 import top.someapp.fimesdk.dict.Dict;
 import top.someapp.fimesdk.utils.FileStorage;
+import top.someapp.fimesdk.utils.Logs;
 import top.someapp.fimesdk.utils.Strings;
 
 import java.io.BufferedReader;
@@ -90,6 +91,7 @@ public class SchemaManager {
             }
             catch (IOException e) {
                 e.printStackTrace();
+                Logs.e("build %s error:%s", conf, e.getMessage());
             }
         }
         return ok;
@@ -109,6 +111,7 @@ public class SchemaManager {
             }
             catch (IOException e) {
                 e.printStackTrace();
+                Logs.e("build error:%s", e.getMessage());
             }
         }
         Map<String, Pair<String, String>> buildInfo = parseBuildTxt(buildTxt);
@@ -140,6 +143,7 @@ public class SchemaManager {
         }
         catch (IOException e) {
             e.printStackTrace();
+            Logs.e("build error:%s", e.getMessage());
         }
         return ok;
     }
@@ -163,6 +167,7 @@ public class SchemaManager {
         }
         catch (Exception e) {
             e.printStackTrace();
+            Logs.e("validate %s error:%s", conf, e.getMessage());
         }
         if (config == null) return false;
         return config.hasPath("name")

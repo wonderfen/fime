@@ -173,7 +173,7 @@ public class PinyinService extends Service implements SearchService {
             afd.close();
         }
         catch (IOException e) {
-            Logs.e("Fime/PinyinService", e.toString());
+            Logs.e("initPinyinEngine error:%s", e.toString());
         }
     }
 }

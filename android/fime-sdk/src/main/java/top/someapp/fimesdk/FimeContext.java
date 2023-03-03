@@ -107,6 +107,7 @@ public class FimeContext {
         }
         catch (IOException e) {
             e.printStackTrace();
+            Logs.e("openAssetsAsStream error:%s", name);
         }
         return null;
     }
@@ -117,6 +118,7 @@ public class FimeContext {
                 return new FileReader(new File(getAppHomeDir(), path));
             }
             catch (FileNotFoundException ignored) {
+                Logs.e("getReaderFromAppHome error:%s", path);
             }
         }
         return null;

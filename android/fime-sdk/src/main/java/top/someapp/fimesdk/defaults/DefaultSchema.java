@@ -186,6 +186,7 @@ public class DefaultSchema implements Schema {
         }
         catch (IOException e) {
             e.printStackTrace();
+            Logs.e("setupKeyboards error:%s", e.getMessage());
         }
     }
 
@@ -197,6 +198,7 @@ public class DefaultSchema implements Schema {
         catch (ReflectiveOperationException e) {
             e.printStackTrace();
             inputEditor = new DefaultInputEditor();
+            Logs.w(e.getMessage());
         }
         inputEditor.reconfigure(config);
     }
@@ -209,6 +211,7 @@ public class DefaultSchema implements Schema {
         catch (ReflectiveOperationException e) {
             e.printStackTrace();
             translator = new DefaultTranslator();
+            Logs.w(e.getMessage());
         }
         translator.reconfigure(config);
     }
@@ -221,6 +224,7 @@ public class DefaultSchema implements Schema {
         catch (ReflectiveOperationException e) {
             e.printStackTrace();
             ejector = new DefaultEjector();
+            Logs.w(e.getMessage());
         }
         ejector.reconfigure(config);
     }
