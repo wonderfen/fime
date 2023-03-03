@@ -227,6 +227,6 @@ class ActionBar implements Widget {
     }
 
     private void requestRepaint() {
-        if (painter != null) painter.sendEmptyMessage(FimeMessage.MSG_REPAINT);
+        if (painter != null) painter.send(FimeMessage.create(FimeMessage.MSG_REPAINT));
     }
 }

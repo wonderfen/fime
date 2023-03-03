@@ -175,7 +175,7 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
 
         if (virtualKey.isFunctional()) {
             onFnKeyTap(keycode);
-            notifyHandlers(FimeMessage.MSG_INPUT_CHANGE);
+            notifyHandlers(FimeMessage.create(FimeMessage.MSG_INPUT_CHANGE));
             return;
         }
 
@@ -185,7 +185,7 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
         else {
             asciiModeInput(virtualKey, keycode);
         }
-        notifyHandlers(FimeMessage.MSG_INPUT_CHANGE);
+        notifyHandlers(FimeMessage.create(FimeMessage.MSG_INPUT_CHANGE));
     }
 
     @Override public void requestSearch() {
@@ -195,7 +195,7 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
     @SuppressWarnings("all")
     @Override public void manualEject() {
         getEjector().manualEject(getInputEditor());
-        notifyHandlers(FimeMessage.MSG_INPUT_CHANGE);
+        notifyHandlers(FimeMessage.create(FimeMessage.MSG_INPUT_CHANGE));
     }
 
     @Override public void registerHandler(@NonNull FimeHandler handler) {
@@ -207,8 +207,17 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
     }
 
     @Override public void notifyHandlers(@NonNull Message message) {
-        for (FimeHandler handler : handlerMap.values()) {
-            handler.handleMessage(message);
+        if (FimeMessage.hasMultipleHandlerFlag(message.what)) {
+            for (FimeHandler handler : handlerMap.values()) {
+                Logs.d("send message:0x%02x to %s.", message.what, handler.getName());
+                handler.handle(message);
+            }
+        }
+        else {
+            for (FimeHandler handler : handlerMap.values()) {
+                Logs.d("send message:0x%02x to %s.", message.what, handler.getName());
+                if (handler.handleOnce(message)) break;
+            }
         }
     }
 
@@ -275,13 +284,6 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
         candidateSet.clear();
     }
 
-    void notifyHandlers(int what) {
-        for (FimeHandler handler : handlerMap.values()) {
-            Logs.d("send message:0x%02x to handler:%s.", what, handler.getName());
-            if (handler.sendEmptyMessage(what)) break;
-        }
-    }
-
     private void asciiModeInput(VirtualKey virtualKey, Keycode keycode) {
         final int code = virtualKey.getCode();
         if (Keycode.isSpaceCode(code)) {
@@ -312,7 +314,12 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
             doSearch();
         }
         else if (Keycode.isSpaceCode(code)) {
-            manualEject();
+            if (inputEditor.hasInput()) {
+                manualEject();
+            }
+            else {
+                commitText(" ");
+            }
         }
         else if (Keycode.isEnterCode(code)) {
             if (inputEditor.hasInput()) {
@@ -385,18 +392,18 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
                 ims.getCurrentInputConnection()
                    .sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DEL));
             }
-            notifyHandlers(FimeMessage.MSG_INPUT_CHANGE);
+            notifyHandlers(FimeMessage.create(FimeMessage.MSG_INPUT_CHANGE));
         }
         else if (keycode.code == Keycode.VK_FN_CLEAR) {
             resetInputContext();
-            notifyHandlers(FimeMessage.MSG_INPUT_CHANGE);
+            notifyHandlers(FimeMessage.create(FimeMessage.MSG_INPUT_CHANGE));
         }
         else if (keycode.code == Keycode.VK_FN_ENTER) {
             assert inputEditor != null;
             if (inputEditor.hasInput()) {
                 commitText(inputEditor.getRawInput());
                 resetInputContext();
-                notifyHandlers(FimeMessage.MSG_INPUT_CHANGE);
+                notifyHandlers(FimeMessage.create(FimeMessage.MSG_INPUT_CHANGE));
             }
             else {
                 ims.getCurrentInputConnection()
@@ -434,7 +441,7 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
             for (Candidate candidate : candidates) {
                 inputEditor.appendCandidate(candidate);
             }
-            notifyHandlers(FimeMessage.MSG_CANDIDATE_CHANGE);
+            notifyHandlers(FimeMessage.create(FimeMessage.MSG_CANDIDATE_CHANGE));
             if (!candidates.isEmpty()) {
                 getEjector().ejectOnCandidateChange(getInputEditor());
             }

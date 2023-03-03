@@ -36,7 +36,6 @@ public class Fime {
             "sbfj_dict.csv",
             "sbfj_schema.conf",
     };
-    private static final String TAG_PREFIX = "Fime";
 
     private Fime() {
         // no instance.

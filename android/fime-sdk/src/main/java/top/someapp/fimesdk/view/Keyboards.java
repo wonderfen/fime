@@ -86,8 +86,12 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
     @Override public void setup(@NonNull ImeEngine engine) {
         this.engine = engine;
         engine.unregisterHandler("KeyLabelUpdater");
-        engine.registerHandler(new DefaultFimeHandler(engine.getWorkLopper(), "KeyLabelUpdater",
-                                                      this::handle));
+        engine.registerHandler(new DefaultFimeHandler("KeyLabelUpdater") {
+                                   @Override public boolean handleOnce(@NonNull Message msg) {
+                                       return Keyboards.this.handle(msg);
+                                   }
+                               }
+        );
     }
 
     @Override public boolean onTap(VirtualKey virtualKey) {
@@ -514,7 +518,7 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
 
         private void requestRepaint() {
             dirty = true;
-            if (painter != null) painter.sendEmptyMessage(FimeMessage.MSG_REPAINT);
+            if (painter != null) painter.send(FimeMessage.create(FimeMessage.MSG_REPAINT));
         }
 
         private void drawKeyboard() {

@@ -11,11 +11,20 @@ public interface FimeHandler {
 
     @NonNull String getName();
 
-    void handleMessage(@NonNull Message msg);
+    void handle(@NonNull Message msg);
 
-    boolean sendEmptyMessage(int what);
+    /**
+     * 处理消息 msg
+     *
+     * @param msg 待处理的消息
+     * @return true：已处理；false：未处理
+     */
+    boolean handleOnce(@NonNull Message msg);
 
-    boolean sendEmptyMessageDelayed(int what, long delayMillis);
-
-    boolean post(@NonNull Runnable work);
+    /**
+     * 通知其他 Handler
+     *
+     * @param msg 消息
+     */
+    void send(@NonNull Message msg);
 }

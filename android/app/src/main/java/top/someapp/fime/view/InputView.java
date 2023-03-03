@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
 import android.os.Message;
+import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -113,7 +114,8 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
                 lastTouchEvent = event;
                 path.moveTo(x, y);
                 findWidgetContains(touchDown).onTouchStart(touchDown);
-                painter.sendEmptyMessage(FimeMessage.MSG_CHECK_LONG_PRESS);
+                // painter.sendEmptyMessage(FimeMessage.MSG_CHECK_LONG_PRESS);
+                engine.notifyHandlers(FimeMessage.create(FimeMessage.MSG_CHECK_LONG_PRESS));
                 break;
             case MotionEvent.ACTION_MOVE:
                 Logs.d(
@@ -177,7 +179,8 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
         switch (msg.what) {
             case FimeMessage.MSG_REPAINT:
             case FimeMessage.MSG_CANDIDATE_CHANGE:
-                painter.post(this::repaint);
+                // painter.post(this::repaint);
+                engine.post(this::repaint);
                 return true;
             case FimeMessage.MSG_CHECK_LONG_PRESS:
                 Logs.d("MSG_CHECK_LONG_PRESS");
@@ -185,19 +188,27 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
                     long eventTime = lastTouchEvent.getEventTime();
                     long downTime = lastTouchEvent.getDownTime();
                     Logs.d("eventTime=" + eventTime + ", downTime=" + downTime);
+                    final long uptimeMillis = SystemClock.uptimeMillis();
                     if (eventTime == downTime) { // 没有触发移动事件
-                        if (msg.getWhen() - downTime >= longPressThreshold) {
+                        if (uptimeMillis - downTime >= longPressThreshold) {
                             findWidgetContains(touchDown).onLongPress(touchDown,
-                                                                      msg.getWhen() - downTime);
+                                                                      uptimeMillis - downTime);
+                        }
+                        else {
+                            Logs.d("longPress time too short.");
                         }
                     }
                     else {  // 按下并移动了一小段距离
                         if (eventTime - downTime >= longPressThreshold) {
                             findWidgetContains(touchDown).onLongPress(touchDown,
-                                                                      msg.getWhen() - downTime);
+                                                                      uptimeMillis - downTime);
+                        }
+                        else {
+                            Logs.d("longPress time too short.");
                         }
                     }
-                    painter.sendEmptyMessageDelayed(msg.what, 100);
+                    engine.notifyHandlersDelay(FimeMessage.create(msg.what), 100);
+                    // painter.sendEmptyMessageDelayed(msg.what, 100);
                 }
                 return true;
         }
@@ -233,7 +244,15 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
 
     private void setupPainter() {
         engine.unregisterHandler(TAG + "-handler");
-        painter = new DefaultFimeHandler(engine.getWorkLopper(), TAG + "-handler", this::handle);
+        painter = new DefaultFimeHandler(TAG + "-handler") {
+            @Override public boolean handleOnce(@NonNull Message msg) {
+                return InputView.this.handle(msg);
+            }
+
+            @Override public void send(@NonNull Message msg) {
+                engine.notifyHandlers(msg);
+            }
+        };
         engine.registerHandler(painter);
     }
 
