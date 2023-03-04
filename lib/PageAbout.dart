@@ -1,3 +1,4 @@
+import 'package:fime/AppLocalizations.dart';
 import 'package:fime/NativeBridge.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +12,7 @@ class PageAbout extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('关于'),
+        title: Text('${AppLocalizations.of(context).i18n('about')}'),
       ),
       body: Container(
         padding: EdgeInsets.all(8.0),
@@ -25,9 +26,10 @@ class PageAbout extends StatelessWidget {
               versionInfo(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
-                  Text('问题反馈和交流'),
-                  Text('QQ群：463640611'),
+                children: [
+                  Text(
+                      '${AppLocalizations.of(context).i18n('feedback-and-discuss')}'),
+                  Text('${AppLocalizations.of(context).i18n('qq-group-info')}'),
                 ],
               )
             ],
@@ -55,7 +57,10 @@ class PageAbout extends StatelessWidget {
               ),
             );
           }
-          return const SizedBox(height: 32, child: Text('正在获取版本信息...'));
+          return SizedBox(
+              height: 32,
+              child: Text(
+                  '${AppLocalizations.of(context).i18n('fetching-version-info')}'));
         });
   }
 }

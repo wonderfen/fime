@@ -1,13 +1,16 @@
 import 'dart:ui';
 
+import 'package:fime/AppLocalizations.dart';
 import 'package:fime/NativeBridge.dart';
 import 'package:fime/PageAbout.dart';
-import 'package:fime/PageEffect.dart';
+import 'package:fime/PageGeneral.dart';
 import 'package:fime/PageHelp.dart';
 import 'package:fime/PageKeyboard.dart';
+import 'package:fime/PagePlugins.dart';
 import 'package:fime/PageSchema.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
   runApp(const FimeApp());
@@ -20,30 +23,41 @@ class FimeApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Fime',
+      localizationsDelegates: [
+        AppLocalizationsDelegate(),
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate
+      ],
+      supportedLocales: [
+        Locale('en'),
+        // 简体中文
+        Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'),
+        // generic traditional Chinese
+        Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'),
+      ],
+      onGenerateTitle: (context) => AppLocalizations.of(context).title,
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const HomePage(title: 'Fime'),
+      home: const HomePage(),
       routes: _routes(),
     );
   }
 
   Map<String, WidgetBuilder> _routes() {
     return {
+      PageGeneral.ROUTER_NAME: (context) => const PageGeneral(),
       PageSchema.ROUTER_NAME: (context) => const PageSchema(),
       PageKeyboard.ROUTER_NAME: (context) => const PageKeyboard(),
-      PageEffect.ROUTER_NAME: (context) => const PageEffect(),
       PageHelp.ROUTER_NAME: (context) => const PageHelp(),
       PageAbout.ROUTER_NAME: (context) => const PageAbout(),
+      PagePlugins.ROUTER_NAME: (context) => const PagePlugins(),
     };
   }
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, required this.title});
-
-  final String title;
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -72,14 +86,14 @@ class _HomePageState extends State<HomePage> {
         }
         backPressedTime = now;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('再次点击 返回 退出应用!'),
+          content: Text(AppLocalizations.of(context).i18n('double-tap-exit')),
           duration: const Duration(milliseconds: 500),
         ));
         return false;
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.title),
+          title: Text(AppLocalizations.of(context).title),
         ),
         body: SingleChildScrollView(
           scrollDirection: Axis.vertical,
@@ -91,36 +105,42 @@ class _HomePageState extends State<HomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    '设置',
+                    AppLocalizations.of(context).i18n('setting'),
                     style: Theme.of(context).textTheme.headline6,
                   ),
                   Row(
                     children: [
                       Expanded(
-                        child:
-                            makeCard(const Icon(Icons.book_outlined), '方案', () {
-                          Navigator.pushNamed(context, PageSchema.ROUTER_NAME);
+                        child: makeCard(const Icon(Icons.room_preferences),
+                            AppLocalizations.of(context).i18n('general'), () {
+                          Navigator.pushNamed(context, PageGeneral.ROUTER_NAME);
                         }),
                       ),
                       Expanded(
-                        child: makeCard(
-                            const Icon(Icons.touch_app_outlined), '音效和触感', () {
-                          Navigator.pushNamed(context, PageEffect.ROUTER_NAME);
+                        child: makeCard(const Icon(Icons.book_outlined),
+                            AppLocalizations.of(context).i18n('schema'), () {
+                          Navigator.pushNamed(context, PageSchema.ROUTER_NAME);
                         }),
                       ),
+                      // Expanded(
+                      //   child: makeCard(
+                      //       const Icon(Icons.touch_app_outlined), '音效和触感', () {
+                      //     Navigator.pushNamed(context, PageEffect.ROUTER_NAME);
+                      //   }),
+                      // ),
                     ],
                   ),
                   Row(
                     children: [
                       Expanded(
-                        child:
-                            makeCard(const Icon(Icons.help_outline), '帮助', () {
+                        child: makeCard(const Icon(Icons.help_outline),
+                            AppLocalizations.of(context).i18n('help'), () {
                           Navigator.pushNamed(context, PageHelp.ROUTER_NAME);
                         }),
                       ),
                       Expanded(
-                        child:
-                            makeCard(const Icon(Icons.info_outline), '关于', () {
+                        child: makeCard(const Icon(Icons.info_outline),
+                            AppLocalizations.of(context).i18n('about'), () {
                           Navigator.pushNamed(context, PageAbout.ROUTER_NAME);
                         }),
                       ),
@@ -142,9 +162,12 @@ class _HomePageState extends State<HomePage> {
                           });
                         },
                       ),
-                      const Expanded(child: Text('输入测试')),
+                      Expanded(
+                          child: Text(
+                              AppLocalizations.of(context).i18n('input-test'))),
                       MaterialButton(
-                        child: Text('切换到 Fime'),
+                        child: Text(AppLocalizations.of(context)
+                            .i18n('switch-to-fime')),
                         onPressed: () {
                           callNative('switchToFime', null);
                         },
@@ -158,8 +181,9 @@ class _HomePageState extends State<HomePage> {
                     child: TextField(
                       maxLines: 1,
                       focusNode: focusNode,
-                      decoration: const InputDecoration(
-                        hintText: '打几个字试试吧!',
+                      decoration: InputDecoration(
+                        hintText: AppLocalizations.of(context)
+                            .i18n('type-some-chars'),
                         contentPadding: EdgeInsets.only(left: 4.0),
                       ),
                     ),
