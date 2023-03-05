@@ -41,5 +41,27 @@
   "schema-build-ok": "Schema build succeed!",
   "unique-schema-can-not-delete": "Can't delete the only one!",
   "confirm-delete-schema": "Confirm delete this schema, its can't UNDO!",
-  "schema-deleted": "Schema deleted!"
+  "schema-deleted": "Schema deleted!",
+
+  "plugins": "Plugins",
+  "maintenance": "Maintenance",
+
+  "check-long-press": "Check long press",
+  "check-swipe": "Check swipe on key",
+  "theme": "Theme",
+  "by-system": "Follow system",
+  "by-keyboard": "Use setting in keyboard",
+  "light": "Light mode",
+  "dark": "Dark mode",
+  "clipboard": "Clipboard",
+  "clipboard-enabled": "Clipboard enabled",
+  "clean-clipboard": "Clean clipboard",
+
+  "version": "Version",
+  "check-update": "Check update",
+  "privacy-policy": "Privacy policy",
+  "privacy-policy-info": "Fime collect nothing!",
+  "third-party-libraries": "Third party libraries",
+  "source-code": "Source code",
+  "license": "License"
 }

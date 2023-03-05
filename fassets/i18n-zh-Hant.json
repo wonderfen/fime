@@ -41,5 +41,27 @@
   "schema-build-ok": "生成成功!",
   "unique-schema-can-not-delete": "不能刪除僅有的方案!",
   "confirm-delete-schema": "確認刪除改方案嗎，此操作不可恢復!",
-  "schema-deleted": "方案已刪除!"
+  "schema-deleted": "方案已刪除!",
+
+  "plugins": "外掛程式",
+  "maintenance": "維護",
+
+  "check-long-press": "檢測長按",
+  "check-swipe": "檢測按鍵滑動",
+  "theme": "主題",
+  "by-system": "跟隨系統",
+  "by-keyboard": "使用鍵盤中的配置",
+  "light": "亮色模式",
+  "dark": "暗色模式",
+  "clipboard": "剪貼板",
+  "clipboard-enabled": "啟用剪貼板",
+  "clean-clipboard": "清空剪貼板",
+
+  "version": "版本",
+  "check-update": "檢查更新",
+  "privacy-policy": "隱私策略",
+  "privacy-policy-info": "Fime 輸入法不收集任何信息!",
+  "third-party-libraries": "第三方庫",
+  "source-code": "原始碼",
+  "license": "許可"
 }

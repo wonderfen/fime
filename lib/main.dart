@@ -12,6 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'PageMaintenance.dart';
+
 void main() {
   runApp(const FimeApp());
 }
@@ -28,7 +30,7 @@ class FimeApp extends StatelessWidget {
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate
       ],
-      supportedLocales: [
+      supportedLocales: const [
         Locale('en'),
         // 简体中文
         Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'),
@@ -52,6 +54,7 @@ class FimeApp extends StatelessWidget {
       PageHelp.ROUTER_NAME: (context) => const PageHelp(),
       PageAbout.ROUTER_NAME: (context) => const PageAbout(),
       PagePlugins.ROUTER_NAME: (context) => const PagePlugins(),
+      PageMaintenance.ROUTER_NAME: (context) => const PageMaintenance(),
     };
   }
 }
@@ -111,7 +114,8 @@ class _HomePageState extends State<HomePage> {
                   Row(
                     children: [
                       Expanded(
-                        child: makeCard(const Icon(Icons.room_preferences),
+                        child: makeCard(
+                            const Icon(Icons.room_preferences_outlined),
                             AppLocalizations.of(context).i18n('general'), () {
                           Navigator.pushNamed(context, PageGeneral.ROUTER_NAME);
                         }),
@@ -122,12 +126,32 @@ class _HomePageState extends State<HomePage> {
                           Navigator.pushNamed(context, PageSchema.ROUTER_NAME);
                         }),
                       ),
-                      // Expanded(
-                      //   child: makeCard(
-                      //       const Icon(Icons.touch_app_outlined), '音效和触感', () {
-                      //     Navigator.pushNamed(context, PageEffect.ROUTER_NAME);
-                      //   }),
-                      // ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: makeCard(
+                            const Icon(Icons.extension_outlined),
+                            '${AppLocalizations.of(context).i18n('plugins')}',
+                            null
+                            // () {
+                            //   Navigator.pushNamed(
+                            //       context, PagePlugins.ROUTER_NAME);
+                            // },
+                            ),
+                      ),
+                      Expanded(
+                        child: makeCard(
+                            const Icon(Icons.build_circle_outlined),
+                            '${AppLocalizations.of(context).i18n('maintenance')}',
+                            null
+                            // () {
+                            //   Navigator.pushNamed(
+                            //       context, PageMaintenance.ROUTER_NAME);
+                            // },
+                            ),
+                      ),
                     ],
                   ),
                   Row(
