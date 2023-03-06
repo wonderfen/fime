@@ -14,10 +14,13 @@ import java.util.List;
 @SuppressWarnings("unchecked")
 public class Setting {
 
-    // public static final String kSchemas = "schemas";            // 已知的方案
     public static final String kActiveSchema = "active-schema";  // 用户激活的方案
-    public static final String kEffectPlayKeySound = "effect.play-key-sound";
-    public static final String kEffectVibrate = "effect.vibrate";
+    public static final String kKeyboardPlayKeySound = "keyboard.play-key-sound";
+    public static final String kKeyboardKeyVibrate = "keyboard.key-vibrate";
+    public static final String kKeyboardCheckLongPress = "keyboard.check-long-press";
+    public static final String kKeyboardCheckSwipe = "keyboard.check-swipe";
+    public static final String kTheme = "theme";
+    public static final String kClipboardEnabled = "clipboard.enabled";
     private static Setting sInstance;
     private final SharedPreferences pref;
 
@@ -90,12 +93,15 @@ public class Setting {
 
     private void init() {
         if (pref.getAll()
-                .isEmpty()) {
+                .size() < 7) {
             pref.edit()
-                // .putString(kSchemas, "fime_pinyin_schema.conf,")
                 .putString(kActiveSchema, "fime_pinyin_schema.conf")
-                .putBoolean(kEffectPlayKeySound, true)
-                .putBoolean(kEffectVibrate, false)
+                .putBoolean(kKeyboardPlayKeySound, true)
+                .putBoolean(kKeyboardKeyVibrate, false)
+                .putBoolean(kKeyboardCheckLongPress, true)
+                .putBoolean(kKeyboardCheckSwipe, true)
+                .putString(kTheme, "by-keyboard")
+                .putBoolean(kClipboardEnabled, true)
                 .apply();
         }
     }

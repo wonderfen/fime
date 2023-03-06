@@ -6,13 +6,12 @@ import 'package:fime/PageAbout.dart';
 import 'package:fime/PageGeneral.dart';
 import 'package:fime/PageHelp.dart';
 import 'package:fime/PageKeyboard.dart';
+import 'package:fime/PageMaintenance.dart';
 import 'package:fime/PagePlugins.dart';
 import 'package:fime/PageSchema.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-
-import 'PageMaintenance.dart';
 
 void main() {
   runApp(const FimeApp());

@@ -3,9 +3,12 @@ import 'package:fime/NativeBridge.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-const _kPlayKeySound = 'play-key-sound';
-const _kVibrate = 'vibrate';
-const _kTheme = 'system';
+const String kKeyboardPlayKeySound = "keyboard.play-key-sound";
+const String kKeyboardKeyVibrate = "keyboard.key-vibrate";
+const String kKeyboardCheckLongPress = "keyboard.check-long-press";
+const String kKeyboardCheckSwipe = "keyboard.check-swipe";
+const String kTheme = "theme";
+const String kClipboardEnabled = "clipboard.enabled";
 
 class PageGeneral extends StatefulWidget {
   static const String ROUTER_NAME = "/general";
@@ -20,19 +23,54 @@ class PageGeneral extends StatefulWidget {
 
 class _PageGeneralState extends State<PageGeneral> {
   bool playKeySound = true;
-  bool vibrate = false;
+  bool keyVibrate = false;
+  bool checkLongPress = true;
+  bool checkSwipe = true;
+
   String theme = 'by-keyboard';
+
   bool clipboardEnable = true;
+
   Set<int> expandedIndex = <int>{};
 
   @override
   void initState() {
     super.initState();
-    callNative('getEffects', {}).then((data) {
+    callNative('getKeyboardSetting', {}).then((data) {
       setState(() {
-        playKeySound = data![_kPlayKeySound];
-        vibrate = data![_kVibrate];
+        playKeySound = data![kKeyboardPlayKeySound];
+        keyVibrate = data![kKeyboardKeyVibrate];
+        checkLongPress = data[kKeyboardCheckLongPress];
+        checkSwipe = data[kKeyboardCheckSwipe];
       });
+      return callNative('getThemeSetting', {});
+    }).then((data) {
+      setState(() {
+        theme = data![kTheme];
+      });
+      return callNative('getClipboardSetting', {});
+    }).then((data) {
+      setState(() {
+        clipboardEnable = data![kClipboardEnabled];
+      });
+    }).catchError((err) {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('${AppLocalizations.of(context).i18n('error')}'),
+              content: Text(
+                  '${AppLocalizations.of(context).i18n('get-setting-failed')}: ${err.toString()}'),
+              actions: [
+                TextButton(
+                  child: Text('${AppLocalizations.of(context).i18n('OK')}'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                )
+              ],
+            );
+          });
     });
   }
 
@@ -40,8 +78,35 @@ class _PageGeneralState extends State<PageGeneral> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        callNative(
-            'setEffects', {_kPlayKeySound: playKeySound, _kVibrate: vibrate});
+        callNative('setKeyboardSetting', {
+          kKeyboardPlayKeySound: playKeySound,
+          kKeyboardKeyVibrate: keyVibrate,
+          kKeyboardCheckLongPress: checkLongPress,
+          kKeyboardCheckSwipe: checkSwipe,
+        }).whenComplete(() {
+          callNative('setThemeSetting', {kTheme: theme});
+        }).whenComplete(() {
+          callNative(
+              'setClipboardSetting', {kClipboardEnabled: clipboardEnable});
+        }).catchError((err) {
+          showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  title: Text('${AppLocalizations.of(context).i18n('error')}'),
+                  content: Text(
+                      '${AppLocalizations.of(context).i18n('set-setting-failed')}: ${err.toString()}'),
+                  actions: [
+                    TextButton(
+                      child: Text('${AppLocalizations.of(context).i18n('OK')}'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    )
+                  ],
+                );
+              });
+        });
         return true;
       },
       child: Scaffold(
@@ -95,10 +160,10 @@ class _PageGeneralState extends State<PageGeneral> {
           ListTile(
             title: Text('${AppLocalizations.of(context).i18n('key-vibrate')}'),
             trailing: Switch(
-              value: vibrate,
+              value: keyVibrate,
               activeColor: Colors.blue,
               onChanged: (bool on) {
-                setState(() => vibrate = on);
+                setState(() => keyVibrate = on);
               },
             ),
             dense: true,
@@ -107,10 +172,10 @@ class _PageGeneralState extends State<PageGeneral> {
             title: Text(
                 '${AppLocalizations.of(context).i18n('check-long-press')}'),
             trailing: Switch(
-              value: playKeySound,
+              value: checkLongPress,
               activeColor: Colors.blue,
               onChanged: (bool on) {
-                setState(() => playKeySound = on);
+                setState(() => checkLongPress = on);
               },
             ),
             dense: true,
@@ -118,10 +183,10 @@ class _PageGeneralState extends State<PageGeneral> {
           ListTile(
             title: Text('${AppLocalizations.of(context).i18n('check-swipe')}'),
             trailing: Switch(
-              value: playKeySound,
+              value: checkSwipe,
               activeColor: Colors.blue,
               onChanged: (bool on) {
-                setState(() => playKeySound = on);
+                setState(() => checkSwipe = on);
               },
             ),
             dense: true,
@@ -225,10 +290,10 @@ class _PageGeneralState extends State<PageGeneral> {
             title: Text(
                 '${AppLocalizations.of(context).i18n('clipboard-enabled')}'),
             trailing: Switch(
-              value: playKeySound,
+              value: clipboardEnable,
               activeColor: Colors.blue,
               onChanged: (bool on) {
-                setState(() => playKeySound = on);
+                setState(() => clipboardEnable = on);
               },
             ),
             dense: true,
@@ -237,8 +302,16 @@ class _PageGeneralState extends State<PageGeneral> {
             title:
                 Text('${AppLocalizations.of(context).i18n('clean-clipboard')}'),
             trailing: IconButton(
-              icon: const Icon(Icons.delete_forever),
-              onPressed: () {},
+              icon: const Icon(
+                Icons.delete_forever,
+                color: Colors.deepOrange,
+              ),
+              onPressed: () {
+                callNative('cleanClipboard', {}).then((data) {
+                  showSnackBar(Text(
+                      '${AppLocalizations.of(context).i18n('clipboard-is-clean')}!'));
+                });
+              },
             ),
             dense: true,
           ),
@@ -246,5 +319,14 @@ class _PageGeneralState extends State<PageGeneral> {
       ),
       isExpanded: expandedIndex.contains(2),
     );
+  }
+
+  void showSnackBar(Widget content) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: content,
+        duration: const Duration(milliseconds: 500),
+      ));
+    }
   }
 }

@@ -38,6 +38,7 @@ class SettingMethodCall {
 
     Map<String, Object> onMethodCall(@NonNull MethodCall call) {
         final String method = call.method;
+        Logs.d("onMethodCall %s", method);
         if ("getSchemas".equals(method)) return getSchemas();
         if ("setActiveSchema".equals(method)) return setActiveSchema(call.argument("conf"));
         if ("importExternalSchema".equals(method)) return importExternalSchema();
@@ -46,25 +47,68 @@ class SettingMethodCall {
         if ("buildSchema".equals(method)) return buildSchema(call.argument("conf"));
         if ("deleteSchema".equals(method)) return deleteSchema(call.argument("conf"));
 
-        if ("getEffects".equals(method)) return getEffects();
-        if ("setEffects".equals(method)) {
-            boolean playKeySound = call.argument("play-key-sound");
-            boolean vibrate = call.argument("vibrate");
-            return setEffects(playKeySound, vibrate);
+        if ("getKeyboardSetting".equals(method)) return getKeyboardSetting();
+        if ("setKeyboardSetting".equals(method)) {
+            boolean playKeySound = call.argument(Setting.kKeyboardPlayKeySound);
+            boolean keyVibrate = call.argument(Setting.kKeyboardKeyVibrate);
+            boolean checkLongPress = call.argument(Setting.kKeyboardCheckLongPress);
+            boolean checkSwipe = call.argument(Setting.kKeyboardCheckSwipe);
+            return setKeyboardSetting(playKeySound, keyVibrate, checkLongPress, checkSwipe);
         }
+
+        if ("getThemeSetting".equals(method)) return getThemeSetting();
+        if ("setThemeSetting".equals(method)) return setThemeSetting(call.argument(Setting.kTheme));
+
+        if ("getClipboardSetting".equals(method)) return getClipboardSetting();
+        if ("setClipboardSetting".equals(method)) {
+            return setClipboardSetting(call.argument(Setting.kClipboardEnabled));
+        }
+        if ("cleanClipboard".equals(method)) return cleanClipboard();
         return null;
     }
 
-    private Map<String, Object> getEffects() {
+    private Map<String, Object> getKeyboardSetting() {
         Map<String, Object> rtn = new HashMap<>();
-        rtn.put("play-key-sound", setting.getBoolean(Setting.kEffectPlayKeySound));
-        rtn.put("vibrate", setting.getBoolean(Setting.kEffectVibrate));
+        rtn.put(Setting.kKeyboardPlayKeySound, setting.getBoolean(Setting.kKeyboardPlayKeySound));
+        rtn.put(Setting.kKeyboardKeyVibrate, setting.getBoolean(Setting.kKeyboardKeyVibrate));
+        rtn.put(Setting.kKeyboardCheckLongPress,
+                setting.getBoolean(Setting.kKeyboardCheckLongPress));
+        rtn.put(Setting.kKeyboardCheckSwipe, setting.getBoolean(Setting.kKeyboardCheckSwipe));
         return rtn;
     }
 
-    private Map<String, Object> setEffects(boolean playKeySound, boolean vibrate) {
-        setting.setBoolean(Setting.kEffectPlayKeySound, playKeySound)
-               .setBoolean(Setting.kEffectVibrate, vibrate);
+    private Map<String, Object> setKeyboardSetting(boolean playKeySound, boolean keyVibrate,
+            boolean checkLongPress, boolean checkSwipe) {
+        setting.setBoolean(Setting.kKeyboardPlayKeySound, playKeySound)
+               .setBoolean(Setting.kKeyboardKeyVibrate, keyVibrate)
+               .setBoolean(Setting.kKeyboardCheckLongPress, checkLongPress)
+               .setBoolean(Setting.kKeyboardCheckSwipe, checkSwipe);
+        return Collections.EMPTY_MAP;
+    }
+
+    private Map<String, Object> getThemeSetting() {
+        Map<String, Object> rtn = new HashMap<>();
+        rtn.put(Setting.kTheme, setting.getString(Setting.kTheme));
+        return rtn;
+    }
+
+    private Map<String, Object> setThemeSetting(String theme) {
+        setting.setString(Setting.kTheme, theme);
+        return Collections.EMPTY_MAP;
+    }
+
+    private Map<String, Object> getClipboardSetting() {
+        Map<String, Object> rtn = new HashMap<>();
+        rtn.put(Setting.kClipboardEnabled, setting.getBoolean(Setting.kClipboardEnabled));
+        return rtn;
+    }
+
+    private Map<String, Object> setClipboardSetting(boolean clipboardEnabled) {
+        setting.setBoolean(Setting.kClipboardEnabled, clipboardEnabled);
+        return Collections.EMPTY_MAP;
+    }
+
+    private Map<String, Object> cleanClipboard() {
         return Collections.EMPTY_MAP;
     }
 

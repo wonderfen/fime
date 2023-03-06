@@ -127,7 +127,7 @@ class ActionBar implements Widget {
         }
 
         float dx = pos.x - moveStartAt.x;
-        Logs.d("onTouchMove, dx=" + dx);
+        Logs.d("onTouchMove, dx=%f", dx);
         if (Math.abs(dx) < 10) return; // 这个叫消抖？
 
         int activeIndex = inputEditor.getActiveIndex();

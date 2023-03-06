@@ -1,3 +1,4 @@
+import 'package:fime/AppLocalizations.dart';
 import 'package:fime/NativeBridge.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -53,7 +54,7 @@ class _PageSchemaState<PageSchema> extends State {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('方案'),
+          title: Text('${AppLocalizations.of(context).i18n('schema')}'),
           actions: [
             IconButton(
               onPressed: importExternalSchema,
@@ -76,12 +77,13 @@ class _PageSchemaState<PageSchema> extends State {
           child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text('方案为空或包含无效方案!'),
+          Text(
+              '${AppLocalizations.of(context).i18n('empty-or-invalid-schema')}'),
           MaterialButton(
             onPressed: getSchemas,
             color: Colors.blue,
             textColor: Colors.white,
-            child: const Text('刷新'),
+            child: Text('${AppLocalizations.of(context).i18n('refresh')}'),
           )
         ],
       ));
@@ -109,11 +111,22 @@ class _PageSchemaState<PageSchema> extends State {
                 icon: const Icon(Icons.menu, color: Colors.blue),
                 itemBuilder: (context) {
                   return [
-                    const PopupMenuItem(
-                        value: 'setActiveSchema', child: Text('设为默认')),
-                    const PopupMenuItem(value: 'validate', child: Text('验证')),
-                    const PopupMenuItem(value: 'build', child: Text('生成')),
-                    const PopupMenuItem(value: 'delete', child: Text('删除')),
+                    PopupMenuItem(
+                        value: 'setActiveSchema',
+                        child: Text(
+                            '${AppLocalizations.of(context).i18n('set-as-default-schema')}')),
+                    PopupMenuItem(
+                        value: 'validate',
+                        child: Text(
+                            '${AppLocalizations.of(context).i18n('validate-schema')}')),
+                    PopupMenuItem(
+                        value: 'build',
+                        child: Text(
+                            '${AppLocalizations.of(context).i18n('generate-schema')}')),
+                    PopupMenuItem(
+                        value: 'delete',
+                        child: Text(
+                            '${AppLocalizations.of(context).i18n('delete-schema')}')),
                   ];
                 },
                 onSelected: (which) {
@@ -130,7 +143,8 @@ class _PageSchemaState<PageSchema> extends State {
                     }
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text('错误：${e}!'),
+                      content: Text(
+                          '${AppLocalizations.of(context).i18n('error')}：$e!'),
                       duration: const Duration(milliseconds: 500),
                     ));
                   }
@@ -152,16 +166,18 @@ class _PageSchemaState<PageSchema> extends State {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: const Text('提示'),
-            content: const Text('确认删除已生成的文件吗，删除后将影响输入法的正常使用！'),
+            title: Text('${AppLocalizations.of(context).i18n('warn')}'),
+            content: Text(
+                '${AppLocalizations.of(context).i18n('warn-clear-build')}'),
             actions: [
               TextButton(
-                child: const Text('删除'),
+                child: Text('${AppLocalizations.of(context).i18n('delete')}'),
                 onPressed: () {
                   callNative('clearBuild', {}).then((value) {
                     if (value!['success'] ?? false) {
                       Navigator.of(context).pop();
-                      showSnackBar(const Text('操作已完成!'));
+                      showSnackBar(
+                          Text('${AppLocalizations.of(context).i18n('done')}'));
                       setState(() {
                         schemas.clear();
                       });
@@ -170,7 +186,7 @@ class _PageSchemaState<PageSchema> extends State {
                 },
               ),
               TextButton(
-                child: const Text('取消'),
+                child: Text('${AppLocalizations.of(context).i18n('cancel')}'),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -181,8 +197,9 @@ class _PageSchemaState<PageSchema> extends State {
   }
 
   void importExternalSchema() {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      content: Text('导入新方案.'),
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content:
+          Text('${AppLocalizations.of(context).i18n('import-new-schema')}'),
       duration: Duration(milliseconds: 500),
     ));
     callNative('importExternalSchema', {});
@@ -191,14 +208,16 @@ class _PageSchemaState<PageSchema> extends State {
   void _onSchemaResult(Map<dynamic, dynamic> params) {
     if (mounted && params.isNotEmpty) {
       if (params[kSchemaImport] ?? false) {
-        showSnackBar(const Text('方案文件导入成功!'));
+        showSnackBar(Text(
+            '${AppLocalizations.of(context).i18n('schema-import-succeed')}'));
         getSchemas();
       }
     }
   }
 
   void setActiveSchema(item) {
-    showSnackBar(Text('正在设置默认方案：${item["name"]}！'));
+    showSnackBar(Text(
+        '${AppLocalizations.of(context).i18n('set-default-schema-working')}：${item["name"]}！'));
     callNative('setActiveSchema', item).then((value) {
       if (value!['success'] ?? false) {
         setState(() {
@@ -209,49 +228,58 @@ class _PageSchemaState<PageSchema> extends State {
   }
 
   void validateSchema(item) {
-    showSnackBar(Text('正在验证方案：${item["name"]}！'));
+    showSnackBar(Text(
+        '${AppLocalizations.of(context).i18n('validate-schema-working')}：${item["name"]}！'));
     callNative('validateSchema', item).then((value) {
       if (value!['success'] ?? false) {
-        showSnackBar(const Text('方案验证通过!'));
+        showSnackBar(
+            Text('${AppLocalizations.of(context).i18n('validate-schema-ok')}'));
       } else {
-        showSnackBar(const Text('操作失败！'));
+        showSnackBar(
+            Text('${AppLocalizations.of(context).i18n('operation-failed')}'));
       }
     });
   }
 
   void buildSchema(item) {
-    showSnackBar(Text('正在生成方案：${item["name"]}！'));
+    showSnackBar(Text(
+        '${AppLocalizations.of(context).i18n('schema-is-building')}：${item["name"]}！'));
     callNative('buildSchema', item).then((value) {
       if (value!['success'] ?? false) {
-        showSnackBar(const Text('方案生成成功!'));
+        showSnackBar(
+            Text('${AppLocalizations.of(context).i18n('schema-build-ok')}'));
         setState(() {
           item['precompiled'] = true;
         });
       } else {
-        showSnackBar(const Text('操作失败！'));
+        showSnackBar(
+            Text('${AppLocalizations.of(context).i18n('operation-failed')}'));
       }
     });
   }
 
   void deleteSchema(item) {
     if (schemas.length == 1) {
-      showSnackBar(const Text('只有一个方案，不能删除！'));
+      showSnackBar(Text(
+          '${AppLocalizations.of(context).i18n('unique-schema-can-not-delete')}'));
       return;
     }
     showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: const Text('提示'),
-            content: Text('确认删除方案：「${item['name']}」吗，该操作不可恢复！'),
+            title: Text('${AppLocalizations.of(context).i18n('warn')}'),
+            content: Text(
+                '${AppLocalizations.of(context).i18n('confirm-delete-schema')}'),
             actions: [
               TextButton(
-                child: const Text('删除'),
+                child: Text('${AppLocalizations.of(context).i18n('delete')}'),
                 onPressed: () {
                   Navigator.of(context).pop();
                   callNative('deleteSchema', item).then((value) {
                     if (value!['success'] ?? false) {
-                      showSnackBar(const Text('方案已删除!'));
+                      showSnackBar(Text(
+                          '${AppLocalizations.of(context).i18n('schema-deleted')}'));
                       setState(() {
                         schemas.remove(item);
                       });
