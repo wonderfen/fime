@@ -66,8 +66,9 @@ public class FimeService extends InputMethodService implements ServiceConnection
             inputView = new InputView(engine); // 创建一个新的 view
             parent.addView(inputView);
         }
-        FimeContext.getInstance()
-                   .setRootView(inputView);
+        FimeContext fimeContext = FimeContext.getInstance();
+        fimeContext.setRootView(inputView);
+        fimeContext.setImeDialog(getWindow());
         ImeEngine.ImeState state = engine.getState();
         if (state == ImeEngine.ImeState.FREEZE || state == ImeEngine.ImeState.QUIT) {
             engine.enterState(ImeEngine.ImeState.READY);

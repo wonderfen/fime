@@ -7,35 +7,61 @@
   android:orientation="vertical">
 
   <LinearLayout
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:gravity="center"
+    android:padding="2dp"
+    android:background="@drawable/border_outline"
+    android:orientation="horizontal">
+
+    <Button
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:padding="8dp"
+      android:id="@+id/btnReturn"
+      android:text="&lt;&lt;"></Button>
+
+    <Button
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:padding="8dp"
+      android:id="@+id/btnTheme"
+      android:text="Theme"></Button>
+
+    <Button
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:padding="8dp"
+      android:id="@+id/btnSchema"
+      android:text="Schema"></Button>
+
+    <Button
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:padding="8dp"
+      android:id="@+id/btnClipboard"
+      android:text="Clipboard"></Button>
+  </LinearLayout>
+
+  <FrameLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:background="@drawable/border_outline"
     android:gravity="center"
     android:orientation="vertical"
+    android:id="@+id/container"
     android:padding="8dp">
 
-    <TextView
-      android:id="@+id/tvMsg"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_margin="8dp"
-      android:gravity="center"
-      android:text="TextView"
-      android:textColor="@color/mdPrimaryText" />
-
     <Button
-      android:id="@+id/btnOK"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:layout_gravity="center_horizontal"
-      android:layout_marginBottom="16dp"
-      android:background="@drawable/border_radius_2"
-      android:paddingBottom="4dp"
-      android:paddingTop="4dp"
-      android:paddingLeft="32dp"
-      android:paddingRight="32dp"
-      android:text="好的"
-      android:textColor="@color/mdTextInPrimary" />
-  </LinearLayout>
+      android:text="Light"></Button>
+
+    <Button
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="Dark"></Button>
+
+  </FrameLayout>
 
 </LinearLayout>

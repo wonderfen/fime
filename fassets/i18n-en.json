@@ -9,6 +9,7 @@
   "clean-clipboard": "Clean clipboard",
   "clipboard": "Clipboard",
   "clipboard-enabled": "Clipboard enabled",
+  "clipboard-is-clean": "Clipboard is clean",
   "confirm-delete-schema": "Confirm delete this schema, its can't UNDO!",
   "dark": "Dark mode",
   "delete": "Delete",

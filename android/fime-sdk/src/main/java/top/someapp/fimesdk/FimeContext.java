@@ -2,6 +2,7 @@ package top.someapp.fimesdk;
 
 import android.annotation.SuppressLint;
 import android.app.Application;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -33,6 +34,7 @@ public class FimeContext {
     private static FimeContext sInstance;
     private final Application app;
     private View rootView;
+    private Dialog imeDialog;
     private File appHomeDir;
 
     public FimeContext(Application app) {
@@ -57,8 +59,20 @@ public class FimeContext {
         return app;
     }
 
+    public View getRootView() {
+        return rootView;
+    }
+
     public void setRootView(View rootView) {
         this.rootView = rootView;
+    }
+
+    public Dialog getImeDialog() {
+        return imeDialog;
+    }
+
+    public void setImeDialog(Dialog imeDialog) {
+        this.imeDialog = imeDialog;
     }
 
     public void showToastShortCenter(String message) {

@@ -40,6 +40,7 @@ class ActionBar implements Widget {
     private float candidateOffset;      // 滑动产生的偏移量
     private PointF moveStartAt;
     private InputEditor inputEditor;
+    private Popup popup;
 
     ActionBar(Box container) {
         this.container = container;
@@ -196,22 +197,10 @@ class ActionBar implements Widget {
             requestRepaint();
         }
         // TODO: 2023/1/14 Show popup
-        // if (inputContext == null || !inputContext.hasInput() && pos.x <= 1.5f * icon.getWidth
-        // ()) {
-        //     Context context = FimeContext.getInstance()
-        //                                  .getContext();
-        //     PopupWindow window = new PopupWindow(context);
-        //     window.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-        //     window.setWidth(ViewGroup.LayoutParams.WRAP_CONTENT);
-        //     window.setBackgroundDrawable(new ColorDrawable(0)); // 去掉背景
-        //     View view = LayoutInflater.from(context)
-        //                               .inflate(R.layout.popup_wrapper, (ViewGroup) null);
-        //     window.setContentView(view);
-        //     window.setOutsideTouchable(true);
-        //     window.showAtLocation(FimeContext.getInstance()
-        //                                      .getRootView(), Gravity.CENTER_HORIZONTAL, 0, 0);
-        // }
-        // return false;
+        if (inputEditor != null && !inputEditor.hasInput() && pos.x <= 1.5f * icon.getWidth()) {
+            if (popup == null) popup = new Popup();
+            popup.show();
+        }
     }
 
     @Override public void onLongPress(PointF pos, long durations) {

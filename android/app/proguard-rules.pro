@@ -21,3 +21,8 @@
 #-renamesourcefileattribute SourceFile
 -printusage unused.txt
 -printmapping mappint.txt
+
+-dontwarn razerdp.basepopup.**
+-keep class razerdp.basepopup.**{
+  *;
+}

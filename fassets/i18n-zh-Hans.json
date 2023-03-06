@@ -9,6 +9,7 @@
   "clean-clipboard": "清空剪贴板",
   "clipboard": "剪贴板",
   "clipboard-enabled": "启用剪贴板",
+  "clipboard-is-clean": "剪贴板已清空",
   "confirm-delete-schema": "确认删除改方案吗，此操作不可恢复!",
   "dark": "暗色模式",
   "delete": "删除",
