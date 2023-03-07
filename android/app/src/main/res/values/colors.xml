@@ -35,6 +35,26 @@
   <!--故障色-->
   <color name="appBreakdown">#ff9800</color>
 
+  <!--键盘：亮色主题-->
+  <color name="lightBackground">#e4e5ea</color>
+  <color name="lightText">#000</color>
+  <color name="lightSecondaryText">#979797</color>
+  <color name="lightKeyBackground">#fcfcfe</color>
+  <color name="lightFnBackground">#b8bcc3</color>
+  <color name="lightInputCode">#161616</color>
+  <color name="lightActiveBackground">#fafafa</color>
+  <color name="lightActiveText">#50a96c</color>
+
+  <!--键盘：暗色主题-->
+  <color name="darkBackground">#3e3d3d</color>
+  <color name="darkText">#f0f0f0</color>
+  <color name="darkSecondaryText">#a0a0a0</color>
+  <color name="darkKeyBackground">#696969</color>
+  <color name="darkFnBackground">#4f4f4f</color>
+  <color name="darkInputCode">#fff</color>
+  <color name="darkActiveBackground">#696969</color>
+  <color name="darkActiveText">#f0f0f0</color>
+
   <color name="text1">#59B29C</color>
   <color name="text2">#333333</color>
   <color name="background">#FFFFFF</color>

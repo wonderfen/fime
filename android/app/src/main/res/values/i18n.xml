@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">Fime</string>
+  <string name="app_name_dev">Fime-dev</string>
+  <string-array name="theme_options">
+    <item>Light mode</item>
+    <item>Dark mode</item>
+    <item>Theme in keyboard</item>
+  </string-array>
+</resources>

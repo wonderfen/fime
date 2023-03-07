@@ -1,67 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="match_parent"
-  android:layout_height="match_parent"
-  android:background="@android:color/transparent"
-  android:gravity="center"
-  android:orientation="vertical">
-
-  <LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:gravity="center"
-    android:padding="2dp"
-    android:background="@drawable/border_outline"
-    android:orientation="horizontal">
-
-    <Button
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:padding="8dp"
-      android:id="@+id/btnReturn"
-      android:text="&lt;&lt;"></Button>
-
-    <Button
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:padding="8dp"
-      android:id="@+id/btnTheme"
-      android:text="Theme"></Button>
-
-    <Button
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:padding="8dp"
-      android:id="@+id/btnSchema"
-      android:text="Schema"></Button>
-
-    <Button
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:padding="8dp"
-      android:id="@+id/btnClipboard"
-      android:text="Clipboard"></Button>
-  </LinearLayout>
-
-  <FrameLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/border_outline"
     android:gravity="center"
     android:orientation="vertical"
-    android:id="@+id/container"
-    android:padding="8dp">
+    >
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:gravity="center"
+      android:padding="2dp"
+      android:orientation="horizontal"
+      >
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:id="@+id/btnSetting"
+        android:text="@string/setting"
+        />
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:id="@+id/btnTheme"
+        android:text="@string/theme"
+        />
 
     <Button
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:text="Light"></Button>
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:id="@+id/btnSchema"
+        android:text="@string/schema"
+        />
 
     <Button
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:text="Dark"></Button>
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:id="@+id/btnClipboard"
+        android:text="@string/clipboard"
+        />
 
-  </FrameLayout>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:id="@+id/btnReturn"
+        android:text="@string/collapse"
+        />
+  </LinearLayout>
+  <View
+      android:layout_width="match_parent"
+      android:layout_height="1dp"
+      android:background="@color/mdDivider"
+      ></View>
+
+  <ListView
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:id="@+id/lvContentList"
+      ></ListView>
 
 </LinearLayout>

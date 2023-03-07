@@ -40,7 +40,7 @@ class ActionBar implements Widget {
     private float candidateOffset;      // 滑动产生的偏移量
     private PointF moveStartAt;
     private InputEditor inputEditor;
-    private Popup popup;
+    private FimePopup window;
 
     ActionBar(Box container) {
         this.container = container;
@@ -196,10 +196,9 @@ class ActionBar implements Widget {
             candidateOffset = 0;
             requestRepaint();
         }
-        // TODO: 2023/1/14 Show popup
         if (inputEditor != null && !inputEditor.hasInput() && pos.x <= 1.5f * icon.getWidth()) {
-            if (popup == null) popup = new Popup();
-            popup.show();
+            if (window == null) window = new FimePopup( );
+            window.show();
         }
     }
 
