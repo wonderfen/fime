@@ -16,6 +16,9 @@ public class Fime {
     public static final String SCHEMA_RESULT_DELETE = "kSchemaDelete";
 
     static final String[] EXPORT_FILES = {
+            // 主题
+            "default.conf",
+            "default_user.conf",
             // 汉语拼音
             "pinyin_dict.csv",
             "fime_keyboards.conf",

@@ -3,8 +3,8 @@
   <string name="app_name">Fime 輸入法</string>
   <string name="app_name_dev">Fime 開發版</string>
   <string-array name="theme_options">
-    <item>亮色模式</item>
-    <item>暗色模式</item>
-    <item>鍵盤中的主題</item>
+    <item>light:亮色模式</item>
+    <item>dark:暗色模式</item>
+    <!--    <item>鍵盤中的主題</item>-->
   </string-array>
 </resources>

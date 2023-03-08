@@ -16,6 +16,7 @@ import top.someapp.fimesdk.utils.Fonts;
 import top.someapp.fimesdk.utils.Geometry;
 import top.someapp.fimesdk.utils.Logs;
 import top.someapp.fimesdk.view.Box;
+import top.someapp.fimesdk.view.Theme;
 import top.someapp.fimesdk.view.Widget;
 
 import java.util.ArrayList;
@@ -28,9 +29,10 @@ import java.util.List;
 class ActionBar implements Widget {
 
     private static final String TAG = "ActionBar";
-    private final int backgroundColor = 0xffe3e3e8;
-    private final int activeBackgroundColor = 0xfffafafa;
-    private final int activeLabelColor = 0xff50a96c;
+    private int backgroundColor = 0xffe4e5ea;
+    private int textColor = 0xff161617;
+    private int activeBackgroundColor = 0xfffafafa;
+    private int activeTextColor = 0xff50a96c;
     private Box container;
     private Paint paint = new Paint();
     private FimeHandler painter;
@@ -58,6 +60,13 @@ class ActionBar implements Widget {
         return container;
     }
 
+    @Override public void applyTheme(Theme theme) {
+        backgroundColor = theme.getBackground();
+        textColor = theme.getText();
+        activeBackgroundColor = theme.getActiveBackground();
+        activeTextColor = theme.getActiveText();
+    }
+
     @Override public void onDraw(Canvas canvas, Box box, FimeHandler painter) {
         Logs.d("onDraw, candidateOffset=" + candidateOffset);
         container = box;
@@ -73,7 +82,7 @@ class ActionBar implements Widget {
             return;
         }
 
-        paint.setColor(Color.BLACK);
+        paint.setColor(textColor);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         paint.setTextSize(0.25f * box.getHeight());
         canvas.drawText(inputEditor.getPrompt(), box.getLeft() + 16, paint.getTextSize(),
@@ -95,11 +104,12 @@ class ActionBar implements Widget {
                     RectF rect = new RectF(x, 0.36f * box.getHeight(), x + width + gutter / 3,
                                            0.95f * box.getHeight());
                     canvas.drawRoundRect(rect, 12, 12, paint);
-                    paint.setColor(activeLabelColor);
+                    paint.setColor(activeTextColor);
                     canvas.drawText(text, (x + rect.right - width) / 2, y, paint);
                     paint.setColor(Color.BLACK);
                 }
                 else {
+                    paint.setColor(textColor);
                     canvas.drawText(text, x, y, paint);
                 }
                 candidatePos.add(x + width + gutter / 2);
@@ -195,9 +205,10 @@ class ActionBar implements Widget {
             inputEditor.select(inputEditor.getActiveIndex() + (min + max) / 2);
             candidateOffset = 0;
             requestRepaint();
+            return;
         }
         if (inputEditor != null && !inputEditor.hasInput() && pos.x <= 1.5f * icon.getWidth()) {
-            if (window == null) window = new FimePopup( );
+            if (window == null) window = new FimePopup();
             window.show();
         }
     }

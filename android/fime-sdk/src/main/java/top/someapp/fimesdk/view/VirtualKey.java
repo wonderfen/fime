@@ -14,7 +14,8 @@ public class VirtualKey {
     private String label;   // 绘制时的文本
     private String text;    // 点击时使用的文本
     private Box container;
-    private Style style;
+    // private Style style;
+    private Theme theme;
     private boolean repeatable;
     private String onTap;
 
@@ -26,7 +27,7 @@ public class VirtualKey {
         this.code = code;
         this.label = label == null ? "" : label;
         this.container = new Box(16, 16);
-        this.style = new Style();
+        // this.style = new Style();
         this.repeatable = Keycode.isRepeatable(code);
     }
 
@@ -66,12 +67,12 @@ public class VirtualKey {
         this.container = container;
     }
 
-    public Style getStyle() {
-        return style;
+    public Theme getTheme() {
+        return theme;
     }
 
-    public void setStyle(Style style) {
-        this.style = style;
+    public void setTheme(Theme theme) {
+        this.theme = theme;
     }
 
     public float getWidth() {

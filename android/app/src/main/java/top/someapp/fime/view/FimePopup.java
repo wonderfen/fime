@@ -75,7 +75,25 @@ class FimePopup extends PopupWindow implements View.OnClickListener,
     }
 
     @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        fimeContext.showToastDefault(adapter.getItem(position));
+        String item = adapter.getItem(position);
+        fimeContext.showToastDefault(item);
+        View rootView = fimeContext.getRootView();
+        if (active == R.id.btnTheme) {
+            if (rootView instanceof InputView) {
+                ((InputView) rootView).applyTheme(item.split("[:/]")[0]);
+            }
+        }
+        else if (active == R.id.btnSchema) {
+            if (rootView instanceof InputView) {
+                ((InputView) rootView).useSchema(item.split("[:/]")[1]);
+            }
+        }
+        else if (active == R.id.btnClipboard) {
+            if (rootView instanceof InputView) {
+                ((InputView) rootView).commitText(item);
+            }
+        }
+        close();
     }
 
     void show() {

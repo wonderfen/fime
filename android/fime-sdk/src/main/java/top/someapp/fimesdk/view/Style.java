@@ -16,13 +16,13 @@ import java.util.List;
 public class Style {
 
     private String background;
-    private float borderWidth;
-    private float borderRadius;
-    private int borderColor = Color.GRAY;
-    private int backgroundColor = Color.BLACK;
+    private float borderWidth = 1.0f;
+    private float borderRadius = 6.0f;
+    private int borderColor = 0xff9c9ca0;
+    private int backgroundColor = 0xffe4e5ea;
     private int color = Color.BLACK;
     private PointF margin = new PointF();
-    private float fontSize = 14;
+    private float fontSize = 16.5f;
 
     public Style() {
     }

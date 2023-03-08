@@ -3,8 +3,8 @@
   <string name="app_name">Fime 输入法</string>
   <string name="app_name_dev">Fime 开发版</string>
   <string-array name="theme_options">
-    <item>亮色模式</item>
-    <item>暗色模式</item>
-    <item>键盘中的主题</item>
+    <item>light:亮色模式</item>
+    <item>dark:暗色模式</item>
+<!--    <item>键盘中的主题</item>-->
   </string-array>
 </resources>

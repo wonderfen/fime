@@ -15,19 +15,27 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import androidx.annotation.NonNull;
+import com.typesafe.config.Config;
 import top.someapp.fime.BuildConfig;
+import top.someapp.fimesdk.FimeContext;
 import top.someapp.fimesdk.api.DefaultFimeHandler;
 import top.someapp.fimesdk.api.FimeHandler;
 import top.someapp.fimesdk.api.FimeMessage;
 import top.someapp.fimesdk.api.ImeEngine;
+import top.someapp.fimesdk.config.Configs;
 import top.someapp.fimesdk.config.Keycode;
 import top.someapp.fimesdk.utils.Geometry;
 import top.someapp.fimesdk.utils.Logs;
 import top.someapp.fimesdk.utils.Strings;
 import top.someapp.fimesdk.view.Box;
 import top.someapp.fimesdk.view.Keyboards;
+import top.someapp.fimesdk.view.Theme;
 import top.someapp.fimesdk.view.VirtualKey;
 import top.someapp.fimesdk.view.Widget;
+
+import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * InputView 是 Android IMF(Input method framework) 要求提供给用户交互的一个 View。它必须提供的功能有：
@@ -43,6 +51,7 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
     private static final int actionBarHeight = Geometry.dp2px(64);
     private static boolean drawPath;
     private final ImeEngine engine;
+    private Set<Theme> themes = new HashSet<>();
     private ActionBar actionBar;
     private Keyboards keyboards;
     private FimeHandler painter;
@@ -66,6 +75,7 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
         Logs.d(Strings.simpleFormat("create InputView: 0x%x.", hashCode()));
         init();
         setupPainter();
+        applyTheme("light");
     }
 
     public static boolean isDrawPath() {
@@ -179,6 +189,44 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
         setMeasuredDimension((int) container.getWidth(), (int) container.getHeight());
     }
 
+    void applyTheme(String name) {
+        if (themes.isEmpty()) {
+            File file = FimeContext.getInstance()
+                                   .fileInAppHome("default.conf");
+            try {
+                Config config = Configs.load(file, true)
+                                       .getConfig("theme");
+                Set<String> names = config.root()
+                                          .unwrapped()
+                                          .keySet();
+                for (String key : names) {
+                    themes.add(new Theme(config, key));
+                }
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (name == null) return;
+        for (Theme theme : themes) {
+            if (name.equals(theme.getName())) {
+                Logs.d("applyTheme: %s", name);
+                actionBar.applyTheme(theme);
+                keyboards.applyTheme(theme);
+                repaint();
+                break;
+            }
+        }
+    }
+
+    void useSchema(String conf) {
+        engine.useSchema(conf);
+    }
+
+    void commitText(String text) {
+        engine.commitText(text);
+    }
+
     private boolean handle(@NonNull Message msg) {
         switch (msg.what) {
             case FimeMessage.MSG_REPAINT:
@@ -214,6 +262,9 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
                     engine.notifyHandlersDelay(FimeMessage.create(msg.what), 100);
                     // painter.sendEmptyMessageDelayed(msg.what, 100);
                 }
+                return true;
+            case FimeMessage.MSG_APPLY_THEME:
+                if (msg.obj instanceof String) applyTheme((String) msg.obj);
                 return true;
         }
         Logs.d("Ignored message:0x%02x", msg.what);

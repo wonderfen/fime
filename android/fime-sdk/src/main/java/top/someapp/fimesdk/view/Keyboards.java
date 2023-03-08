@@ -47,6 +47,7 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
     private int width;  // px
     private String name;
     private Keyboard current;
+    private Theme theme;
     private String defaultKeyboardId;
 
     public Keyboards(File file) {
@@ -56,6 +57,17 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
     public Keyboards(Config config) {
         this.config = config;
         this.width = Geometry.getDisplayMetrics().widthPixels;
+        theme = new Theme();    // ensure theme is not null!
+        theme.setName("");
+        theme.setBackground(0xe4e5ea);
+        theme.setText(0);
+        theme.setSecondaryText(0x979797);
+        theme.setKeyBackground(0xfcfcfe);
+        theme.setBorderColor(0x9c9ca0);
+        theme.setFnBackground(0xb8bcc3);
+        theme.setKeyLabelSize(16.5f);
+        theme.setBorderWidth(1);
+        theme.setBorderRadius(6);
         load();
     }
 
@@ -112,6 +124,13 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
             if (!onTap(virtualKey)) return false;
         }
         return true;
+    }
+
+    public void applyTheme(Theme theme) {
+        this.theme = theme;
+        for (Keyboard kbd : keyboardMap.values()) {
+            kbd.applyTheme(theme);
+        }
     }
 
     void onTapAction(String action) {
@@ -225,7 +244,7 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
         List<String> keyboards = config.getStringList("keyboards");
         for (String id : keyboards) {
             if (config.hasPath(id)) {
-                Keyboard keyboard = new Keyboard(width, id, config.getConfig(id));
+                Keyboard keyboard = new Keyboard(width, id, config.getConfig(id), theme);
                 keyboard.setOnVirtualKeyListener(this);
                 keyboardMap.put(id, keyboard);
             }
@@ -243,8 +262,9 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
         private final Set<Integer> holdOnKeyIndex = new HashSet<>(3);
         private final Paint paint = new Paint();
         private final int width;
-        private final Style style;
         private final String id;
+        // private Style style;
+        private Theme theme;
         private FimeHandler painter;
         private String name;
         private Box container;
@@ -259,10 +279,10 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
         private Config dynamicLabel;
         private Set<VirtualKey> dynamicLabelKeys;
 
-        Keyboard(int width, String id, @NonNull Config config) {
+        Keyboard(int width, String id, @NonNull Config config, @NonNull Theme theme) {
             this.width = width;
             this.id = id;
-            this.style = new Style();
+            this.theme = theme;
             init(config);
         }
 
@@ -280,6 +300,14 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
 
         @Override public Box getContainer() {
             return container;
+        }
+
+        @Override public void applyTheme(Theme theme) {
+            if (!this.theme.getName()
+                           .equals(theme.getName())) {
+                dirty = true;
+            }
+            this.theme = theme;
         }
 
         @Override public void onDraw(Canvas canvas, Box box, FimeHandler painter) {
@@ -381,21 +409,13 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
                 dynamicLabelKeys = new HashSet<>();
                 dynamicLabelNames = dynamicLabel.getStringList("names");
             }
-            if (config.hasPath("style")) {
-                style.applyFrom(new Style(config.getConfig("style")));
-            }
             Config keys = config.getConfig("keys");
-            Style keyStyle = new Style();
-            if (keys.hasPath("style")) {
-                keyStyle.applyFrom(new Style(keys.getConfig("style")));
-            }
             List<? extends Config> items = keys.getConfigList("items");
             PointF position = new PointF();
             for (Config item : items) {
                 VirtualKey key = null;
                 float dx = 0;
                 float dy = 0;
-                Style style = null;
                 if (item.hasPath("name")) {
                     Keycode keycode = Keycode.getByName(item.getString("name"));
                     key = new VirtualKey(keycode.code);
@@ -415,12 +435,6 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
                     }
                     else {
                         key.setHeight(keyHeight);
-                    }
-                    if (item.hasPath("style")) {
-                        style = new Style(item.getConfig("style"));
-                    }
-                    else {
-                        style = null;
                     }
                     if (item.hasPath("onTap")) {
                         key.setOnTap(item.getString("onTap"));
@@ -453,12 +467,7 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
                 }
                 if (key != null) {
                     key.index = keyList.size();
-                    if (style == null) {
-                        key.setStyle(new Style().applyFrom(keyStyle));
-                    }
-                    else {
-                        key.setStyle(style);
-                    }
+                    key.setTheme(theme);
                     keyList.add(key);
                 }
                 position.x += dx;
@@ -524,20 +533,21 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
         private void drawKeyboard() {
             PointF offset = container.getPosition();
             Canvas kbdCanvas = new Canvas(bitmap);
-            kbdCanvas.drawColor(style.getBackgroundColor());
+            kbdCanvas.drawColor(theme.getBackground());
             for (VirtualKey key : keyList) {
-                Style style = key.getStyle();
+                Theme keyTheme = theme;
                 if (holdOnKeyIndex.contains(key.index) || (shiftHold && key.isShift())) {
-                    style = style.reverseColors();
+                    keyTheme = theme.reverseColors();
                 }
                 key.getContainer()
-                   .render(kbdCanvas, paint, style);
+                   .render(kbdCanvas, paint, keyTheme);
                 // paint 使用过后，好像抗锯齿会恢复为默认值!
                 paint.reset();
                 paint.setAntiAlias(true);
-                paint.setColor(style.getColor());
+                paint.setColor(keyTheme.getText());
                 paint.setStyle(Paint.Style.FILL_AND_STROKE);
-                paint.setTextSize(style.getFontSize()); // style already using dp
+                paint.setTextSize(Geometry.dp2px(
+                        theme.getKeyLabelSize())); // config value using dp, draw using px
                 String label = shiftHold ? key.getLabel()
                                               .toUpperCase(Locale.US) : key.getLabel();
                 Box textBounds = Fonts.getTextBounds(paint, label);

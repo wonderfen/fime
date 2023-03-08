@@ -12,6 +12,9 @@ public interface Widget {
 
     Box getContainer();
 
+    default void applyTheme(Theme theme) {
+    }
+
     void onDraw(Canvas canvas, Box box, FimeHandler painter);
 
     void onTouchStart(PointF pos);

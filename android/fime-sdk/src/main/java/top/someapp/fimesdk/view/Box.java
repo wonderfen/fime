@@ -94,6 +94,29 @@ public class Box {
         }
     }
 
+    public void render(Canvas canvas, Paint paint, Theme theme) {
+        paint.setColor(theme.getKeyBackground());
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
+        PointF margin = theme.getMargin();
+        RectF content = toRectF();
+        content.left += margin.x / 2;
+        content.top += margin.y / 2;
+        content.right -= margin.x / 2;
+        content.bottom -= margin.y / 2;
+        canvas.drawRoundRect(content, theme.getBorderRadius(), theme.getBorderRadius(), paint);
+        if (theme.getBorderWidth() > 0) {
+            paint.setStrokeWidth(theme.getBorderWidth());
+            paint.setColor(theme.getBorderColor());
+            paint.setStyle(Paint.Style.STROKE);
+            content.left -= paint.getStrokeWidth();
+            content.top -= paint.getStrokeWidth();
+            content.right += paint.getStrokeWidth();
+            content.bottom += paint.getStrokeWidth();
+            canvas.drawRoundRect(content, theme.getBorderRadius() + theme.getBorderWidth(),
+                                 theme.getBorderRadius() + theme.getBorderWidth(), paint);
+        }
+    }
+
     public float getLeft() {
         return position.x;
     }
