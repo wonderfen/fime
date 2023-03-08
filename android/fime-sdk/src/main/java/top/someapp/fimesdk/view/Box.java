@@ -99,21 +99,23 @@ public class Box {
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         PointF margin = theme.getMargin();
         RectF content = toRectF();
-        content.left += margin.x / 2;
-        content.top += margin.y / 2;
-        content.right -= margin.x / 2;
-        content.bottom -= margin.y / 2;
-        canvas.drawRoundRect(content, theme.getBorderRadius(), theme.getBorderRadius(), paint);
+        content.left += Geometry.dp2px(margin.x / 2);
+        content.top += Geometry.dp2px(margin.y / 2);
+        content.right -= Geometry.dp2px(margin.x / 2);
+        content.bottom -= Geometry.dp2px(margin.y / 2);
+        final int borderRadius = Geometry.dp2px(theme.getBorderRadius());
+        canvas.drawRoundRect(content, borderRadius, borderRadius, paint);
         if (theme.getBorderWidth() > 0) {
-            paint.setStrokeWidth(theme.getBorderWidth());
+            final int borderWidth = Geometry.dp2px(theme.getBorderWidth());
+            paint.setStrokeWidth(borderWidth);
             paint.setColor(theme.getBorderColor());
             paint.setStyle(Paint.Style.STROKE);
-            content.left -= paint.getStrokeWidth();
-            content.top -= paint.getStrokeWidth();
-            content.right += paint.getStrokeWidth();
-            content.bottom += paint.getStrokeWidth();
-            canvas.drawRoundRect(content, theme.getBorderRadius() + theme.getBorderWidth(),
-                                 theme.getBorderRadius() + theme.getBorderWidth(), paint);
+            content.left -= borderWidth;
+            content.top -= borderWidth;
+            content.right += borderWidth;
+            content.bottom += borderWidth;
+            canvas.drawRoundRect(content, borderRadius + theme.getBorderWidth(),
+                                 borderRadius + theme.getBorderWidth(), paint);
         }
     }
 

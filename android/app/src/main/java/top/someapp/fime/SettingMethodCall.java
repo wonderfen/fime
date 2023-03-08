@@ -7,6 +7,7 @@ import io.flutter.plugin.common.MethodCall;
 import top.someapp.fimesdk.Fime;
 import top.someapp.fimesdk.SchemaManager;
 import top.someapp.fimesdk.Setting;
+import top.someapp.fimesdk.utils.Clipboard;
 import top.someapp.fimesdk.utils.Logs;
 
 import java.util.ArrayList;
@@ -109,6 +110,7 @@ class SettingMethodCall {
     }
 
     private Map<String, Object> cleanClipboard() {
+        Clipboard.clean();
         return Collections.EMPTY_MAP;
     }
 

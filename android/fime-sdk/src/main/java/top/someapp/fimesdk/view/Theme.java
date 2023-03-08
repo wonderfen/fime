@@ -13,23 +13,23 @@ import java.util.List;
  * @author zwz
  * Created on 2023-03-08
  */
-public class Theme {
+public class Theme implements Cloneable {
 
     private static final int kColorMask = 0xff000000;
-    private String name;
-    private int background;
-    private int text;
-    private int secondaryText;
-    private int keyBackground;
-    private int borderColor;
-    private int fnBackground;
-    private int inputCode;
-    private int activeBackground;
-    private int activeText;
+    private String name = "light";   // prevent NPE!
+    private int background = 0xffd5d7dd;
+    private int text = 0xff161616;
+    private int secondaryText = 0xffb5b5b5;
+    private int keyBackground = 0xfffafafa;
+    private int borderColor = 0xfffafafa;
+    private int fnBackground = 0xffb5bdc6;
+    private int inputCode = 0xff161616;
+    private int activeBackground = 0xfffafafa;
+    private int activeText = 0xff50a96c;
 
     private float textSize = 14;
-    private float keyLabelSize = 14;
-    private int borderWidth = 1;
+    private float keyLabelSize = 16.5f;
+    private int borderWidth = 0;
     private int borderRadius = 6;
 
     private PointF margin = new PointF();
@@ -178,6 +178,17 @@ public class Theme {
 
     public void setMargin(PointF margin) {
         this.margin = margin;
+    }
+
+    public Theme copy() {
+        Theme backup = null;
+        try {
+            backup = (Theme) clone();
+        }
+        catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+        return backup;
     }
 
     private void parse(Config config) {

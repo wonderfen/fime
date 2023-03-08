@@ -535,7 +535,8 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
             Canvas kbdCanvas = new Canvas(bitmap);
             kbdCanvas.drawColor(theme.getBackground());
             for (VirtualKey key : keyList) {
-                Theme keyTheme = theme;
+                Theme keyTheme = theme.copy();
+                if (key.isFunctional()) keyTheme.setKeyBackground(theme.getFnBackground());
                 if (holdOnKeyIndex.contains(key.index) || (shiftHold && key.isShift())) {
                     keyTheme = theme.reverseColors();
                 }

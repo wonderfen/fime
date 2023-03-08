@@ -25,6 +25,7 @@ import top.someapp.fimesdk.api.Schema;
 import top.someapp.fimesdk.api.Translator;
 import top.someapp.fimesdk.config.Keycode;
 import top.someapp.fimesdk.defaults.DefaultSchema;
+import top.someapp.fimesdk.utils.Clipboard;
 import top.someapp.fimesdk.utils.Logs;
 import top.someapp.fimesdk.utils.Nulls;
 import top.someapp.fimesdk.view.VirtualKey;
@@ -344,6 +345,7 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
 
     private void start() {
         Logs.i("start.");
+        Clipboard.listener(fimeContext.getContext(), fimeContext.fileInAppHome("clipboard.txt"));
         if (schema == null) {
             Logs.e("invalid schema!");
         }

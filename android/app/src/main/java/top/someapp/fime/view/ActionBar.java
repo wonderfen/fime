@@ -29,8 +29,8 @@ import java.util.List;
 class ActionBar implements Widget {
 
     private static final String TAG = "ActionBar";
-    private int backgroundColor = 0xffe4e5ea;
-    private int textColor = 0xff161617;
+    private int backgroundColor = 0xffd5d7dd;
+    private int textColor = 0xff161616;
     private int activeBackgroundColor = 0xfffafafa;
     private int activeTextColor = 0xff50a96c;
     private Box container;

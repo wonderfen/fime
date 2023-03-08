@@ -18,6 +18,7 @@ import androidx.annotation.NonNull;
 import com.typesafe.config.Config;
 import top.someapp.fime.BuildConfig;
 import top.someapp.fimesdk.FimeContext;
+import top.someapp.fimesdk.Setting;
 import top.someapp.fimesdk.api.DefaultFimeHandler;
 import top.someapp.fimesdk.api.FimeHandler;
 import top.someapp.fimesdk.api.FimeMessage;
@@ -51,7 +52,7 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
     private static final int actionBarHeight = Geometry.dp2px(64);
     private static boolean drawPath;
     private final ImeEngine engine;
-    private Set<Theme> themes = new HashSet<>();
+    private final Set<Theme> themes = new HashSet<>();
     private ActionBar actionBar;
     private Keyboards keyboards;
     private FimeHandler painter;
@@ -75,7 +76,8 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
         Logs.d(Strings.simpleFormat("create InputView: 0x%x.", hashCode()));
         init();
         setupPainter();
-        applyTheme("light");
+        applyTheme(Setting.getInstance()
+                          .getString(Setting.kTheme));
     }
 
     public static boolean isDrawPath() {
@@ -206,8 +208,10 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
             catch (Exception e) {
                 e.printStackTrace();
             }
+            if (themes.isEmpty()) themes.add(new Theme());  // fallback to default.
         }
         if (name == null) return;
+
         for (Theme theme : themes) {
             if (name.equals(theme.getName())) {
                 Logs.d("applyTheme: %s", name);

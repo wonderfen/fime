@@ -21,6 +21,7 @@ import top.someapp.fime.R;
 import top.someapp.fimesdk.FimeContext;
 import top.someapp.fimesdk.SchemaManager;
 import top.someapp.fimesdk.Setting;
+import top.someapp.fimesdk.utils.Clipboard;
 import top.someapp.fimesdk.utils.Strings;
 
 /**
@@ -158,9 +159,7 @@ class FimePopup extends PopupWindow implements View.OnClickListener,
             case R.id.btnClipboard:
                 this.adapter = new ArrayAdapter<>(fimeContext.getContext(),
                                                   android.R.layout.simple_list_item_1);
-                for (int i = 0; i < 10; i++) {
-                    this.adapter.add("clipboard-" + i);
-                }
+                this.adapter.addAll(Clipboard.getClipItems());
                 break;
         }
         lvContentList.setAdapter(adapter);
