@@ -3,10 +3,9 @@ package top.someapp.fimesdk.utils;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.util.Base64;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
@@ -21,20 +20,28 @@ import java.util.List;
 public class Clipboard {
 
     private static final int maxRecords = 100;
-    private static File file;
-    private static RandomAccessFile storage;
+    private static final String fileName = "clipboard.log";
+    private static final List<Long> posList = new ArrayList<>();
+    private static boolean start;
+    private static File dir;
+    private static RandomAccessFile writer;
+    private static long pos;
 
     private Clipboard() {
         //no instance
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static void listener(Context context, File saveTo) {
-        if (storage != null) return;
-        file = saveTo;
+    public static void listener(Context context, File clipboardDataDir) {
+        if (start) return;
+        dir = clipboardDataDir;
         try {
-            if (!saveTo.exists()) saveTo.createNewFile();
-            storage = new RandomAccessFile(saveTo, "rw");
+            if (!dir.exists()) dir.mkdirs();
+            File history = new File(clipboardDataDir, fileName);
+            if (history.exists()) history.createNewFile();
+            writer = new RandomAccessFile(history, "rwd");
+            start = true;
+            getClipItems();
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -47,52 +54,83 @@ public class Clipboard {
                     if (primaryClip.getItemCount() > 0) {
                         ClipData.Item item = primaryClip.getItemAt(0);
                         String text = item.coerceToText(context)
-                                          .toString()
-                                          .trim();
-                        if (text.length() > 0) {
-                            try {
-                                storage.seek(0);
-                                storage.write(text.getBytes(StandardCharsets.UTF_8));
-                                storage.write("\n".getBytes(StandardCharsets.UTF_8));
-                            }
-                            catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
+                                          .toString();
+                        append(text);
                     }
                 });
     }
 
     @SuppressWarnings("unchecked")
     public static List<String> getClipItems() {
-        if (storage == null) return Collections.EMPTY_LIST;
+        if (!FileStorage.hasFile(dir, fileName)) return Collections.EMPTY_LIST;
+
         List<String> content = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(file));) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (content.size() >= maxRecords || line.trim()
-                                                        .length() < 1) {
-                    break;
+        String line;
+        if (posList.isEmpty()) {
+            try {
+                RandomAccessFile reader = new RandomAccessFile(new File(dir, fileName), "r");
+                Logs.d("init clip data.");
+                reader.seek(0);
+                final long len = reader.length();
+                while (true) {
+                    line = reader.readLine();
+                    line = new String(Base64.decode(line, Base64.NO_WRAP));
+                    if (line.length() > 0) content.add(line);
+                    if (reader.getFilePointer() >= len) break;
+                    posList.add(0, reader.getFilePointer());
                 }
-                content.add(line);
+            }
+            catch (Exception e) {
+                e.printStackTrace();
             }
         }
-        catch (IOException e) {
-            e.printStackTrace();
+        else {
+            try {
+                RandomAccessFile reader = new RandomAccessFile(new File(dir, fileName), "r");
+                Logs.d("read clip data.");
+                for (long pos : posList) {
+                    reader.seek(pos);
+                    line = new String(Base64.decode(reader.readLine(), Base64.NO_WRAP));
+                    if (line.length() > 0) content.add(line);
+                }
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         return content;
     }
 
     public static void clean() {
-        if (storage == null) return;
+        if (writer == null) return;
+        Logs.d("clean clip data.");
         try {
-            storage.seek(0);
-            storage.setLength(storage.length());
-            storage.writeUTF("\n");
-            storage.close();
+            writer.seek(0);
+            writer.setLength(0);
+            pos = 0;
+            posList.clear();
         }
         catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private static void append(String text) {
+        if (text.length() > 0) {
+            Logs.d("write clip data.");
+            if (posList.size() > maxRecords) clean();
+            try {
+                pos = writer.length();
+                writer.seek(pos);
+                byte[] bytes = Base64.encode(text.getBytes(StandardCharsets.UTF_8),
+                                             Base64.NO_WRAP);
+                writer.write(bytes);
+                writer.writeUTF("\n");
+                posList.add(0, pos);
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

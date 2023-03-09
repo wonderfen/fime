@@ -32,7 +32,7 @@ public class Theme implements Cloneable {
     private int borderWidth = 0;
     private int borderRadius = 6;
 
-    private PointF margin = new PointF();
+    private PointF margin = new PointF(2, 2);
 
     public Theme() {
     }

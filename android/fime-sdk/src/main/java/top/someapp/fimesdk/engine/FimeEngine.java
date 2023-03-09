@@ -345,7 +345,7 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
 
     private void start() {
         Logs.i("start.");
-        Clipboard.listener(fimeContext.getContext(), fimeContext.fileInAppHome("clipboard.txt"));
+        Clipboard.listener(fimeContext.getContext(), fimeContext.getCacheDir());
         if (schema == null) {
             Logs.e("invalid schema!");
         }
