@@ -8,6 +8,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
+import android.os.Build;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Toast;
@@ -19,16 +20,18 @@ import top.someapp.fimesdk.utils.Logs;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.io.Reader;
 
 /**
  * @author zwz
  * Created on 2022-12-23
  */
-public class FimeContext {
+public class FimeContext implements Thread.UncaughtExceptionHandler {
 
     @SuppressLint("StaticFieldLeak")
     private static FimeContext sInstance;
@@ -36,10 +39,13 @@ public class FimeContext {
     private View rootView;
     private Dialog imeDialog;
     private File appHomeDir;
+    private File fatalLog;
 
     public FimeContext(Application app) {
         this.app = app;
         sInstance = this;
+        // Log.i("FimeContext", "setDefaultUncaughtExceptionHandler.");
+        Thread.setDefaultUncaughtExceptionHandler(this);
         new Thread(this::init).start();
     }
 
@@ -163,6 +169,37 @@ public class FimeContext {
         return new File(getCacheDir(), path);
     }
 
+    @Override public void uncaughtException(@NonNull Thread t, @NonNull Throwable e) {
+        StringBuilder info = new StringBuilder();
+        info.append("App: ")
+            .append(app.getPackageName())
+            .append("/")
+            .append(getPackageInfo().versionName)
+            .append("\n");
+        info.append("Android: ")
+            .append(Build.VERSION.SDK_INT)
+            .append("\n");
+        info.append("Device: ")
+            .append(Build.MANUFACTURER)
+            .append("/")
+            .append(Build.BOARD)
+            .append("/")
+            .append(Build.MODEL)
+            .append("\n");
+        info.append("===\n");
+        info.append(e.getMessage());
+        try (PrintWriter writer = new PrintWriter(new FileWriter(fatalLog))) {
+            writer.write(info.toString());
+            e.printStackTrace(writer);
+            Throwable cause = e.getCause();
+            if (cause != null) cause.printStackTrace(writer);
+            writer.flush();
+        }
+        catch (IOException e2) {
+            Logs.e(info.toString());
+        }
+    }
+
     PackageInfo getPackageInfo() {
         PackageInfo packageInfo = null;
         try {
@@ -175,6 +212,7 @@ public class FimeContext {
         return packageInfo;
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     private void init() {
         File dir = getAppHomeDir();
         getCacheDir();
@@ -184,7 +222,13 @@ public class FimeContext {
         else {
             Logs.setup(false, fileInCacheDir("fime.log"));
         }
-
+        fatalLog = fileInAppHome("fime-fatal.log");
+        try {
+            if (!fatalLog.exists()) fatalLog.createNewFile();
+        }
+        catch (IOException e) {
+            Logs.e(e.getMessage());
+        }
         for (String conf : Fime.EXPORT_FILES) {
             try (InputStream ins = getAssets().open(conf)) {
                 FileStorage.copyIfNotExists(ins, new File(dir, conf));  // 避免把用户修改过的文件覆盖了

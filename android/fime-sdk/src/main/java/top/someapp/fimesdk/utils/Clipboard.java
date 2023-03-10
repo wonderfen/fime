@@ -38,7 +38,7 @@ public class Clipboard {
         try {
             if (!dir.exists()) dir.mkdirs();
             File history = new File(clipboardDataDir, fileName);
-            if (history.exists()) history.createNewFile();
+            if (!history.exists()) history.createNewFile();
             writer = new RandomAccessFile(history, "rwd");
             start = true;
             getClipItems();
