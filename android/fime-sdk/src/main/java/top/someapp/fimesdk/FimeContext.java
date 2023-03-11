@@ -16,6 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RawRes;
 import top.someapp.fimesdk.utils.FileStorage;
 import top.someapp.fimesdk.utils.Logs;
+import top.someapp.fimesdk.utils.Strings;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -26,6 +27,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.util.Calendar;
 
 /**
  * @author zwz
@@ -171,7 +173,14 @@ public class FimeContext implements Thread.UncaughtExceptionHandler {
 
     @Override public void uncaughtException(@NonNull Thread t, @NonNull Throwable e) {
         StringBuilder info = new StringBuilder();
-        info.append("App: ")
+        Calendar calendar = Calendar.getInstance();
+        info.append(
+                Strings.simpleFormat("===\n%04d-%02d-%02dT%02d:%02d:%02d",
+                                     calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1,
+                                     calendar.get(Calendar.DAY_OF_MONTH),
+                                     calendar.get(Calendar.HOUR_OF_DAY),
+                                     calendar.get(Calendar.MINUTE), calendar.get(Calendar.SECOND)));
+        info.append("\n===\nApp: ")
             .append(app.getPackageName())
             .append("/")
             .append(getPackageInfo().versionName)
@@ -187,7 +196,8 @@ public class FimeContext implements Thread.UncaughtExceptionHandler {
             .append(Build.MODEL)
             .append("\n");
         info.append("===\n");
-        info.append(e.getMessage());
+        info.append(e.getMessage())
+            .append("\n");
         try (PrintWriter writer = new PrintWriter(new FileWriter(fatalLog))) {
             writer.write(info.toString());
             e.printStackTrace(writer);
