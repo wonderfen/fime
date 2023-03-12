@@ -3,6 +3,7 @@ package top.someapp.fimesdk.utils;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.os.SystemClock;
 import android.util.Base64;
 
 import java.io.File;
@@ -26,14 +27,17 @@ public class Clipboard {
     private static File dir;
     private static RandomAccessFile writer;
     private static long pos;
+    private static long prevClipChangeTime;
 
     private Clipboard() {
         //no instance
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static void listener(Context context, File clipboardDataDir) {
+    public static void listen(Context context, File clipboardDataDir) {
         if (start) return;
+
+        Logs.d("start listen.");
         dir = clipboardDataDir;
         try {
             if (!dir.exists()) dir.mkdirs();
@@ -52,10 +56,14 @@ public class Clipboard {
                 () -> {
                     ClipData primaryClip = clipboardManager.getPrimaryClip();
                     if (primaryClip.getItemCount() > 0) {
-                        ClipData.Item item = primaryClip.getItemAt(0);
-                        String text = item.coerceToText(context)
-                                          .toString();
-                        append(text);
+                        long now = SystemClock.uptimeMillis();
+                        if (now - prevClipChangeTime >= 100) {
+                            ClipData.Item item = primaryClip.getItemAt(0);
+                            String text = item.coerceToText(context)
+                                              .toString();
+                            append(text);
+                        }
+                        prevClipChangeTime = now;
                     }
                 });
     }
@@ -118,7 +126,6 @@ public class Clipboard {
     private static void append(String text) {
         if (text.length() > 0) {
             Logs.d("write clip data.");
-            if (posList.size() > maxRecords) clean();
             try {
                 pos = writer.length();
                 writer.seek(pos);
