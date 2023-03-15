@@ -38,6 +38,9 @@ public class Fime {
             // 声笔飞竞
             "sbfj_dict.csv",
             "sbfj_schema.conf",
+            // 自然码93
+            "zrm93_keyboards.conf",
+            "zrm93_schema.conf",
     };
 
     private Fime() {
