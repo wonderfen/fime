@@ -82,6 +82,7 @@ public class Clipboard {
                 final long len = reader.length();
                 while (true) {
                     line = reader.readLine();
+                    if (line == null) break;
                     line = new String(Base64.decode(line, Base64.NO_WRAP));
                     if (line.length() > 0) content.add(line);
                     if (reader.getFilePointer() >= len) break;

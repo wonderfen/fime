@@ -50,6 +50,7 @@ public class SchemaManager {
             }
             return false;
         });
+        assert files != null;
         for (File f : files) {
             SchemaInfo original = SchemaInfo.original(f.getName());
             info.put(original.getName(), original);
@@ -63,7 +64,7 @@ public class SchemaManager {
         SchemaInfo info = null;
         if (FileStorage.hasFile(buildInfo)) {
             try (BufferedReader reader = new BufferedReader(new FileReader(buildInfo))) {
-                String line = null;
+                String line;
                 while ((line = reader.readLine()) != null) {
                     if (Strings.isNullOrEmpty(line)) break;
                     // fime_pinyin_schema.conf=123456.s/汉语拼音
@@ -130,11 +131,10 @@ public class SchemaManager {
             }
             Config c = config.getConfig("translator.dict");
             String dictName = c.getString("name");
-            if (!FileStorage.hasFile(fimeContext.fileInCacheDir(dictName + ".s"))) {
+            if (!FileStorage.hasFile(fimeContext.fileInCacheDir(dictName + Dict.SUFFIX))) {
                 Dict dict = new Dict(dictName);
                 ok = dict.loadFromCsv(fimeContext.fileInAppHome(c.getString("file")));
                 if (!ok) throw new IOException("词典生成失败！");
-                dict.compileTo(new FileOutputStream(fimeContext.fileInCacheDir(dictName + ".s")));
                 dict.close();
             }
             buildInfo.put(info.conf, new Pair<>(compiledFile.getName(), info.getName()));
@@ -191,12 +191,13 @@ public class SchemaManager {
         }
     }
 
+    @SuppressWarnings("Unchecked")
     private static Map<String, Pair<String, String>> parseBuildTxt(File buildTxt) {
         if (!FileStorage.hasFile(buildTxt)) return Collections.EMPTY_MAP;
 
         Map<String, Pair<String, String>> buildInfo = new LinkedHashMap<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(buildTxt))) {
-            String line = null;
+            String line;
             while ((line = reader.readLine()) != null) {
                 if (line.isEmpty()) break;
                 // line: fime_pinyin_schema.conf=123456.s/汉语拼音

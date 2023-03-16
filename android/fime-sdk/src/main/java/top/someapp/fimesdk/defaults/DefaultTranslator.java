@@ -12,8 +12,6 @@ import top.someapp.fimesdk.utils.FileStorage;
 import top.someapp.fimesdk.utils.Logs;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -28,7 +26,8 @@ public class DefaultTranslator implements Translator {
     private ImeEngine engine;
     private Config config;
     private Dict dict;
-    private transient File target;
+    private transient File dictSource;
+    private transient Converter converter;
     private int limit = kLimit;
 
     @Override public Config getConfig() {
@@ -81,6 +80,7 @@ public class DefaultTranslator implements Translator {
         return dict;
     }
 
+    @SuppressWarnings("unused")
     private List<Candidate> innerTranslate(@NonNull List<String> codes, int limit) {
         StringBuilder text = new StringBuilder();
         for (String code : codes) {
@@ -99,23 +99,23 @@ public class DefaultTranslator implements Translator {
 
         FimeContext fimeContext = FimeContext.getInstance();
         try {
-            if (FileStorage.hasFile(fimeContext.fileInCacheDir(name + ".s"))) {
-                dict = Dict.loadFromCompiled(
-                        new FileInputStream(fimeContext.fileInCacheDir(name + ".s")));
+            if (FileStorage.hasFile(fimeContext.fileInCacheDir(name + Dict.SUFFIX))) {
+                dict = Dict.loadFromCompiled(fimeContext.fileInCacheDir(name + Dict.SUFFIX));
             }
             else {
                 dict = new Dict(name);
+                dictSource = fimeContext.fileInAppHome(c.getString("file"));
                 if (c.hasPath("converter") && c.hasPath("converter.rules")) {
-                    Converter converter = new Converter();
+                    converter = new Converter();
                     for (String rule : c.getStringList("converter.rules")) {
                         converter.addRule(rule);
                     }
-                    dict.loadFromCsv(fimeContext.fileInAppHome(c.getString("file")), converter);
+                    // dict.loadFromCsv(file, converter);
                 }
-                else {
-                    dict.loadFromCsv(fimeContext.fileInAppHome(c.getString("file")));
-                }
-                target = fimeContext.fileInCacheDir(name + ".s");
+                // else {
+                //     dict.loadFromCsv(file);
+                // }
+                // dictSource = fimeContext.fileInCacheDir(name + ".s");
                 compileDictIf();
             }
         }
@@ -126,18 +126,22 @@ public class DefaultTranslator implements Translator {
     }
 
     private void compileDictIf() {
-        if (dict == null || engine == null || target == null) return;
-        if (!target.exists()) {
-            engine.post(() -> {
-                try {
-                    dict.compileTo(new FileOutputStream(target));
+        if (dict == null || engine == null || dictSource == null) return;
+        engine.post(() -> {
+            try {
+                if (converter == null) {
+                    dict.loadFromCsv(dictSource);
                 }
-                catch (IOException e) {
-                    e.printStackTrace();
-                    Logs.w(e.getMessage());
+                else {
+                    dict.loadFromCsv(dictSource, converter);
                 }
-                target = null;
-            });
-        }
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+                Logs.w(e.getMessage());
+            }
+            dictSource = null;
+            converter = null;
+        });
     }
 }

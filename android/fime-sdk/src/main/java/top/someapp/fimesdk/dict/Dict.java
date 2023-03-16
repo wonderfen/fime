@@ -2,15 +2,12 @@ package top.someapp.fimesdk.dict;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
-import com.caucho.hessian.io.AbstractHessianInput;
-import com.caucho.hessian.io.AbstractHessianOutput;
 import it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayPriorityQueue;
 import org.trie4j.patricia.MapPatriciaTrie;
 import org.trie4j.patricia.MapPatriciaTrieNode;
-import org.trie4j.util.IntArray;
+import top.someapp.fimesdk.FimeContext;
 import top.someapp.fimesdk.engine.Converter;
-import top.someapp.fimesdk.utils.Serializes;
 import top.someapp.fimesdk.utils.Strings;
 
 import java.io.BufferedReader;
@@ -19,7 +16,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -37,34 +34,45 @@ import java.util.Objects;
 @Keep
 public class Dict implements Comparator<Dict.Item> {
 
+    public static final String SUFFIX = ".dic"; // 生成词典的后缀名
+    private static final short kVersion = 2;       // 版本号
     private static H2 h2;   // 用户词词典
-    private String name;  // 词典名
+    private final String name;  // 词典名
+    private final MapPatriciaTrie<Integer> mapTrie;        // 词条树
     private int size;           // 包含的词条数
     private boolean sealed;     // 词典是否构建完成
-    private MapPatriciaTrie<IntArray> mapTrie;        // 词条树
     private transient Map<String, List<Item>> itemMap;  // code -> Item[]
-    private transient List<Item> items;
+    private RandomAccessFile raf;
+    private long dataOffset;
 
     public Dict(String name) {
         this.name = name;
         mapTrie = new MapPatriciaTrie<>();
     }
 
-    public static Dict loadFromCompiled(InputStream ins) throws IOException {
-        AbstractHessianInput input = Serializes.createInput(ins);
-        String head = input.readString();
-        if (!head.startsWith("FimeDict:")) throw new IOException("Invalid input!");
-        String name = head.substring(9)
-                          .split("[/]")[0];
-        Dict dict = new Dict(name);
-        int size = input.readInt();
-        for (int i = 1; i <= size; i++) {
-            String text = input.readString();
-            String code = input.readString();
-            int weight = input.readInt();
-            dict.put(new Item(text, code, weight));
+    public static Dict loadFromCompiled(File file) throws IOException {
+        RandomAccessFile dictRaf = new RandomAccessFile(file, "r");
+        String idxHead = dictRaf.readUTF();
+        Dict dict;
+        if (idxHead.startsWith("FimeDict:")) {
+            dict = new Dict(idxHead.substring(9));
         }
-        dict.build();
+        else {
+            throw new IOException("Unknown file format!");
+        }
+        short version = dictRaf.readShort();
+        if (version < 1 || version > kVersion) {
+            throw new IOException("Not supported version: " + version + "!");
+        }
+
+        final int dataOffset = dictRaf.readInt();
+        while (dictRaf.getFilePointer() < dataOffset) {
+            String code = dictRaf.readUTF();
+            int pos = dictRaf.readInt();
+            dict.mapTrie.insert(code, pos);
+        }
+        dict.mapTrie.trimToSize();
+        dict.mapTrie.freeze();
         return dict;
     }
 
@@ -95,6 +103,7 @@ public class Dict implements Comparator<Dict.Item> {
         return loadFromCsv(new FileInputStream(csvFile), new Converter());
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public boolean loadFromCsv(File csvFile, @NonNull Converter converter) throws IOException {
         return loadFromCsv(new FileInputStream(csvFile), converter);
     }
@@ -118,20 +127,6 @@ public class Dict implements Comparator<Dict.Item> {
         return build();
     }
 
-    public void compileTo(OutputStream out) throws IOException {
-        AbstractHessianOutput output = Serializes.createOutput(out);
-        output.writeString(fileHead());
-        output.writeInt(items.size());
-        for (Item item : items) {
-            output.writeString(item.getText());
-            output.writeString(item.getCode());
-            output.writeInt(item.getWeight());
-        }
-        output.flush();
-        output.close();
-        out.close();
-    }
-
     public boolean search(@NonNull String prefix, @NonNull List<Item> result, int limit) {
         return search(prefix, -1, result, limit);
     }
@@ -147,29 +142,41 @@ public class Dict implements Comparator<Dict.Item> {
                                                                               comparator);
         // 优先查询用户词
         initH2();
+        initDictFile();
         List<Item> userItems = h2.query(prefix, limit);
         if (mapTrie.contains(prefix)) { // 全部匹配
-            MapPatriciaTrieNode<IntArray> node = mapTrie.getNode(prefix);
-            IntArray value = node.getValue();
-            final int index = value.get(0);
-            final int size = value.get(1);
-            for (int i = 0; i < size; i++) {
-                queue.enqueue(items.get(index + i));
+            MapPatriciaTrieNode<Integer> node = mapTrie.getNode(prefix);
+            final int index = node.getValue();
+            try {
+                raf.seek(dataOffset + index);
+                for (int i = 0; raf.getFilePointer() < raf.length() && i < limit; i++) {
+                    String text = raf.readUTF();
+                    if (text.equals("\n")) break;
+                    int weight = raf.readInt();
+                    queue.enqueue(new Item(text, prefix, weight));
+                }
+            }
+            catch (IOException e) {
+                e.printStackTrace();
             }
         }
         else {    // 前缀预测匹配
-            for (Map.Entry<String, IntArray> entry : mapTrie.predictiveSearchEntries(
+            for (Map.Entry<String, Integer> entry : mapTrie.predictiveSearchEntries(
                     prefix)) {
-                IntArray value = entry.getValue();
-                final int index = value.get(0);
-                final int size = value.get(1);
-                for (int i = 0; i < size; i++) {
-                    Item item = items.get(index + i);
-                    if (item.getLength() == wordLength
-                            && item.getCode()
-                                   .startsWith(prefix)) {
-                        queue.enqueue(item);
+                final int index = entry.getValue();
+                try {
+                    raf.seek(dataOffset + index);
+                    for (int i = 0; raf.getFilePointer() < raf.length() && i < limit; i++) {
+                        String text = raf.readUTF();
+                        if (text.equals("\n")) break;
+                        if (text.length() == wordLength) {
+                            int weight = raf.readInt();
+                            queue.enqueue(new Item(text, entry.getKey(), weight));
+                        }
                     }
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -197,18 +204,25 @@ public class Dict implements Comparator<Dict.Item> {
         ObjectArrayPriorityQueue<Item> queue = new ObjectArrayPriorityQueue<>(limit * 2,
                                                                               comparator);
         // 前缀预测匹配
+        initDictFile();
         final int maxCodeLength = prefix.length() + extendCodeLength;
-        for (Map.Entry<String, IntArray> entry : mapTrie.predictiveSearchEntries(
+        for (Map.Entry<String, Integer> entry : mapTrie.predictiveSearchEntries(
                 prefix)) {
-            IntArray value = entry.getValue();
-            final int index = value.get(0);
-            final int size = value.get(1);
-            for (int i = 0; i < size; i++) {
-                Item item = items.get(index + i);
-                if (item.getCode()
-                        .length() <= maxCodeLength) {
-                    queue.enqueue(item);
+            final int index = entry.getValue();
+            try {
+                raf.seek(dataOffset + index);
+                for (int i = 0; raf.getFilePointer() < raf.length() && i < limit; i++) {
+                    String text = raf.readUTF();
+                    if (text.equals("\n")) break;
+                    if (entry.getKey()
+                             .length() <= maxCodeLength) {
+                        int weight = raf.readInt();
+                        queue.enqueue(new Item(text, entry.getKey(), weight));
+                    }
                 }
+            }
+            catch (IOException e) {
+                e.printStackTrace();
             }
         }
         boolean hit = false;
@@ -229,6 +243,15 @@ public class Dict implements Comparator<Dict.Item> {
 
     public void close() {
         if (h2 != null) h2.stop();
+        if (raf != null) {
+            try {
+                raf.close();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+            raf = null;
+        }
     }
 
     @NonNull @Override public String toString() {
@@ -269,30 +292,74 @@ public class Dict implements Comparator<Dict.Item> {
         }
     }
 
-    private String fileHead() {
-        return "FimeDict:" + getName() + "/" + getSize() + "\n";
+    private void initDictFile() {
+        if (raf == null) {
+            try {
+                raf = new RandomAccessFile(FimeContext.getInstance()
+                                                      .fileInCacheDir(name + SUFFIX), "r");
+                raf.readUTF();  // head
+                raf.readShort(); // version
+                dataOffset = raf.readInt();  // dataOffset
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    private boolean build() {
+    @SuppressWarnings("ResultOfMethodCallIgnored") private boolean build() throws IOException {
         if (sealed) return false;
 
-        items = new ArrayList<>(size);
         Iterator<Map.Entry<String, List<Item>>> it = itemMap.entrySet()
                                                             .iterator();
-        int i = 0;
+        File dataFile = FimeContext.getInstance()
+                                   .fileInCacheDir(name + ".dat"); // 数据文件
+        dataFile.createNewFile();
+        RandomAccessFile dataRaf = new RandomAccessFile(dataFile, "rw");
+        // 生成词典文件
+        File dictFile = FimeContext.getInstance()
+                                   .fileInCacheDir(name + SUFFIX);  // 词典文件
+        dictFile.createNewFile();
+        RandomAccessFile dictRaf = new RandomAccessFile(dictFile, "rw");
+        dictRaf.seek(0);
+        dictRaf.writeUTF(Strings.simpleFormat("FimeDict:%s", getName()));
+        dictRaf.writeShort(kVersion);
+        final long indexOffset = dictRaf.getFilePointer();
+        dictRaf.writeInt(2023);
+        dataRaf.seek(0);
+        size = 0;
         while (it.hasNext()) {
             Map.Entry<String, List<Item>> next = it.next();
-            List<Item> value = next.getValue();
-            items.addAll(value);
-            mapTrie.insert(next.getKey(), new IntArray(new int[] { i, value.size() }, 2));
-            i += value.size();
+            dictRaf.writeUTF(next.getKey());
+            dictRaf.writeInt((int) dataRaf.getFilePointer());
+            mapTrie.insert(next.getKey(), (int) dataRaf.getFilePointer());
+            List<Item> values = next.getValue();
+            for (Item item : values) {
+                dataRaf.writeUTF(item.getText());
+                dataRaf.writeInt(item.getWeight());
+            }
+            dataRaf.writeUTF("\n");
+            size += values.size();
             it.remove();
         }
-        size = items.size();
         mapTrie.trimToSize();
         mapTrie.freeze();
         itemMap = null;
         sealed = true;
+
+        final long dataOffset = dictRaf.getFilePointer();
+        dictRaf.seek(indexOffset);
+        dictRaf.writeInt((int) dataOffset);
+        dictRaf.seek(dataOffset);
+        byte[] buffer = new byte[4 * 1024]; // 4k
+        dataRaf.seek(0);
+        int len;
+        while ((len = dataRaf.read(buffer)) > 0) {
+            dictRaf.write(buffer, 0, len);
+        }
+        dictRaf.close();
+        dataRaf.close();
+        dataFile.delete();
         return true;
     }
 

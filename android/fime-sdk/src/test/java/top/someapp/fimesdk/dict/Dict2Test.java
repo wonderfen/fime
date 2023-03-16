@@ -49,55 +49,64 @@ public class Dict2Test {
         }
         reader.close();
 
-        File dict = new File("../data/pinyin.dic"); // 词典文件
-        dict.createNewFile();
-        RandomAccessFile dictRaf = new RandomAccessFile(dict, "rw");
+        File dataFile = new File("../data/pinyin.dat"); // 数据文件
+        dataFile.createNewFile();
+        RandomAccessFile dataRaf = new RandomAccessFile(dataFile, "rw");
         // 生成词典文件
         final int codeSize = treeMap.size();
-        File idx = new File("../data/pinyin.idx");  // 索引文件
-        idx.createNewFile();
-        RandomAccessFile idxRaf = new RandomAccessFile(idx, "rw");
-        idxRaf.seek(0);
-        idxRaf.writeUTF(Strings.simpleFormat("FimeDictIdx:pinyin/codes:%d\n", codeSize));
+        File dictFile = new File("../data/pinyin.dic");  // 词典文件
+        dictFile.createNewFile();
+        RandomAccessFile dictRaf = new RandomAccessFile(dictFile, "rw");
         dictRaf.seek(0);
-        dictRaf.writeUTF(Strings.simpleFormat("FimeDict:pinyin/codes:%d\n", codeSize));
+        dictRaf.writeUTF(Strings.simpleFormat("FimeDict:pinyin/v0.2"));
+        final long indexOffset = dictRaf.getFilePointer();
+        dictRaf.writeInt(2023);
+        dataRaf.seek(0);
         Iterator<Map.Entry<String, List<Dict.Item>>> it = treeMap.entrySet()
                                                                  .iterator();
         while (it.hasNext()) {
             Map.Entry<String, List<Dict.Item>> next = it.next();
-            idxRaf.writeUTF(next.getKey());
-            idxRaf.writeInt((int) dictRaf.getFilePointer());
-            // mapTrie.put(next.getKey(), (int) dictRaf.getFilePointer());
+            dictRaf.writeUTF(next.getKey());
+            dictRaf.writeInt((int) dataRaf.getFilePointer());
             for (Dict.Item item : next.getValue()) {
-                dictRaf.writeUTF(item.getText());
-                dictRaf.writeInt(item.getWeight());
+                dataRaf.writeUTF(item.getText());
+                dataRaf.writeInt(item.getWeight());
             }
-            dictRaf.writeUTF("\n");
+            dataRaf.writeUTF("\n");
             it.remove();
         }
+        final long dataOffset = dictRaf.getFilePointer();
+        dictRaf.seek(indexOffset);
+        dictRaf.writeInt((int) dataOffset);
+        dictRaf.seek(dataOffset);
+        byte[] buffer = new byte[4 * 1024]; // 4k
+        dataRaf.seek(0);
+        int len = -1;
+        while ((len = dataRaf.read(buffer)) > 0) {
+            dictRaf.write(buffer, 0, len);
+        }
         dictRaf.close();
-        idxRaf.close();
+        dataRaf.close();
+        dataFile.delete();
     }
 
     @Test
     public void testLoad() throws IOException {
         MapPatriciaTrie<Integer> mapTrie = new MapPatriciaTrie<>();        // 词条树
-        File idx = new File("../data/pinyin.idx");  // 索引文件
         File dict = new File("../data/pinyin.dic"); // 词典文件
-        RandomAccessFile idxRaf = new RandomAccessFile(idx, "r");
         RandomAccessFile dictRaf = new RandomAccessFile(dict, "r");
-        String idxHead = idxRaf.readUTF();
-        assertTrue(idxHead.startsWith("FimeDictIdx:"));
-        while (idxRaf.getFilePointer() < idxRaf.length()) {
-            String code = idxRaf.readUTF();
-            int pos = idxRaf.readInt();
+        String idxHead = dictRaf.readUTF();
+        assertTrue(idxHead.startsWith("FimeDict:"));
+        final int dataOffset = dictRaf.readInt();
+        while (dictRaf.getFilePointer() < dataOffset) {
+            String code = dictRaf.readUTF();
+            int pos = dictRaf.readInt();
             mapTrie.insert(code, pos);
         }
-        idxRaf.close();
         mapTrie.freeze();
 
         assertTrue(mapTrie.contains("shi shi"));
-        Integer pos = mapTrie.get("shi shi");
+        int pos = dataOffset + mapTrie.get("shi shi");
         dictRaf.seek(pos);
         List<String> texts = new ArrayList<>();
         while (true) {

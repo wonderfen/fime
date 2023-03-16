@@ -6,8 +6,6 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import top.someapp.fimesdk.FimeContext;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,15 +21,15 @@ public class DictTest {
         Dict dict = new Dict("pinyin_dict");
         dict.loadFromCsv(FimeContext.getInstance()
                                     .fileInAppHome("pinyin_dict.csv"));
-        dict.compileTo(new FileOutputStream(FimeContext.getInstance()
-                                                       .fileInCacheDir("pinyin_dict.je")));
+        // dict.compileTo(new FileOutputStream(FimeContext.getInstance()
+        //                                                .fileInCacheDir("pinyin_dict.je")));
     }
 
     @Test
     public void testLoadFromCompiled() throws IOException {
-        Dict dict = Dict.loadFromCompiled(new FileInputStream(FimeContext.getInstance()
-                                                                         .fileInCacheDir(
-                                                                                 "pinyin_dict.je")));
+        Dict dict = Dict.loadFromCompiled(FimeContext.getInstance()
+                                                     .fileInCacheDir(
+                                                             "pinyin_dict" + Dict.SUFFIX));
         List<Dict.Item> items = new ArrayList<>();
         dict.search("yi", items, 100);
         assertTrue(items.size() > 0);

@@ -33,7 +33,6 @@ class H2 {
     };
     private final String id;
     private boolean started;
-    private String url;
     private Connection conn;
 
     H2(String id) {
@@ -52,7 +51,7 @@ class H2 {
                                   .fileInCacheDir(id + ".trace.db");
         FileStorage.deleteFile(logFile);
         // jdbc:h2:F:\source-code\gitee\fime\android\data\fime_h2
-        url = Strings.simpleFormat("jdbc:h2:%s/%s", cacheDir.getAbsolutePath(), id);
+        String url = Strings.simpleFormat("jdbc:h2:%s/%s", cacheDir.getAbsolutePath(), id);
         try {
             conn = DriverManager.getConnection(url);
             for (String sql : CREATE_SQLS) {
