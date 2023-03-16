@@ -416,6 +416,7 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
                 VirtualKey key = null;
                 float dx = 0;
                 float dy = 0;
+                Style style = null;
                 if (item.hasPath("name")) {
                     Keycode keycode = Keycode.getByName(item.getString("name"));
                     key = new VirtualKey(keycode.code);
@@ -439,6 +440,7 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
                     if (item.hasPath("onTap")) {
                         key.setOnTap(item.getString("onTap"));
                     }
+                    if (item.hasPath("style")) style = new Style(item.getConfig("style"));
                     if (item.hasPath("offset")) {
                         List<Integer> offset = item.getIntList("offset");
                         key.setPosition(new PointF(position.x + Geometry.dp2px(offset.get(0)),
@@ -468,6 +470,7 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
                 if (key != null) {
                     key.index = keyList.size();
                     key.setTheme(theme);
+                    key.setStyle(style);
                     keyList.add(key);
                 }
                 position.x += dx;
@@ -540,8 +543,15 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
                 if (holdOnKeyIndex.contains(key.index) || (shiftHold && key.isShift())) {
                     keyTheme = theme.reverseColors();
                 }
-                key.getContainer()
-                   .render(kbdCanvas, paint, keyTheme);
+                if (key.getStyle() == null) {
+                    key.getContainer()
+                       .render(kbdCanvas, paint, keyTheme);
+                }
+                else {
+                    key.getContainer()
+                       .render(kbdCanvas, paint, key.getStyle()
+                                                    .with(keyTheme));
+                }
                 // paint 使用过后，好像抗锯齿会恢复为默认值!
                 paint.reset();
                 paint.setAntiAlias(true);

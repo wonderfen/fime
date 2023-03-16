@@ -14,7 +14,7 @@ public class VirtualKey {
     private String label;   // 绘制时的文本
     private String text;    // 点击时使用的文本
     private Box container;
-    // private Style style;
+    private Style style;
     private Theme theme;
     private boolean repeatable;
     private String onTap;
@@ -65,6 +65,14 @@ public class VirtualKey {
 
     public void setContainer(Box container) {
         this.container = container;
+    }
+
+    public Style getStyle() {
+        return style;
+    }
+
+    public void setStyle(Style style) {
+        this.style = style;
     }
 
     public Theme getTheme() {

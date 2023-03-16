@@ -5,7 +5,9 @@ import android.graphics.PointF;
 import com.typesafe.config.Config;
 import top.someapp.fimesdk.utils.Geometry;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 部分支持的样式
@@ -15,6 +17,7 @@ import java.util.List;
  */
 public class Style {
 
+    private final Set<String> properties = new HashSet<>();
     private String background;
     private float borderWidth = 1.0f;
     private float borderRadius = 6.0f;
@@ -36,26 +39,33 @@ public class Style {
         // color: 0x000000
         // font-size: 36 // dp
         if (config.hasPath("background")) {
+            properties.add("background");
             backgroundColor = parseColor(config.getString("background"), Color.BLACK);
         }
         if (config.hasPath("border-width")) {
+            properties.add("border-width");
             borderWidth = Geometry.dp2px(config.getDouble("border-width"));
         }
         if (config.hasPath("border-color")) {
+            properties.add("border-color");
             borderColor = parseColor(config.getString("border-color"), Color.BLACK);
         }
         if (config.hasPath("border-radius")) {
+            properties.add("border-radius");
             borderRadius = Geometry.dp2px(config.getDouble("border-radius"));
         }
         if (config.hasPath("margin")) {
+            properties.add("margin");
             List<Double> margin = config.getDoubleList("margin");
             this.margin.x = Geometry.dp2px(margin.get(1));
             this.margin.y = Geometry.dp2px(margin.get(0));
         }
         if (config.hasPath("color")) {
+            properties.add("color");
             color = parseColor(config.getString("color"), Color.BLACK);
         }
         if (config.hasPath("font-size")) {
+            properties.add("font-size");
             fontSize = Geometry.dp2px(config.getDouble("font-size"));
         }
     }
@@ -104,6 +114,17 @@ public class Style {
     public Style applyTo(Style other) {
         other.applyFrom(this);
         return other;
+    }
+
+    public Style with(Theme theme) {
+        if (!properties.contains("background")) setBackgroundColor(theme.getKeyBackground());
+        if (!properties.contains("border-width")) setBorderWidth(theme.getBorderWidth());
+        if (!properties.contains("border-radius")) setBorderRadius(theme.getBorderRadius());
+        if (!properties.contains("border-color")) setBorderColor(theme.getBorderColor());
+        if (!properties.contains("color")) setColor(theme.getText());
+        if (!properties.contains("margin")) setMargin(theme.getMargin());
+        if (!properties.contains("font-size")) setFontSize(theme.getTextSize());
+        return this;
     }
 
     public Style reverseColors() {
