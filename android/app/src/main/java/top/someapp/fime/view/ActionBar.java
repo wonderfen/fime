@@ -28,17 +28,16 @@ import java.util.List;
  */
 class ActionBar implements Widget {
 
-    private static final String TAG = "ActionBar";
+    private final List<Float> candidatePos = new ArrayList<>();
+    private final Paint paint = new Paint();
+    private final Bitmap icon;
+    private final float gutter;               // 候选之间的间隔
     private int backgroundColor = 0xffd5d7dd;
     private int textColor = 0xff161616;
     private int activeBackgroundColor = 0xfffafafa;
     private int activeTextColor = 0xff50a96c;
     private Box container;
-    private Paint paint = new Paint();
     private FimeHandler painter;
-    private Bitmap icon;
-    private float gutter;               // 候选之间的间隔
-    private List<Float> candidatePos;
     private float candidateOffset;      // 滑动产生的偏移量
     private PointF moveStartAt;
     private InputEditor inputEditor;
@@ -53,7 +52,6 @@ class ActionBar implements Widget {
                                          container.getHeight() * .625f,
                                          container.getHeight() * .625f);
         gutter = container.getWidth() / 16;
-        candidatePos = new ArrayList<>();
     }
 
     @Override public Box getContainer() {
@@ -136,10 +134,11 @@ class ActionBar implements Widget {
                 moveStartAt == null) {
             return;
         }
-
         float dx = pos.x - moveStartAt.x;
         Logs.d("onTouchMove, dx=%f", dx);
         if (Math.abs(dx) < 10) return; // 这个叫消抖？
+        Logs.d("candidatePos.size=%d", candidatePos.size());
+        if (candidatePos.isEmpty()) return;  // 为什么还要检查一次呢，不理解!!
 
         int activeIndex = inputEditor.getActiveIndex();
         float first = candidatePos.get(0);
@@ -180,7 +179,7 @@ class ActionBar implements Widget {
             }
         }
         moveStartAt = new PointF(pos.x, pos.y);
-        requestRepaint();   // TODO: 2023/2/26 可以再优化，减少重绘的次数 
+        requestRepaint();   // TODO: 2023/2/26 可以再优化，减少重绘的次数
     }
 
     @Override public void onTouchEnd(PointF pos) {

@@ -33,6 +33,10 @@ public class DictTest {
         List<Dict.Item> items = new ArrayList<>();
         dict.search("yi", items, 100);
         assertTrue(items.size() > 0);
+
+        items.clear();
+        dict.search("q", items, 10);
+        assertTrue(items.size() > 0);
     }
 
     @Test

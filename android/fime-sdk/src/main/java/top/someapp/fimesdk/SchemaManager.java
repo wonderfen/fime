@@ -14,10 +14,11 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -31,11 +32,11 @@ public class SchemaManager {
         // no instance.
     }
 
-    public static List<SchemaInfo> scan() {
+    public static Collection<SchemaInfo> scan() {
         FimeContext fimeContext = FimeContext.getInstance();
         File appHomeDir = fimeContext.getAppHomeDir();
         File buildTxt = fimeContext.fileInCacheDir("build.txt");
-        Map<String, SchemaInfo> info = new LinkedHashMap<>();
+        Map<String, SchemaInfo> info = new HashMap<>();
         Map<String, Pair<String, String>> compiledInfo = parseBuildTxt(buildTxt);
         for (Map.Entry<String, Pair<String, String>> entry : compiledInfo.entrySet()) {
             Pair<String, String> pair = entry.getValue();
@@ -55,7 +56,7 @@ public class SchemaManager {
             SchemaInfo original = SchemaInfo.original(f.getName());
             info.put(original.getName(), original);
         }
-        return new ArrayList<>(info.values());
+        return info.values();
     }
 
     public static SchemaInfo find(String conf) {
@@ -134,7 +135,7 @@ public class SchemaManager {
             if (!FileStorage.hasFile(fimeContext.fileInCacheDir(dictName + Dict.SUFFIX))) {
                 Dict dict = new Dict(dictName);
                 ok = dict.loadFromCsv(fimeContext.fileInAppHome(c.getString("file")));
-                if (!ok) throw new IOException("词典生成失败！");
+                if (!ok) throw new IOException("build dict failed！");
                 dict.close();
             }
             buildInfo.put(info.conf, new Pair<>(compiledFile.getName(), info.getName()));
@@ -150,8 +151,19 @@ public class SchemaManager {
 
     public static void clearBuild() {
         FimeContext fimeContext = FimeContext.getInstance();
-        File buildTxt = fimeContext.fileInCacheDir("build.txt");
-        FileStorage.deleteFile(buildTxt);
+        File[] files = fimeContext.getCacheDir()
+                                  .listFiles(f -> {
+                                      if (f.isFile()) {
+                                          String name = f.getName();
+                                          return name.equals("build.txt") || name.endsWith(
+                                                  ".conf.s") || name.endsWith(".dic");
+                                      }
+                                      return false;
+                                  });
+        assert files != null;
+        for (File f : files) {
+            FileStorage.deleteFile(f);
+        }
     }
 
     public static boolean validate(String conf) {
@@ -177,6 +189,7 @@ public class SchemaManager {
                 && config.hasPath("ejector");
     }
 
+    @SuppressWarnings("all")
     public static void delete(String conf) {
         FimeContext fimeContext = FimeContext.getInstance();
         FileStorage.deleteFile(fimeContext.fileInAppHome(conf));
@@ -191,7 +204,7 @@ public class SchemaManager {
         }
     }
 
-    @SuppressWarnings("Unchecked")
+    @SuppressWarnings("all")
     private static Map<String, Pair<String, String>> parseBuildTxt(File buildTxt) {
         if (!FileStorage.hasFile(buildTxt)) return Collections.EMPTY_MAP;
 
@@ -227,7 +240,7 @@ public class SchemaManager {
         }
     }
 
-    public static class SchemaInfo {
+    public static class SchemaInfo implements Comparator<SchemaInfo> {
 
         public final String conf;
         public final boolean precompiled;
@@ -275,6 +288,11 @@ public class SchemaManager {
                 }
             }
             return config;
+        }
+
+        @Override public int compare(SchemaInfo o1, SchemaInfo o2) {
+            return o1.getName()
+                     .compareTo(o2.getName());
         }
     }
 }

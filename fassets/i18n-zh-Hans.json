@@ -44,7 +44,7 @@
   "schema-build-ok": "生成成功!",
   "schema-deleted": "方案已删除!",
   "schema-import-succeed": "方案导入成功!",
-  "schema-is-building": "正在生成...",
+  "schema-is-building": "正在生成",
   "set-as-default-schema": "设为默认方案",
   "set-default-schema-working": "正在设置默认方案!",
   "setting": "设置",

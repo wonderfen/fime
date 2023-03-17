@@ -37,6 +37,7 @@ class SettingMethodCall {
         return map;
     }
 
+    @SuppressWarnings("all")
     Map<String, Object> onMethodCall(@NonNull MethodCall call) {
         final String method = call.method;
         Logs.d("onMethodCall %s", method);
@@ -129,6 +130,14 @@ class SettingMethodCall {
         catch (Exception e) {
             e.printStackTrace();
             Logs.e("getSchemas error:%s", e.getMessage());
+        }
+        if (schemas.size() > 1) {
+            Collections.sort(schemas, (o1, o2) -> {
+                String conf1 = (String) o1.get("conf");
+                String conf2 = (String) o2.get("conf");
+                assert conf1 != null && conf2 != null;
+                return conf1.compareTo(conf2);
+            });
         }
         rtn.put("schemas", schemas);
         rtn.put("active", setting.getString(Setting.kActiveSchema));

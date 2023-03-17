@@ -93,11 +93,14 @@ public class Dict2Test {
     @Test
     public void testLoad() throws IOException {
         MapPatriciaTrie<Integer> mapTrie = new MapPatriciaTrie<>();        // 词条树
-        File dict = new File("../data/pinyin.dic"); // 词典文件
+        File dict = new File("../data/pinyin_dict.dic"); // 词典文件
         RandomAccessFile dictRaf = new RandomAccessFile(dict, "r");
-        String idxHead = dictRaf.readUTF();
+        String idxHead = dictRaf.readUTF(); // read head
         assertTrue(idxHead.startsWith("FimeDict:"));
+        short version = dictRaf.readShort();// read version
+        assertTrue(version > 0);
         final int dataOffset = dictRaf.readInt();
+        assertTrue(dataOffset > 0);
         while (dictRaf.getFilePointer() < dataOffset) {
             String code = dictRaf.readUTF();
             int pos = dictRaf.readInt();
@@ -117,6 +120,18 @@ public class Dict2Test {
             texts.add(text);
         }
         assertTrue(texts.contains("试试"));
+
+        texts.clear();
+        for (String code : mapTrie.predictiveSearch("q")) {
+            dictRaf.seek(dataOffset + mapTrie.get(code));
+            while (true) {
+                String text = dictRaf.readUTF();
+                if (text.equals("\n")) break;
+                int weight = dictRaf.readInt();
+                assertTrue(weight >= 0);
+                texts.add(text);
+            }
+        }
         dictRaf.close();
     }
 }

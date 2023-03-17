@@ -168,15 +168,16 @@ public class Dict implements Comparator<Dict.Item> {
                     raf.seek(dataOffset + index);
                     for (int i = 0; raf.getFilePointer() < raf.length() && i < limit; i++) {
                         String text = raf.readUTF();
-                        if (text.equals("\n")) break;
-                        if (text.length() == wordLength) {
-                            int weight = raf.readInt();
+                        if ("\n".equals(text)) break;
+                        int weight = raf.readInt();
+                        if (wordLength < 0 || text.length() == wordLength) {
                             queue.enqueue(new Item(text, entry.getKey(), weight));
                         }
                     }
                 }
                 catch (IOException e) {
                     e.printStackTrace();
+                    break;  // break 可能更合适一点
                 }
             }
         }
@@ -213,10 +214,10 @@ public class Dict implements Comparator<Dict.Item> {
                 raf.seek(dataOffset + index);
                 for (int i = 0; raf.getFilePointer() < raf.length() && i < limit; i++) {
                     String text = raf.readUTF();
-                    if (text.equals("\n")) break;
+                    if ("\n".equals(text)) break;
+                    int weight = raf.readInt();
                     if (entry.getKey()
                              .length() <= maxCodeLength) {
-                        int weight = raf.readInt();
                         queue.enqueue(new Item(text, entry.getKey(), weight));
                     }
                 }
