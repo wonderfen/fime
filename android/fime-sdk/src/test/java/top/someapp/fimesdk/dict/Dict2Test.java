@@ -1,8 +1,12 @@
 package top.someapp.fimesdk.dict;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import org.h2.mvstore.MVMap;
+import org.h2.mvstore.MVStore;
 import org.junit.Test;
+import org.trie4j.doublearray.DoubleArray;
 import org.trie4j.patricia.MapPatriciaTrie;
 import top.someapp.fimesdk.utils.Strings;
 
@@ -15,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -24,30 +29,11 @@ import java.util.TreeMap;
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class Dict2Test {
 
-    private TreeMap<String, List<Dict.Item>> treeMap = new TreeMap<>();
+    private final TreeMap<String, List<Dict.Item>> treeMap = new TreeMap<>();
 
     @Test @SuppressWarnings("all")
     public void testBuild() throws IOException {
-        File csv = new File("../data/pinyin_dict.csv");
-        BufferedReader reader = new BufferedReader(new FileReader(csv));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            if (line.startsWith("#")) continue;
-            String[] segments = line.split("\t");
-            Dict.Item item;
-            if (segments.length == 3) {
-                item = new Dict.Item(segments[0], segments[1], Integer.decode(segments[2]));
-            }
-            else {
-                item = new Dict.Item(segments[0], segments[1]);
-            }
-            if (!treeMap.containsKey(item.getCode())) {
-                treeMap.put(item.getCode(), new ArrayList<>());
-            }
-            treeMap.get(item.getCode())
-                   .add(item);
-        }
-        reader.close();
+        loadToTreeMap();
 
         File dataFile = new File("../data/pinyin.dat"); // 数据文件
         dataFile.createNewFile();
@@ -133,5 +119,99 @@ public class Dict2Test {
             }
         }
         dictRaf.close();
+    }
+
+    @Test
+    public void testMakeMvStore() throws IOException {
+        loadToTreeMap();
+        MVStore mvStore = new MVStore.Builder().fileName("../data/pinyin.mv")
+                                               .cacheSize(8)
+                                               .compress()
+                                               .open();
+        MVMap<String, Long> codes = mvStore.openMap("codes");
+        MVMap<Integer, String> items = mvStore.openMap("items");
+        Iterator<Map.Entry<String, List<Dict.Item>>> it = treeMap.entrySet()
+                                                                 .iterator();
+        int id = 1;
+        while (it.hasNext()) {
+            Map.Entry<String, List<Dict.Item>> next = it.next();
+            String code = next.getKey();
+            System.out.println("id=" + id);
+            List<Dict.Item> values = next.getValue();
+            codes.put(code, ((long) id << 16) | values.size());
+            for (Dict.Item item : values) {
+                items.put(id, item.getText() + "\t" + item.getWeight());
+                id++;
+            }
+            it.remove();
+        }
+        mvStore.commit();
+        mvStore.close(100);
+    }
+
+    @Test
+    public void testLoadMvStore() {
+        MVStore mvStore = new MVStore.Builder().fileName("../data/pinyin.mv")
+                                               .cacheSize(8)
+                                               .readOnly()
+                                               .open();
+        MVMap<String, Long> codes = mvStore.openMap("codes");
+        MVMap<Integer, String> items = mvStore.openMap("items");
+        MapPatriciaTrie<Long> mapTrie = new MapPatriciaTrie<>();        // 词条树
+        // PatriciaTrie trie = new PatriciaTrie();
+        Set<Map.Entry<String, Long>> entries = codes.entrySet();
+        for (Map.Entry<String, Long> entry : codes.entrySet()) {
+            mapTrie.insert(entry.getKey(), entry.getValue());
+        }
+        DoubleArray doubleArray = new DoubleArray(mapTrie);    // 词条的编码树
+        doubleArray.freeze();
+
+        assertTrue(doubleArray.contains("shi shi"));
+        List<String> texts = new ArrayList<>();
+        StringBuilder code = new StringBuilder();
+        int ok = doubleArray.findLongestWord("shi shi", 0, 7, code);
+        assertEquals(0, ok);
+        long posAndSize = mapTrie.get(code.toString());
+        int start = (int) (posAndSize >> 16);
+        for (int i = 0, size = (int) (posAndSize & 0xffff); i < size; i++) {
+            texts.add(items.get(start + i)
+                           .split("[\t]")[0]);
+        }
+        assertTrue(texts.contains("试试"));
+
+        texts.clear();
+        for (String key : doubleArray.predictiveSearch("q")) {
+            posAndSize = mapTrie.get(code.toString());
+            start = (int) (posAndSize >> 16);
+            for (int i = 0, size = (int) (posAndSize & 0xffff); i < size; i++) {
+                texts.add(items.get(start + i)
+                               .split("[\t]")[0]);
+            }
+        }
+        assertTrue(texts.size() > 0);
+    }
+
+    private void loadToTreeMap() throws IOException {
+        treeMap.clear();
+        File csv = new File("../data/pinyin_dict.csv");
+        BufferedReader reader = new BufferedReader(new FileReader(csv));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            if (line.startsWith("#")) continue;
+            String[] segments = line.split("\t");
+            Dict.Item item;
+            if (segments.length == 3) {
+                item = new Dict.Item(segments[0], segments[1], Integer.decode(segments[2]));
+            }
+            else {
+                item = new Dict.Item(segments[0], segments[1]);
+            }
+            if (!treeMap.containsKey(item.getCode())) {
+                treeMap.put(item.getCode(), new ArrayList<>());
+            }
+            treeMap.get(item.getCode())
+                   .add(item);
+        }
+        reader.close();
     }
 }

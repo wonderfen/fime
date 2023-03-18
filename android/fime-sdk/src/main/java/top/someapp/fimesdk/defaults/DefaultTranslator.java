@@ -65,6 +65,7 @@ public class DefaultTranslator implements Translator {
     @Override public void destroy() {
         if (dict != null) {
             dict.close();
+            dict = null;
         }
     }
 
@@ -100,7 +101,7 @@ public class DefaultTranslator implements Translator {
         FimeContext fimeContext = FimeContext.getInstance();
         try {
             if (FileStorage.hasFile(fimeContext.fileInCacheDir(name + Dict.SUFFIX))) {
-                dict = Dict.loadFromCompiled(fimeContext.fileInCacheDir(name + Dict.SUFFIX));
+                dict = new Dict(name);
             }
             else {
                 dict = new Dict(name);
@@ -119,7 +120,7 @@ public class DefaultTranslator implements Translator {
                 compileDictIf();
             }
         }
-        catch (IOException e) {
+        catch (Exception e) {
             e.printStackTrace();
             Logs.w(e.getMessage());
         }

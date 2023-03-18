@@ -204,6 +204,7 @@ public class DefaultSchema implements Schema {
     }
 
     private void setupTranslator() {
+        if (translator != null) translator.destroy();
         Config config = this.config.getConfig("translator");
         try {
             translator = Classes.newInstance(config.getString("type"));
