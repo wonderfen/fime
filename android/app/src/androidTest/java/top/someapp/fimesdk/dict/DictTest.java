@@ -21,15 +21,12 @@ public class DictTest {
         Dict dict = new Dict("pinyin_dict");
         dict.loadFromCsv(FimeContext.getInstance()
                                     .fileInAppHome("pinyin_dict.csv"));
-        // dict.compileTo(new FileOutputStream(FimeContext.getInstance()
-        //                                                .fileInCacheDir("pinyin_dict.je")));
     }
 
     @Test
     public void testLoadFromCompiled() throws IOException {
-        Dict dict = Dict.loadFromCompiled(FimeContext.getInstance()
-                                                     .fileInCacheDir(
-                                                             "pinyin_dict" + Dict.SUFFIX));
+        Dict dict = new Dict("pinyin_dict");
+        dict.loadFromBuild();
         List<Dict.Item> items = new ArrayList<>();
         dict.search("yi", items, 100);
         assertTrue(items.size() > 0);
@@ -53,5 +50,9 @@ public class DictTest {
                                .getText());
         assertEquals("王", items.get(1)
                                .getText());
+
+        items.clear();
+        dict.search("z", items, 2);
+        assertTrue(items.isEmpty());
     }
 }
