@@ -359,13 +359,17 @@ public class Dict implements Comparator<Dict.Item> {
             if (line.startsWith("#")) continue;
             String[] segments = line.split("\t");
             String text = segments[0];
-            String code = converter.convert(segments[1]);
+            StringBuilder code = new StringBuilder();
+            for (String each : segments[1].split("[ ]")) {
+                code.append(" ")
+                    .append(converter.convert(each));
+            }
             Dict.Item item;
             if (segments.length == 3) {
-                item = new Dict.Item(text, code, Integer.decode(segments[2]));
+                item = new Dict.Item(text, code.substring(1), Integer.decode(segments[2]));
             }
             else {
-                item = new Dict.Item(text, code);
+                item = new Dict.Item(text, code.substring(1));
             }
             if (!itemMap.containsKey(item.getCode())) {
                 itemMap.put(item.getCode(), new ArrayList<>());

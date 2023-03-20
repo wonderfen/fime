@@ -4,6 +4,7 @@ import android.util.Pair;
 import com.typesafe.config.Config;
 import top.someapp.fimesdk.config.Configs;
 import top.someapp.fimesdk.dict.Dict;
+import top.someapp.fimesdk.engine.Converter;
 import top.someapp.fimesdk.utils.FileStorage;
 import top.someapp.fimesdk.utils.Logs;
 import top.someapp.fimesdk.utils.Strings;
@@ -19,6 +20,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -134,7 +136,19 @@ public class SchemaManager {
             String dictName = c.getString("name");
             if (!FileStorage.hasFile(fimeContext.fileInCacheDir(dictName + Dict.SUFFIX))) {
                 Dict dict = new Dict(dictName);
-                ok = dict.loadFromCsv(fimeContext.fileInAppHome(c.getString("file")));
+                if (c.hasPath("converter")) {
+                    Converter converter = new Converter();
+                    List<String> rules = c.getConfig("converter")
+                                          .getStringList("rules");
+                    for (String rule : rules) {
+                        converter.addRule(rule);
+                    }
+                    ok = dict.loadFromCsv(fimeContext.fileInAppHome(c.getString("file")),
+                                          converter);
+                }
+                else {
+                    ok = dict.loadFromCsv(fimeContext.fileInAppHome(c.getString("file")));
+                }
                 if (!ok) throw new IOException("build dict failed！");
                 dict.close();
             }
