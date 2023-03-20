@@ -30,6 +30,13 @@ class H2 {
                     + "  INPUT_DATE DATE,\n"
                     + "  PRIMARY KEY (CODE,TEXT)\n"
                     + ")",
+            "CREATE TABLE IF NOT EXISTS T_DICT (\n"
+                    + "  ID INTEGER NOT NULL,\n"
+                    + "  CODE CHARACTER VARYING NOT NULL,\n"
+                    + "  TEXT CHARACTER VARYING NOT NULL,\n"
+                    + "  WEIGHT INTEGER DEFAULT 0,\n"
+                    + "  PRIMARY KEY (ID)\n"
+                    + ")"
     };
     private final String id;
     private boolean started;

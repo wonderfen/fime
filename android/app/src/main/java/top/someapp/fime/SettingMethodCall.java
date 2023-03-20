@@ -145,6 +145,7 @@ class SettingMethodCall {
     }
 
     private Map<String, Object> setActiveSchema(String conf) {
+        SchemaManager.build(conf);
         setting.setString(Setting.kActiveSchema, conf)
                .save();
         return buildMessage("success", true);

@@ -7,6 +7,7 @@ import org.trie4j.patricia.MapPatriciaTrie;
 import org.trie4j.patricia.MapPatriciaTrieNode;
 import top.someapp.fimesdk.FimeContext;
 import top.someapp.fimesdk.engine.Converter;
+import top.someapp.fimesdk.utils.Logs;
 import top.someapp.fimesdk.utils.Serializes;
 import top.someapp.fimesdk.utils.Strings;
 
@@ -49,6 +50,7 @@ public class Dict implements Comparator<Dict.Item> {
 
     public Dict(@NonNull String name) {
         this.name = name;
+        Logs.d("create dict: %s.", name);
     }
 
     static int compareItems(Item o1, Item o2) {
@@ -80,7 +82,9 @@ public class Dict implements Comparator<Dict.Item> {
 
     @SuppressWarnings("UnusedReturnValue")
     public boolean loadFromCsv(File csvFile, @NonNull Converter converter) throws IOException {
+        Logs.d("loadFromCsv.");
         loadToTreeMap(csvFile, converter);
+        Logs.d("build.");
         return build();
     }
 
@@ -116,6 +120,7 @@ public class Dict implements Comparator<Dict.Item> {
 
     public boolean search(@NonNull String prefix, final int wordLength, @NonNull List<Item> result,
             int limit, Comparator<Item> comparator) {
+        Logs.d("search: %s start.", prefix);
         ObjectArrayPriorityQueue<Item> queue = new ObjectArrayPriorityQueue<>(limit * 2,
                                                                               comparator);
         // 优先查询用户词
@@ -185,12 +190,14 @@ public class Dict implements Comparator<Dict.Item> {
             count++;
         }
         queue.clear();
+        Logs.d("search: %s end.", prefix);
         return hit;
     }
 
     public boolean searchPrefix(@NonNull String prefix, final int extendCodeLength,
             @NonNull List<Item> result, int limit,
             Comparator<Item> comparator) {
+        Logs.d("searchPrefix: %s start.", prefix);
         ObjectArrayPriorityQueue<Item> queue = new ObjectArrayPriorityQueue<>(limit * 2,
                                                                               comparator);
         // 前缀预测匹配
@@ -229,6 +236,7 @@ public class Dict implements Comparator<Dict.Item> {
             count++;
         }
         queue.clear();
+        Logs.d("searchPrefix: %s end.", prefix);
         return hit;
     }
 
@@ -238,6 +246,7 @@ public class Dict implements Comparator<Dict.Item> {
     }
 
     public void close() {
+        Logs.d("close dict: %s.", name);
         if (h2 != null) h2.stop();
         if (raf != null) {
             try {
@@ -266,11 +275,12 @@ public class Dict implements Comparator<Dict.Item> {
         if (h2 == null) {
             h2 = new H2(name);
             h2.start();
-            return;
         }
-        if (!name.equals(h2.getId())) {
-            h2.stop();
-            h2 = new H2(name);
+        else {
+            if (!name.equals(h2.getId())) {
+                h2.stop();
+                h2 = new H2(name);
+            }
             h2.start();
         }
     }
@@ -331,6 +341,7 @@ public class Dict implements Comparator<Dict.Item> {
         };
         Serializes.serialize(mapTrie, out);
         raf.close();
+        itemMap = null;
         return true;
     }
 

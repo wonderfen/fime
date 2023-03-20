@@ -102,6 +102,7 @@ public class DefaultTranslator implements Translator {
         try {
             if (FileStorage.hasFile(fimeContext.fileInCacheDir(name + Dict.SUFFIX))) {
                 dict = new Dict(name);
+                dict.loadFromBuild();
             }
             else {
                 dict = new Dict(name);
@@ -111,12 +112,7 @@ public class DefaultTranslator implements Translator {
                     for (String rule : c.getStringList("converter.rules")) {
                         converter.addRule(rule);
                     }
-                    // dict.loadFromCsv(file, converter);
                 }
-                // else {
-                //     dict.loadFromCsv(file);
-                // }
-                // dictSource = fimeContext.fileInCacheDir(name + ".s");
                 compileDictIf();
             }
         }
