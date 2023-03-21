@@ -2,6 +2,7 @@ package top.someapp.fimesdk.dict;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 import it.unimi.dsi.fastutil.objects.ObjectArrayPriorityQueue;
 import org.trie4j.patricia.MapPatriciaTrie;
 import org.trie4j.patricia.MapPatriciaTrieNode;
@@ -124,7 +125,7 @@ public class Dict implements Comparator<Dict.Item> {
         ObjectArrayPriorityQueue<Item> queue = new ObjectArrayPriorityQueue<>(limit * 2,
                                                                               comparator);
         // 优先查询用户词
-        initH2();
+        initH2();   // 耗时操作
         initDictFile();
         List<Item> userItems = h2.query(prefix, limit);
         if (mapTrie.contains(prefix)) { // 全部匹配
@@ -149,20 +150,39 @@ public class Dict implements Comparator<Dict.Item> {
             }
         }
         else {    // 前缀预测匹配
+            int length = 0;
+            List<String> codes = new ArrayList<>();
+            List<Long> ranges = new ArrayList<>();   // 先分段
             for (Map.Entry<String, Long> entry : mapTrie.predictiveSearchEntries(prefix)) {
                 final String code = entry.getKey();
-                final long range = entry.getValue(); // [start, end)
-                final int start = (int) (range >> 32);
-                final int end = (int) range;
+                if (length == 0) length = code.length();
+                if (code.length() > length) continue;
+                codes.add(entry.getKey());
+                ranges.add(entry.getValue());
+            }
+            // 统一一次 io
+            if (!ranges.isEmpty()) {
+                final int start = (int) (ranges.get(0) >> 32);
+                final int end = ranges.get(ranges.size() - 1)
+                                      .intValue();
                 try {
                     raf.seek(start);
                     byte[] buffer = new byte[end - start];
                     raf.read(buffer);
-                    String content = new String(buffer, StandardCharsets.UTF_8);
-                    for (String record : content.split("[\n]")) {
-                        int index = record.indexOf('\t');
-                        String text = record.substring(0, index);
-                        if (wordLength < 0 || text.length() == wordLength) {
+                    for (int i = 0, len = codes.size(); queue.size() < limit && i < len; i++) {
+                        String code = codes.get(i);
+                        long range = ranges.get(i);
+                        int offset = (int) (range >> 32) - start;
+                        int size = (int) (range - (range >> 32));
+                        String content = new String(buffer, offset, size, StandardCharsets.UTF_8);
+                        for (String record : content.split("[\n]")) {
+                            int index = record.indexOf('\t');
+                            String text = record.substring(0, index);
+                            // if (wordLength < 0 || text.length() == wordLength) {
+                            //     queue.enqueue(new Item(text, code,
+                            //                            Integer.decode(
+                            //                                    record.substring(index + 1))));
+                            // }
                             queue.enqueue(new Item(text, code,
                                                    Integer.decode(record.substring(index + 1))));
                         }
@@ -170,9 +190,8 @@ public class Dict implements Comparator<Dict.Item> {
                 }
                 catch (IOException e) {
                     e.printStackTrace();
-                    break;
                 }
-                if (queue.size() >= limit) break;
+                // if (queue.size() >= limit) break;
             }
         }
         boolean hit = false;
@@ -200,6 +219,8 @@ public class Dict implements Comparator<Dict.Item> {
         Logs.d("searchPrefix: %s start.", prefix);
         ObjectArrayPriorityQueue<Item> queue = new ObjectArrayPriorityQueue<>(limit * 2,
                                                                               comparator);
+        // 优先查询用户词
+        initH2();   // 耗时操作
         // 前缀预测匹配
         initDictFile();
         final int maxCodeLength = prefix.length() + extendCodeLength;
@@ -269,6 +290,11 @@ public class Dict implements Comparator<Dict.Item> {
 
     @Override public int compare(Item o1, Item o2) {
         return Dict.compareItems(o1, o2);
+    }
+
+    @SuppressWarnings("unused") @VisibleForTesting
+    MapPatriciaTrie<Long> getMapTrie() {
+        return mapTrie;
     }
 
     private void initH2() {

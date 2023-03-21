@@ -410,6 +410,8 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
                 dynamicLabelNames = dynamicLabel.getStringList("names");
             }
             Config keys = config.getConfig("keys");
+            final boolean ceilOn = keys.hasPath("ceil") && keys.getBoolean("ceil");
+            final boolean floorOn = keys.hasPath("floor") && keys.getBoolean("floor");
             List<? extends Config> items = keys.getConfigList("items");
             PointF position = new PointF();
             for (Config item : items) {
@@ -425,6 +427,8 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
                     }
                     if (item.hasPath("label")) key.setLabel(item.getString("label"));
                     if (item.hasPath("text")) key.setText(item.getString("text"));
+                    if (ceilOn && item.hasPath("ceil")) key.setCeil(item.getString("ceil"));
+                    if (floorOn && item.hasPath("floor")) key.setFloor(item.getString("floor"));
                     if (item.hasPath("width")) {
                         key.setWidth((float) (item.getDouble("width") * width / 100));
                     }
@@ -563,9 +567,29 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
                                               .toUpperCase(Locale.US) : key.getLabel();
                 Box textBounds = Fonts.getTextBounds(paint, label);
                 float dx = Math.max(0, (key.getWidth() - textBounds.getWidth()) / 2);
-                float dy = key.getHeight() * 0.20f;
+                float dy = key.getHeight() * 0.15f;
                 kbdCanvas.drawText(label, key.getPosition().x + dx, key.getCenter().y + dy,
                                    paint);
+                if (!Strings.isNullOrEmpty(key.getCeil())) {
+                    paint.setColor(keyTheme.getSecondaryText());
+                    paint.setTextSize(Geometry.dp2px(2 * theme.getKeyLabelSize() / 3));
+                    kbdCanvas.drawText(key.getCeil(),
+                                       key.getContainer()
+                                          .getLeft() + 24,
+                                       key.getContainer()
+                                          .getTop() + 32,
+                                       paint);
+                }
+                if (!Strings.isNullOrEmpty(key.getFloor())) {
+                    paint.setColor(keyTheme.getSecondaryText());
+                    paint.setTextSize(Geometry.dp2px(2 * theme.getKeyLabelSize() / 3));
+                    kbdCanvas.drawText(key.getFloor(),
+                                       key.getContainer()
+                                          .getLeft() + 24,
+                                       key.getContainer()
+                                          .getBottom() - 16,
+                                       paint);
+                }
             }
             canvas.drawBitmap(bitmap, offset.x, offset.y, paint);
             kbdCanvas.save();

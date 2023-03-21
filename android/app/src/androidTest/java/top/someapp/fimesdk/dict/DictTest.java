@@ -55,4 +55,14 @@ public class DictTest {
         dict.search("z", items, 2);
         assertTrue(items.isEmpty());
     }
+
+    @Test
+    public void testPinyinSearch() throws IOException {
+        Dict dict = new Dict("pinyin_dict");
+        dict.loadFromBuild();
+
+        List<Dict.Item> items = new ArrayList<>();
+        dict.search("l", items, 100);   // 声母为 l 的音节最多， 200+ ms
+        assertTrue(items.size() > 0);
+    }
 }

@@ -1,6 +1,7 @@
 package top.someapp.fimesdk.view;
 
 import android.graphics.PointF;
+import androidx.annotation.NonNull;
 import top.someapp.fimesdk.config.Keycode;
 
 /**
@@ -13,6 +14,8 @@ public class VirtualKey {
     int index;  // 在键盘中的序号
     private String label;   // 绘制时的文本
     private String text;    // 点击时使用的文本
+    private String ceil;    // 辅助的顶部文字
+    private String floor;   // 辅助的底部文字
     private Box container;
     private Style style;
     private Theme theme;
@@ -53,6 +56,22 @@ public class VirtualKey {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public String getCeil() {
+        return ceil;
+    }
+
+    public void setCeil(String ceil) {
+        this.ceil = ceil;
+    }
+
+    public String getFloor() {
+        return floor;
+    }
+
+    public void setFloor(String floor) {
+        this.floor = floor;
     }
 
     public boolean isFunctional() {
@@ -127,7 +146,7 @@ public class VirtualKey {
         this.onTap = onTap;
     }
 
-    @Override public String toString() {
+    @NonNull @Override public String toString() {
         return "VirtualKey{" +
                 "code=" + code +
                 ", label='" + label + '\'' +
