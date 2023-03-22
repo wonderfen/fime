@@ -41,6 +41,10 @@ public class Fime {
             // 自然码93
             "zrm93_keyboards.conf",
             "zrm93_schema.conf",
+            // 连山易码
+            "lian_shan_dict.csv",
+            "lian_shan_keyboards.conf",
+            "lian_shan_schema.conf",
     };
 
     private Fime() {
