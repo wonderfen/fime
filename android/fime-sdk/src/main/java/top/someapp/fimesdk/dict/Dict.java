@@ -240,7 +240,7 @@ public class Dict implements Comparator<Dict.Item> {
                     int index = record.indexOf('\t');
                     String text = record.substring(0, index);
                     queue.enqueue(
-                            new Item(text, prefix, Integer.decode(record.substring(index + 1))));
+                            new Item(text, code, Integer.decode(record.substring(index + 1))));
                 }
             }
             catch (IOException e) {
