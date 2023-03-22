@@ -41,6 +41,9 @@ class SettingMethodCall {
     Map<String, Object> onMethodCall(@NonNull MethodCall call) {
         final String method = call.method;
         Logs.d("onMethodCall %s", method);
+        if ("getLanguage".equals(method)) return getLanguage();
+        if ("setLanguage".equals(method)) return setLanguage(call.argument(Setting.kLanguage));
+
         if ("getSchemas".equals(method)) return getSchemas();
         if ("setActiveSchema".equals(method)) return setActiveSchema(call.argument("conf"));
         if ("importExternalSchema".equals(method)) return importExternalSchema();
@@ -67,6 +70,17 @@ class SettingMethodCall {
         }
         if ("cleanClipboard".equals(method)) return cleanClipboard();
         return null;
+    }
+
+    private Map<String, Object> getLanguage() {
+        Map<String, Object> rtn = new HashMap<>();
+        rtn.put(Setting.kLanguage, setting.getString(Setting.kLanguage));
+        return rtn;
+    }
+
+    private Map<String, Object> setLanguage(String language) {
+        setting.setString(Setting.kLanguage, language);
+        return Collections.EMPTY_MAP;
     }
 
     private Map<String, Object> getKeyboardSetting() {

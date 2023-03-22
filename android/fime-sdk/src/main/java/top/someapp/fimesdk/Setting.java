@@ -14,6 +14,7 @@ import java.util.List;
 @SuppressWarnings("unchecked")
 public class Setting {
 
+    public static final String kLanguage = "language";
     public static final String kActiveSchema = "active-schema";  // 用户激活的方案
     public static final String kKeyboardPlayKeySound = "keyboard.play-key-sound";
     public static final String kKeyboardKeyVibrate = "keyboard.key-vibrate";
@@ -93,8 +94,9 @@ public class Setting {
 
     private void init() {
         if (pref.getAll()
-                .size() < 7) {
+                .size() < 8) {
             pref.edit()
+                .putString(kLanguage, "zh-Hans")
                 .putString(kActiveSchema, "fime_pinyin_schema.conf")
                 .putBoolean(kKeyboardPlayKeySound, true)
                 .putBoolean(kKeyboardKeyVibrate, false)

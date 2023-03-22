@@ -40,7 +40,7 @@ class FimeApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const HomePage(),
+      home: I18nWidget(key: i18nKey, child: const HomePage()),
       routes: _routes(),
     );
   }

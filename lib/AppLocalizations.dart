@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:fime/NativeBridge.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
@@ -53,3 +54,55 @@ class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
     return false;
   }
 }
+
+class I18nWidget extends StatefulWidget {
+  final child;
+
+  I18nWidget({super.key, required this.child});
+
+  @override
+  State<StatefulWidget> createState() {
+    return I18nWidgetState();
+  }
+}
+
+class I18nWidgetState extends State<I18nWidget> {
+  var _locale;
+
+  get locale => _locale;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // callNative('method', params)
+    callNative('getLanguage', {}).then((data) {
+      var language = data!['language'];
+      if ('zh-Hant' == language) {
+        _locale = Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant');
+      } else if ('zh-Hans' == language) {
+        _locale = Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans');
+      } else {
+        _locale = Localizations.localeOf(context);
+      }
+    }).catchError((err) {
+      _locale = Localizations.localeOf(context);
+    });
+  }
+
+  void changeLanguage(Locale locale) {
+    setState(() {
+      _locale = locale;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Localizations.override(
+      context: context,
+      locale: _locale,
+      child: widget.child,
+    );
+  }
+}
+
+GlobalKey<I18nWidgetState> i18nKey = GlobalKey<I18nWidgetState>();

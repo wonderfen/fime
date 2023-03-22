@@ -7,6 +7,7 @@ const String kKeyboardPlayKeySound = "keyboard.play-key-sound";
 const String kKeyboardKeyVibrate = "keyboard.key-vibrate";
 const String kKeyboardCheckLongPress = "keyboard.check-long-press";
 const String kKeyboardCheckSwipe = "keyboard.check-swipe";
+const String kLanguage = "language";
 const String kTheme = "theme";
 const String kClipboardEnabled = "clipboard.enabled";
 
@@ -26,7 +27,7 @@ class _PageGeneralState extends State<PageGeneral> {
   bool keyVibrate = false;
   bool checkLongPress = true;
   bool checkSwipe = true;
-
+  String language = 'zh-Hans';
   String theme = 'by-keyboard';
 
   bool clipboardEnable = true;
@@ -36,12 +37,17 @@ class _PageGeneralState extends State<PageGeneral> {
   @override
   void initState() {
     super.initState();
-    callNative('getKeyboardSetting', {}).then((data) {
+    callNative('getLanguage', {}).then((data) {
       setState(() {
-        playKeySound = data![kKeyboardPlayKeySound];
-        keyVibrate = data![kKeyboardKeyVibrate];
-        checkLongPress = data[kKeyboardCheckLongPress];
-        checkSwipe = data[kKeyboardCheckSwipe];
+        language = data![kLanguage];
+      });
+      callNative('getKeyboardSetting', {}).then((data) {
+        setState(() {
+          playKeySound = data![kKeyboardPlayKeySound];
+          keyVibrate = data![kKeyboardKeyVibrate];
+          checkLongPress = data[kKeyboardCheckLongPress];
+          checkSwipe = data[kKeyboardCheckSwipe];
+        });
       });
       return callNative('getThemeSetting', {});
     }).then((data) {
@@ -78,11 +84,22 @@ class _PageGeneralState extends State<PageGeneral> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        callNative('setKeyboardSetting', {
-          kKeyboardPlayKeySound: playKeySound,
-          kKeyboardKeyVibrate: keyVibrate,
-          kKeyboardCheckLongPress: checkLongPress,
-          kKeyboardCheckSwipe: checkSwipe,
+        if ('zh-Hant' == language) {
+          i18nKey.currentState!.changeLanguage(
+              const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'));
+        } else if ('zh-Hans' == language) {
+          i18nKey.currentState!.changeLanguage(
+              const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'));
+        } else {
+          i18nKey.currentState!.changeLanguage(const Locale('en'));
+        }
+        callNative('setLanguage', {kLanguage: language}).whenComplete(() {
+          callNative('setKeyboardSetting', {
+            kKeyboardPlayKeySound: playKeySound,
+            kKeyboardKeyVibrate: keyVibrate,
+            kKeyboardCheckLongPress: checkLongPress,
+            kKeyboardCheckSwipe: checkSwipe,
+          });
         }).whenComplete(() {
           callNative('setThemeSetting', {kTheme: theme});
         }).whenComplete(() {
@@ -125,6 +142,7 @@ class _PageGeneralState extends State<PageGeneral> {
               });
             }),
             children: [
+              languagePanel(),
               keyboardPanel(),
               themePanel(),
               clipboardPanel(),
@@ -132,6 +150,70 @@ class _PageGeneralState extends State<PageGeneral> {
           ),
         ),
       ),
+    );
+  }
+
+  ExpansionPanel languagePanel() {
+    return ExpansionPanel(
+      canTapOnHeader: true,
+      headerBuilder: (context, isExpanded) {
+        return ListTile(
+          title: Text('${AppLocalizations.of(context).i18n('language')}'),
+          subtitle: Text('${AppLocalizations.of(context).i18n(language)}'),
+          contentPadding: EdgeInsets.symmetric(horizontal: 8.0),
+        );
+      },
+      body: Column(
+        children: [
+          ListTile(
+            title: Text('${AppLocalizations.of(context).i18n('zh-Hans')}'),
+            trailing: Radio(
+              groupValue: language,
+              value: 'zh-Hans',
+              activeColor: Colors.blue,
+              onChanged: ((value) {
+                updateLanguage(value);
+              }),
+            ),
+            dense: true,
+            onTap: () {
+              updateLanguage('zh-Hans');
+            },
+          ),
+          ListTile(
+            title: Text('${AppLocalizations.of(context).i18n('zh-Hant')}'),
+            trailing: Radio(
+              groupValue: language,
+              value: 'zh-Hant',
+              activeColor: Colors.blue,
+              onChanged: ((value) {
+                updateLanguage(value);
+              }),
+            ),
+            dense: true,
+            onTap: () {
+              updateLanguage('zh-Hant');
+            },
+          ),
+          ListTile(
+            title: Text('${AppLocalizations.of(context).i18n('en')}'),
+            trailing: Radio(
+              groupValue: language,
+              value: 'en',
+              activeColor: Colors.blue,
+              onChanged: ((value) {
+                updateLanguage(value);
+              }),
+            ),
+            dense: true,
+            onTap: () {
+              updateLanguage('en');
+              // setState(() => language = 'en');
+            },
+          ),
+        ],
+      ),
+      isExpanded: expandedIndex.contains(0),
     );
   }
 
@@ -193,7 +275,7 @@ class _PageGeneralState extends State<PageGeneral> {
           ),
         ],
       ),
-      isExpanded: expandedIndex.contains(0),
+      isExpanded: expandedIndex.contains(1),
     );
   }
 
@@ -271,7 +353,7 @@ class _PageGeneralState extends State<PageGeneral> {
           ),
         ],
       ),
-      isExpanded: expandedIndex.contains(1),
+      isExpanded: expandedIndex.contains(2),
     );
   }
 
@@ -317,8 +399,15 @@ class _PageGeneralState extends State<PageGeneral> {
           ),
         ],
       ),
-      isExpanded: expandedIndex.contains(2),
+      isExpanded: expandedIndex.contains(3),
     );
+  }
+
+  void updateLanguage(newLanguage) {
+    if (language == newLanguage) return;
+    setState(() {
+      language = newLanguage ?? '';
+    });
   }
 
   void showSnackBar(Widget content) {

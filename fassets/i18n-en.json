@@ -17,6 +17,7 @@
   "done": "Done!",
   "double-tap-exit": "Press back again to finish app!",
   "empty-or-invalid-schema": "Schema(s) is empty or invalid!",
+  "en": "en/English",
   "error": "Error",
   "feedback-and-discuss": "Feedback & discuss",
   "fetching-version-info": "Fetching version info...",
@@ -29,6 +30,7 @@
   "key-sound": "Key sound",
   "key-vibrate": "Vibrate when type",
   "keyboard": "Keyboard",
+  "language": "Language",
   "license": "License",
   "light": "Light mode",
   "loading": "Loading...",
@@ -61,5 +63,7 @@
   "validate-schema-working": "Validating ",
   "version": "Version",
   "warn": "Warn",
-  "warn-clear-build": "Input method will be affected after deletion!"
+  "warn-clear-build": "Input method will be affected after deletion!",
+  "zh-Hans": "zh-Hans/Simplified Chinese",
+  "zh-Hant": "zh-Hant/Traditional Chinese"
 }

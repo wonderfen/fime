@@ -1,5 +1,5 @@
 {
-  "about": "關于",
+  "about": "關於",
   "by-keyboard": "使用鍵盤中的配置",
   "by-system": "跟隨系統",
   "cancel": "取消",
@@ -18,8 +18,9 @@
   "double-tap-exit": "再次點擊 返回 以退出應用!",
   "empty-or-invalid-schema": "方案為空或無效!",
   "error": "錯誤",
+  "en": "en/英語",
   "feedback-and-discuss": "問題反饋和討論",
-  "fetching-version-info": "正在獲取版本信息...",
+  "fetching-version-info": "正在獲取版本訊息...",
   "general": "通用",
   "generate-schema": "生成",
   "help": "幫助",
@@ -29,6 +30,7 @@
   "key-sound": "按鍵音",
   "key-vibrate": "按鍵時震動",
   "keyboard": "鍵盤",
+  "language": "語言",
   "license": "許可",
   "light": "亮色模式",
   "loading": "載入中...",
@@ -37,7 +39,7 @@
   "outer-link-error": "不支持打開外部連結!",
   "plugins": "外掛程式",
   "privacy-policy": "隱私策略",
-  "privacy-policy-info": "Fime 輸入法不收集任何信息!",
+  "privacy-policy-info": "Fime 輸入法不收集任何訊息!",
   "qq-group-info": "QQ群: 463640611",
   "refresh": "刷新",
   "schema": "方案",
@@ -61,5 +63,7 @@
   "validate-schema-working": "驗證中!",
   "version": "版本",
   "warn": "提示",
-  "warn-clear-build": "刪除已生成的文件將影響輸入法的使用，是否繼續？"
+  "warn-clear-build": "刪除已生成的文件將影響輸入法的使用，是否繼續？",
+  "zh-Hans": "zh-Hans/簡體中文",
+  "zh-Hant": "zh-Hant/繁體中文"
 }
