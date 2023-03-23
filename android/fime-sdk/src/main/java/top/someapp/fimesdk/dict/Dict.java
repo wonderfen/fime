@@ -43,7 +43,7 @@ public class Dict implements Comparator<Dict.Item> {
 
     public static final String SUFFIX = ".dic"; // 生成词典的后缀名
     private static final short kVersion = 2;       // 版本号
-    private static final String kSortCsv = "sort.csv";
+    private static final String kConvertCsv = "convert.csv";
     private static H2 h2;   // 用户词词典
     private final String name;  // 词典名
     private MapPatriciaTrie<Long> mapTrie;        // 词条树
@@ -86,7 +86,7 @@ public class Dict implements Comparator<Dict.Item> {
     @SuppressWarnings("UnusedReturnValue")
     public boolean loadFromCsv(File csvFile, @NonNull Converter converter) throws IOException {
         Logs.d("loadFromCsv.");
-        loadAndSort(csvFile, converter);
+        loadSortConvert(csvFile, converter);
         Logs.d("build.");
         return build();
     }
@@ -339,7 +339,7 @@ public class Dict implements Comparator<Dict.Item> {
         StringBuilder content = new StringBuilder();
         MapPatriciaTrie<Long> mapTrie = new MapPatriciaTrie<>();
 
-        File csv = new File(fimeContext.getWorkDir(), kSortCsv);
+        File csv = new File(fimeContext.getWorkDir(), kConvertCsv);
         BufferedReader reader = new BufferedReader(new FileReader(csv));
         String prev = null;
         String line;
@@ -390,31 +390,42 @@ public class Dict implements Comparator<Dict.Item> {
     }
 
     @SuppressWarnings("all")
-    private void loadAndSort(File csv, @NonNull Converter converter) throws IOException {
-        Map<String, List<String>> itemMap = new TreeMap<>();
+    private void loadSortConvert(File csv, @NonNull Converter converter) throws IOException {
+        Map<String, List<Item>> itemMap = new TreeMap<>();  // code -> Item[]
         BufferedReader reader = new BufferedReader(new FileReader(csv));
         String line;
         while ((line = reader.readLine()) != null) {
             if (line.startsWith("#")) continue;
             String[] segments = line.split("\t");
             String text = segments[0];
-            String code = segments[1];
-            String weight = segments.length == 3 ? segments[2] : "0";
-            if (!itemMap.containsKey(code)) {
-                itemMap.put(code, new ArrayList<>());
+            StringBuilder code = new StringBuilder();
+            for (String each : segments[1].split("[ ]")) {
+                code.append(" ")
+                    .append(converter.convert(each));
             }
-            itemMap.get(code)
-                   .add(Strings.simpleFormat("%s\t%s\t%s", text, code, weight));
+            Dict.Item item;
+            if (segments.length == 3) {
+                item = new Dict.Item(text, code.substring(1), Integer.decode(segments[2]));
+            }
+            else {
+                item = new Dict.Item(text, code.substring(1));
+            }
+            if (!itemMap.containsKey(item.getCode())) {
+                itemMap.put(item.getCode(), new ArrayList<>());
+            }
+            itemMap.get(item.getCode())
+                   .add(item);
         }
         File workDir = FimeContext.getInstance()
                                   .getWorkDir();
-        Writer writer = new FileWriter(new File(workDir, kSortCsv));
-        Iterator<Map.Entry<String, List<String>>> it = itemMap.entrySet()
-                                                              .iterator();
+        Writer writer = new FileWriter(new File(workDir, kConvertCsv));
+        Iterator<Map.Entry<String, List<Item>>> it = itemMap.entrySet()
+                                                            .iterator();
         while (it.hasNext()) {
-            Map.Entry<String, List<String>> next = it.next();
-            for (String l : next.getValue()) {
-                writer.write(l + "\n");
+            Map.Entry<String, List<Item>> next = it.next();
+            for (Item item : next.getValue()) {
+                writer.write(
+                        Strings.simpleFormat("%s\t%s\t%d\n", item.text, item.code, item.weight));
             }
             writer.flush();
             it.remove();
