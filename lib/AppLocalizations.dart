@@ -72,21 +72,35 @@ class I18nWidgetState extends State<I18nWidget> {
   get locale => _locale;
 
   @override
+  void initState() {
+    super.initState();
+    registerHandler('setLanguage', _setLanguage);
+  }
+
+  void _setLanguage(Map<dynamic, dynamic> params) {
+    var language = params!['language'];
+    _changeLanguage(language);
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // callNative('method', params)
     callNative('getLanguage', {}).then((data) {
       var language = data!['language'];
-      if ('zh-Hant' == language) {
-        _locale = Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant');
-      } else if ('zh-Hans' == language) {
-        _locale = Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans');
-      } else {
-        _locale = Localizations.localeOf(context);
-      }
-    }).catchError((err) {
-      _locale = Localizations.localeOf(context);
+      _changeLanguage(language);
     });
+  }
+
+  void _changeLanguage(String language) {
+    var l;
+    if ('zh-Hant' == language) {
+      l = Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant');
+    } else if ('zh-Hans' == language) {
+      l = Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans');
+    } else if ('en' == language) {
+      l = Locale('en');
+    }
+    if (l != null) changeLanguage(l);
   }
 
   void changeLanguage(Locale locale) {

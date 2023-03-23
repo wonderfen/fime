@@ -90,7 +90,7 @@ class _PageGeneralState extends State<PageGeneral> {
         } else if ('zh-Hans' == language) {
           i18nKey.currentState!.changeLanguage(
               const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'));
-        } else {
+        } else if ('en' == language) {
           i18nKey.currentState!.changeLanguage(const Locale('en'));
         }
         callNative('setLanguage', {kLanguage: language}).whenComplete(() {
