@@ -324,7 +324,7 @@ public class Dict implements Comparator<Dict.Item> {
         }
     }
 
-    private boolean build() throws IOException {
+    @SuppressWarnings("ResultOfMethodCallIgnored") private boolean build() throws IOException {
         if (sealed) return false;
 
         FimeContext fimeContext = FimeContext.getInstance();
@@ -391,41 +391,30 @@ public class Dict implements Comparator<Dict.Item> {
 
     @SuppressWarnings("all")
     private void loadAndSort(File csv, @NonNull Converter converter) throws IOException {
-        Map<String, List<Item>> itemMap = new TreeMap<>();  // code -> Item[]
+        Map<String, List<String>> itemMap = new TreeMap<>();
         BufferedReader reader = new BufferedReader(new FileReader(csv));
         String line;
         while ((line = reader.readLine()) != null) {
             if (line.startsWith("#")) continue;
             String[] segments = line.split("\t");
             String text = segments[0];
-            StringBuilder code = new StringBuilder();
-            for (String each : segments[1].split("[ ]")) {
-                code.append(" ")
-                    .append(converter.convert(each));
+            String code = segments[1];
+            String weight = segments.length == 3 ? segments[2] : "0";
+            if (!itemMap.containsKey(code)) {
+                itemMap.put(code, new ArrayList<>());
             }
-            Dict.Item item;
-            if (segments.length == 3) {
-                item = new Dict.Item(text, code.substring(1), Integer.decode(segments[2]));
-            }
-            else {
-                item = new Dict.Item(text, code.substring(1));
-            }
-            if (!itemMap.containsKey(item.getCode())) {
-                itemMap.put(item.getCode(), new ArrayList<>());
-            }
-            itemMap.get(item.getCode())
-                   .add(item);
+            itemMap.get(code)
+                   .add(Strings.simpleFormat("%s\t%s\t%s", text, code, weight));
         }
         File workDir = FimeContext.getInstance()
                                   .getWorkDir();
         Writer writer = new FileWriter(new File(workDir, kSortCsv));
-        Iterator<Map.Entry<String, List<Item>>> it = itemMap.entrySet()
-                                                            .iterator();
+        Iterator<Map.Entry<String, List<String>>> it = itemMap.entrySet()
+                                                              .iterator();
         while (it.hasNext()) {
-            Map.Entry<String, List<Item>> next = it.next();
-            for (Item item : next.getValue()) {
-                writer.write(
-                        Strings.simpleFormat("%s\t%s\t%d\n", item.text, item.code, item.weight));
+            Map.Entry<String, List<String>> next = it.next();
+            for (String l : next.getValue()) {
+                writer.write(l + "\n");
             }
             writer.flush();
             it.remove();
