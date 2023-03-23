@@ -163,6 +163,13 @@ public class FimeContext implements Thread.UncaughtExceptionHandler {
         return dir;
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public File getWorkDir() {
+        File dir = app.getDir("work", Context.MODE_PRIVATE);
+        if (!FileStorage.hasDir(dir)) dir.mkdirs();
+        return dir;
+    }
+
     public File fileInAppHome(String path) {
         return new File(getAppHomeDir(), path);
     }

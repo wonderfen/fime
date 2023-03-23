@@ -16,11 +16,13 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -41,12 +43,12 @@ public class Dict implements Comparator<Dict.Item> {
 
     public static final String SUFFIX = ".dic"; // 生成词典的后缀名
     private static final short kVersion = 2;       // 版本号
+    private static final String kSortCsv = "sort.csv";
     private static H2 h2;   // 用户词词典
     private final String name;  // 词典名
     private MapPatriciaTrie<Long> mapTrie;        // 词条树
     private int size;           // 包含的词条数
     private boolean sealed;     // 词典是否构建完成
-    private transient Map<String, List<Item>> itemMap;  // code -> Item[]
     private RandomAccessFile raf;
 
     public Dict(@NonNull String name) {
@@ -84,7 +86,7 @@ public class Dict implements Comparator<Dict.Item> {
     @SuppressWarnings("UnusedReturnValue")
     public boolean loadFromCsv(File csvFile, @NonNull Converter converter) throws IOException {
         Logs.d("loadFromCsv.");
-        loadToTreeMap(csvFile, converter);
+        loadAndSort(csvFile, converter);
         Logs.d("build.");
         return build();
     }
@@ -325,34 +327,51 @@ public class Dict implements Comparator<Dict.Item> {
     private boolean build() throws IOException {
         if (sealed) return false;
 
-        File file = FimeContext.getInstance()
-                               .fileInCacheDir(name + SUFFIX);
+        FimeContext fimeContext = FimeContext.getInstance();
+        File file = fimeContext.fileInCacheDir(name + SUFFIX);
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
         raf.writeUTF(Strings.simpleFormat("FimeDict:%s", name));
-        final int keySize = itemMap.size();
+        // final int keySize = itemMap.size();
         raf.writeShort(kVersion);  // version
-        raf.writeInt(keySize);   // keySize
+        raf.writeInt(0);   // keySize
         final long metaOffset = raf.getFilePointer();
         raf.writeLong(0L);  // placeholder to save tire offset
         StringBuilder content = new StringBuilder();
-        Iterator<Map.Entry<String, List<Dict.Item>>> it = itemMap.entrySet()
-                                                                 .iterator();
         MapPatriciaTrie<Long> mapTrie = new MapPatriciaTrie<>();
-        while (it.hasNext()) {
-            Map.Entry<String, List<Dict.Item>> next = it.next();
-            long start = raf.getFilePointer();
-            for (Dict.Item item : next.getValue()) {
-                content.append(item.getText())
-                       .append("\t")
-                       .append(item.getWeight())
-                       .append("\n");
+
+        File csv = new File(fimeContext.getWorkDir(), kSortCsv);
+        BufferedReader reader = new BufferedReader(new FileReader(csv));
+        String prev = null;
+        String line;
+        while ((line = reader.readLine()) != null) {
+            String[] segments = line.split("\t");
+            String text = segments[0];
+            String code = segments[1];
+            String weight = segments[2];
+            if (!code.equals(prev)) {
+                if (content.length() > 0) {
+                    long start = raf.getFilePointer();
+                    raf.write(content.toString()
+                                     .getBytes(StandardCharsets.UTF_8));
+                    content.setLength(0);
+                    mapTrie.insert(prev, start << 32 | raf.getFilePointer());
+                }
             }
+            content.append(text)
+                   .append("\t")
+                   .append(weight)
+                   .append("\n");
+            prev = code;
+        }
+        if (content.length() > 0) {
+            long start = raf.getFilePointer();
             raf.write(content.toString()
                              .getBytes(StandardCharsets.UTF_8));
             content.setLength(0);
-            mapTrie.insert(next.getKey(), start << 32 | raf.getFilePointer());
-            it.remove();
+            mapTrie.insert(prev, start << 32 | raf.getFilePointer());
         }
+        reader.close();
+        csv.delete();
 
         mapTrie.trimToSize();
         mapTrie.freeze();
@@ -367,18 +386,12 @@ public class Dict implements Comparator<Dict.Item> {
         };
         Serializes.serialize(mapTrie, out);
         raf.close();
-        itemMap = null;
         return true;
     }
 
     @SuppressWarnings("all")
-    private void loadToTreeMap(File csv, @NonNull Converter converter) throws IOException {
-        if (itemMap == null) {
-            itemMap = new TreeMap<>();
-        }
-        else {
-            itemMap.clear();
-        }
+    private void loadAndSort(File csv, @NonNull Converter converter) throws IOException {
+        Map<String, List<Item>> itemMap = new TreeMap<>();  // code -> Item[]
         BufferedReader reader = new BufferedReader(new FileReader(csv));
         String line;
         while ((line = reader.readLine()) != null) {
@@ -403,6 +416,21 @@ public class Dict implements Comparator<Dict.Item> {
             itemMap.get(item.getCode())
                    .add(item);
         }
+        File workDir = FimeContext.getInstance()
+                                  .getWorkDir();
+        Writer writer = new FileWriter(new File(workDir, kSortCsv));
+        Iterator<Map.Entry<String, List<Item>>> it = itemMap.entrySet()
+                                                            .iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, List<Item>> next = it.next();
+            for (Item item : next.getValue()) {
+                writer.write(
+                        Strings.simpleFormat("%s\t%s\t%d\n", item.text, item.code, item.weight));
+            }
+            writer.flush();
+            it.remove();
+        }
+        writer.close();
         reader.close();
     }
 

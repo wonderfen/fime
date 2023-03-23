@@ -79,6 +79,20 @@ public class FileStorage {
         return false;
     }
 
+    public static void cleanDir(@NonNull File dir) {
+        if (hasDir(dir)) {
+            dir.listFiles(f -> {
+                if (f.isDirectory()) {
+                    cleanDir(f);
+                }
+                else {
+                    f.delete();
+                }
+                return false;
+            });
+        }
+    }
+
     public static void readFromUri(Uri uri) {
 
     }
