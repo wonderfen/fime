@@ -129,7 +129,7 @@ class DictRaf implements Comparator<Dict.Item> {
         // 优先查询用户词
         initH2();
         initDictFile();
-        List<Dict.Item> userItems = h2.query(prefix, limit);
+        List<Dict.Item> userItems = h2.queryUserItems(prefix, limit);
         if (mapTrie.contains(prefix)) { // 全部匹配
             loadItems(queue, mapTrie.get(prefix), prefix);
         }
@@ -222,7 +222,7 @@ class DictRaf implements Comparator<Dict.Item> {
 
     public void recordUserWord(Dict.Item item) {
         initH2();
-        h2.insertOrUpdate(item);
+        h2.updateUserItem(item);
     }
 
     public void close() {

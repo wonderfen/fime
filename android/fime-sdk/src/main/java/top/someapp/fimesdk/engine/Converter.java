@@ -57,6 +57,11 @@ public class Converter {
         rules.add(rule);
     }
 
+    public boolean hasRule() {
+        return !rules.isEmpty();
+    }
+
+    // FIXME: 2023/3/24 性能很差!!
     public String convert(@NonNull String input) {
         String output = input;
         for (String r : rules) {
