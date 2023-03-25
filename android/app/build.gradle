@@ -81,6 +81,7 @@ android {
   ndkVersion flutter.ndkVersion
 
   compileOptions {
+    coreLibraryDesugaringEnabled true // 所谓脱糖
     sourceCompatibility JavaVersion.VERSION_1_8
     targetCompatibility JavaVersion.VERSION_1_8
   }
@@ -156,6 +157,7 @@ android {
 dependencies {
   def room_version = "2.2.5"
 
+  coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
   //  implementation fileTree(include: ['*.jar', '*.aar'], dir: 'libs') // or below
   implementation project(path: ':fime-sdk') // or above
   implementation 'com.typesafe:config:1.2.1' // for jdk 7 compatible ?

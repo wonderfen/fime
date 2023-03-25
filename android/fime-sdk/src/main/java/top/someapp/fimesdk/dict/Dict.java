@@ -3,6 +3,7 @@ package top.someapp.fimesdk.dict;
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import it.unimi.dsi.fastutil.objects.ObjectArrayPriorityQueue;
 import org.trie4j.patricia.MapPatriciaTrie;
 import org.trie4j.patricia.MapPatriciaTrieNode;
@@ -475,6 +476,7 @@ public class Dict implements Comparator<Dict.Item> {
             this.weight = weight;
         }
 
+        @JsonIgnore
         public int getLength() {
             return getText().length();
         }
