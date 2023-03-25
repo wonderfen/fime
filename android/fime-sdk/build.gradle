@@ -58,12 +58,10 @@ dependencies {
   // h2database
   implementation 'com.h2database:h2:1.4.200' // for jdk 7 compatible ?
 
-  // big-sorter
-  implementation 'com.github.davidmoten:big-sorter:0.1.25'
-  // implementation 'org.apache.commons:commons-csv:1.10.0'
   // csv support
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.0'
   implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.12.0'
+  implementation 'com.fasterxml.util:java-merge-sort:1.0.2'
 
   testImplementation 'junit:junit:4.12'
   androidTestImplementation 'androidx.test.ext:junit:1.1.2'

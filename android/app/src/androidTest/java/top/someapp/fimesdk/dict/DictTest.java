@@ -7,6 +7,8 @@ import org.junit.Test;
 import top.someapp.fimesdk.FimeContext;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +36,25 @@ public class DictTest {
         items.clear();
         dict.search("q", items, 10);
         assertTrue(items.size() > 0);
+    }
+
+    @Test
+    public void testByteBuffer() throws IOException {
+        ByteBuffer buffer = ByteBuffer.allocate(100);
+        OutputStream out = new OutputStream() {
+            @Override public void write(int b) throws IOException {
+                System.out.println("write byte:" + b);
+            }
+        };
+        for (int i = 0; i < 100; i++) {
+            System.out.println("pos:" + buffer.position());
+            buffer.put((byte) i);
+            System.out.println("pos:" + buffer.position());
+        }
+        out.write(buffer.array());
+        System.out.println("remaining 1:" + buffer.remaining());
+        buffer.clear();
+        System.out.println("remaining 2:" + buffer.remaining());
     }
 
     @Test

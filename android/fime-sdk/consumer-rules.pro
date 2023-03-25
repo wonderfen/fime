@@ -63,6 +63,9 @@
 #-keep class sun.misc.Unsafe { *; }
 -keep class com.google.** { *;}
 
+# fastxml
+-keep class com.fasterxml.** { *; }
+
 # OkHttp3
 -dontwarn com.squareup.okhttp3.**
 -keep class com.squareup.okhttp3.** { *;}

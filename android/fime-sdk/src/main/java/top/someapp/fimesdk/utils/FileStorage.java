@@ -38,6 +38,12 @@ public class FileStorage {
         return dir.exists() && dir.isDirectory();
     }
 
+    public static File mkdir(@NonNull File parent, String name) {
+        File dir = new File(parent, name);
+        dir.mkdirs();
+        return dir;
+    }
+
     public static boolean writeTextFile(@NonNull File file, @NonNull String text) {
         try (FileOutputStream out = new FileOutputStream(file)) {
             out.write(text.getBytes(StandardCharsets.UTF_8));

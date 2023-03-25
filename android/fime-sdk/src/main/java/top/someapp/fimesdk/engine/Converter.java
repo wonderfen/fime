@@ -3,8 +3,10 @@ package top.someapp.fimesdk.engine;
 import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * 转换器：输入码 -> 查询码 的转换，如 双拼 -> 全拼
@@ -14,11 +16,13 @@ import java.util.Locale;
  */
 public class Converter {
 
+    private static final Map<String, String> kCache = new HashMap<>();
     private final List<String> rules;
     private int codeLength = 1;
 
     public Converter() {
         rules = new ArrayList<>(64);
+        kCache.clear();
     }
 
     private static String upper(String input) {
@@ -63,6 +67,11 @@ public class Converter {
 
     // FIXME: 2023/3/24 性能很差!!
     public String convert(@NonNull String input) {
+        if (kCache.containsKey(input)) {
+            // Logs.d("convert %s use cache.", input);
+            return kCache.get(input);
+        }
+
         String output = input;
         for (String r : rules) {
             if (r.startsWith("U:")) {
@@ -78,6 +87,7 @@ public class Converter {
                 output = replace(output, r.substring(2));
             }
         }
+        kCache.put(input, output);
         return output;
     }
 

@@ -6,11 +6,23 @@ import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import com.fasterxml.sort.DataReader;
+import com.fasterxml.sort.DataReaderFactory;
+import com.fasterxml.sort.DataWriter;
+import com.fasterxml.sort.DataWriterFactory;
+import com.fasterxml.sort.SortConfig;
+import com.fasterxml.sort.Sorter;
+import com.fasterxml.sort.TempFileProvider;
 import top.someapp.fimesdk.engine.Converter;
+import top.someapp.fimesdk.utils.FileStorage;
 import top.someapp.fimesdk.utils.Logs;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Comparator;
 
 /**
@@ -34,137 +46,113 @@ class CsvDict {
             .enable(CsvParser.Feature.WRAP_AS_ARRAY)
             .enable(CsvParser.Feature.ALLOW_COMMENTS)
             .enable(CsvParser.Feature.SKIP_EMPTY_LINES);
-    private static final Comparator<String> comparator = (s1, s2) -> {
-        String code1 = s1.split("[\t]")[1];
-        String code2 = s2.split("[\t]")[1];
-        return code1.compareTo(code2);
-    };
+    private static final Comparator<Dict.Item> itemComparator = Comparator.comparing(
+            Dict.Item::getCode);
 
-    static void convert(File source, Converter converter, File target) throws IOException {
-        Logs.d("start convert %s => %s", source.getName(), target.getName());
+    private final File source;
+    private final File target;
+
+    CsvDict(File source, File target) {
+        this.source = source;
+        this.target = target;
+    }
+
+    static MappingIterator<Dict.Item> load(File csv) throws IOException {
         ObjectReader reader = csvMapper.readerWithTypedSchemaFor(Dict.Item.class)
                                        .with(schema);
-        MappingIterator<Dict.Item> it = reader.readValues(source);
-        SequenceWriter writer = csvMapper.writerWithTypedSchemaFor(Dict.Item.class)
-                                         .with(schema)
-                                         .writeValues(target);
-        if (converter.hasRule()) {
-            while (it.hasNext()) {
-                Dict.Item next = it.next();
-                Logs.d(next.toString());
-            }
-        }
-        else {
-            while (it.hasNext()) {
-                Dict.Item next = it.next();
-                writer.write(next);
-                writer.flush();
-            }
-        }
-        writer.close();
-        //noinspection ResultOfMethodCallIgnored
-        source.delete();
+        return reader.readValues(csv);
+    }
+
+    void normalize(File workDir) throws IOException {
+        normalize(workDir, null);
+    }
+
+    void normalize(File workDir, Converter converter) throws IOException {
+        Logs.d("start convert %s => %s", source.getName(), target.getName());
+        int[] start = { 10000 };
+        TempFileProvider tempFileProvider = () -> {
+            start[0]++;
+            return new File(workDir, start[0] + ".csv");
+        };
+        SortConfig config = new SortConfig().withTempFileProvider(tempFileProvider);
+        Sorter<Dict.Item> sorter = new Sorter<>(config, new ReaderFactory(converter),
+                                                new WriterFactory(),
+                                                itemComparator);
+        sorter.sort(new FileInputStream(source), new FileOutputStream(target));
+        FileStorage.cleanDir(workDir);
         Logs.d("finish convert %s => %s", source.getName(), target.getName());
     }
 
-    static void sort(File source, File target) {
-        // split to small files.
-        Logs.d("start sort %s => %s", source.getName(), target.getName());
-        // int size = 10240;
-        // Set<String> records = new TreeSet<>(comparator);
-        // int id = 1000;
-        // int count = 0;
-        // try (BufferedReader reader = new BufferedReader(new FileReader(source))) {
-        //     List<File> readerList = new ArrayList<>();
-        //     String line;
-        //     while ((line = reader.readLine()) != null) {
-        //         if (line.isEmpty()) break;
-        //         records.add(line);
-        //         count++;
-        //         if (count == size) {
-        //             count = 0;
-        //             id++;
-        //             readerList.add((writeTempFile(records, id)));
-        //             records.clear();
-        //         }
-        //     }
-        //     if (!records.isEmpty()) {
-        //         id++;
-        //         readerList.add((writeTempFile(records, id)));
-        //         records.clear();
-        //     }
-        //     merge(readerList);
-        // }
-        // catch (IOException e) {
-        //     e.printStackTrace();
-        // }
-        split();
-        sortRange();
-        merge();
-        Logs.d("finish sort %s => %s", source.getName(), target.getName());
+    static class ReaderFactory extends DataReaderFactory<Dict.Item> {
+
+        private final Converter converter;
+
+        ReaderFactory(Converter converter) {
+            this.converter = converter;
+        }
+
+        @Override public DataReader<Dict.Item> constructReader(InputStream in) throws IOException {
+            ObjectReader reader = csvMapper.readerWithTypedSchemaFor(Dict.Item.class)
+                                           .with(schema);
+            MappingIterator<Dict.Item> it = reader.readValues(in);
+            if (converter != null && converter.hasRule()) {
+                return new DataReader<Dict.Item>() {
+                    @Override public Dict.Item readNext() throws IOException {
+                        if (it.hasNext()) {
+                            Dict.Item next = it.next();
+                            String[] segments = next.getCode()
+                                                    .split("[ ]");
+                            StringBuilder code = new StringBuilder();
+                            for (String seg : segments) {
+                                code.append(" ")
+                                    .append(converter.convert(seg));
+                            }
+                            next.setCode(code.substring(1));
+                            return next;
+                        }
+                        return null;
+                    }
+
+                    @Override public int estimateSizeInBytes(Dict.Item item) {
+                        return it.hasNext() ? 1024 : 0;
+                    }
+
+                    @Override public void close() throws IOException {
+                    }
+                };
+            }
+            return new DataReader<Dict.Item>() {
+                @Override public Dict.Item readNext() throws IOException {
+                    return it.hasNext() ? it.next() : null;
+                }
+
+                @Override public int estimateSizeInBytes(Dict.Item item) {
+                    return it.hasNext() ? 1024 : 0;
+                }
+
+                @Override public void close() throws IOException {
+                }
+            };
+        }
     }
 
-    static void split() {
+    static class WriterFactory extends DataWriterFactory<Dict.Item> {
+
+        @Override
+        public DataWriter<Dict.Item> constructWriter(OutputStream out) throws IOException {
+            SequenceWriter writer = csvMapper.writerWithTypedSchemaFor(
+                    Dict.Item.class)
+                                             .with(schema)
+                                             .writeValues(out);
+            return new DataWriter<Dict.Item>() {
+                @Override public void writeEntry(Dict.Item item) throws IOException {
+                    writer.write(item);
+                }
+
+                @Override public void close() throws IOException {
+                    writer.close();
+                }
+            };
+        }
     }
-
-    static void sortRange() {
-    }
-
-    static void merge() {
-    }
-
-    // static File writeTempFile(Collection<String> content, int id) throws IOException {
-    //     File dir = FimeContext.getInstance()
-    //                           .getCacheDir();
-    //     File file = new File(dir, id + ".csv");
-    //     FileWriter writer = new FileWriter(file);
-    //     for (String record : content) {
-    //         writer.write(record);
-    //         writer.write("\n");
-    //         writer.flush();
-    //     }
-    //     writer.close();
-    //     return file;
-    // }
-
-    // static void merge(List<File> files) {
-    //     if (files.size() < 2) return;
-    //
-    //     List<File> groups = new ArrayList<>(files.size() / 2);
-    //     Set<String> records = new TreeSet<>(comparator);
-    //     String line;
-    //     for (int i = 0, size = files.size(); i < files.size(); ) {
-    //         File first = files.get(i);
-    //         File second = i + 1 < size ? files.get(i + 1) : null;
-    //         File target = new File(first.getParentFile(), "g" + first.getName());
-    //         try (BufferedReader reader1 = new BufferedReader(new FileReader(first));
-    //              BufferedReader reader2 = second == null ? null : new BufferedReader(
-    //                      new FileReader(second));
-    //              FileWriter writer = new FileWriter(target)) {
-    //             while ((line = reader1.readLine()) != null) {
-    //                 records.add(line);
-    //             }
-    //             if (second != null) {
-    //                 while ((line = reader2.readLine()) != null) {
-    //                     records.add(line);
-    //                 }
-    //             }
-    //             for (String record : records) {
-    //                 writer.write(record);
-    //                 writer.write("\n");
-    //                 writer.flush();
-    //             }
-    //             records.clear();
-    //         }
-    //         catch (IOException e) {
-    //             e.printStackTrace();
-    //         }
-    //         first.delete();
-    //         if (second != null) second.delete();
-    //         i += 2;
-    //         groups.add(target);
-    //     }
-    //     files.clear();
-    //     merge(groups);
-    // }
 }

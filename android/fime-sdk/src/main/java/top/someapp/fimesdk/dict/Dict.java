@@ -4,24 +4,25 @@ import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.MappingIterator;
 import it.unimi.dsi.fastutil.objects.ObjectArrayPriorityQueue;
 import org.trie4j.patricia.MapPatriciaTrie;
 import org.trie4j.patricia.MapPatriciaTrieNode;
 import top.someapp.fimesdk.FimeContext;
 import top.someapp.fimesdk.engine.Converter;
+import top.someapp.fimesdk.utils.FileStorage;
 import top.someapp.fimesdk.utils.Logs;
 import top.someapp.fimesdk.utils.Serializes;
 import top.someapp.fimesdk.utils.Strings;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -78,14 +79,17 @@ public class Dict implements Comparator<Dict.Item> {
     }
 
     public boolean loadFromCsv(File csvFile) throws IOException {
-        return loadFromCsv(csvFile, new Converter());
+        return loadFromCsv(csvFile, null);
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public boolean loadFromCsv(File csvFile, @NonNull Converter converter) throws IOException {
-        Logs.d("loadFromCsv.");
-        loadSortConvert(csvFile, converter);
-        Logs.d("build.");
+    public boolean loadFromCsv(File csvFile, Converter converter) throws IOException {
+        Logs.d("normalize csv file.");
+        File workDir = FimeContext.getInstance()
+                                  .getWorkDir();
+        CsvDict csvDict = new CsvDict(csvFile, new File(workDir, kConvertCsv));
+        csvDict.normalize(FileStorage.mkdir(workDir, "temp"), converter);
+        Logs.d("normalize csv file OK.");
         return build();
     }
 
@@ -325,6 +329,7 @@ public class Dict implements Comparator<Dict.Item> {
     @SuppressWarnings("ResultOfMethodCallIgnored") private boolean build() throws IOException {
         if (sealed) return false;
 
+        Logs.d("build dict start.");
         FimeContext fimeContext = FimeContext.getInstance();
         File file = fimeContext.fileInCacheDir(name + SUFFIX);
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
@@ -333,22 +338,19 @@ public class Dict implements Comparator<Dict.Item> {
         final long dataOffset = raf.getFilePointer();
         raf.writeLong(0L);  // placeholder to save tire offset
         raf.writeInt(0);   // keySize
+
         StringBuilder content = new StringBuilder();
         MapPatriciaTrie<Long> mapTrie = new MapPatriciaTrie<>();
-
         File csv = new File(fimeContext.getWorkDir(), kConvertCsv);
-        BufferedReader reader = new BufferedReader(new FileReader(csv));
+        MappingIterator<Item> it = CsvDict.load(csv);
         String prev = null;
-        String line;
-        while ((line = reader.readLine()) != null) {
-            String[] segments = line.split("\t");
-            if (segments.length < 2) {
-                Logs.w("Invalid item format: %s", line);
-                continue;
-            }
-            String text = segments[0];
-            String code = segments[1];
-            String weight = segments.length == 2 ? "0" : segments[2];
+        int count = 0;
+        while (it.hasNext()) {
+            Item next = it.next();
+            String text = next.getText();
+            String code = next.getCode();
+            int weight = next.getWeight();
+            count++;
             if (!code.equals(prev)) {
                 if (content.length() > 0) {
                     long start = raf.getFilePointer();
@@ -358,6 +360,7 @@ public class Dict implements Comparator<Dict.Item> {
                     mapTrie.insert(prev, start << 32 | raf.getFilePointer());
                 }
             }
+            if (count % 10000 == 0) Logs.d("write dict %d items.", count);
             content.append(text)
                    .append("\t")
                    .append(weight)
@@ -365,15 +368,17 @@ public class Dict implements Comparator<Dict.Item> {
             prev = code;
         }
         if (content.length() > 0) {
+            Logs.d("write last dict items.");
             long start = raf.getFilePointer();
             raf.write(content.toString()
                              .getBytes(StandardCharsets.UTF_8));
             content.setLength(0);
             mapTrie.insert(prev, start << 32 | raf.getFilePointer());
         }
-        reader.close();
+        Logs.d("write all dict items OK.");
         csv.delete();
 
+        Logs.d("write dict trie.");
         mapTrie.trimToSize();
         mapTrie.freeze();
         long pos = raf.getFilePointer();
@@ -381,69 +386,32 @@ public class Dict implements Comparator<Dict.Item> {
         raf.writeLong(pos);
         raf.write(mapTrie.size());  // code size
         raf.seek(pos);
+        ByteBuffer buffer = ByteBuffer.allocate(1024 * 1024);
         OutputStream out = new OutputStream() {
             @Override public void write(int b) throws IOException {
-                raf.write(b);
+                if (buffer.remaining() == 0) {
+                    raf.write(buffer.array());
+                    buffer.clear();
+                }
+                buffer.put((byte) b);
             }
         };
         Serializes.serialize(mapTrie, out);
+        Logs.d("write dict trie OK.");
+        if (buffer.position() > 0) {
+            byte[] bytes = buffer.array();
+            raf.write(bytes, 0, buffer.position());
+        }
         raf.close();
+        Logs.d("build dict end.");
         return true;
-    }
-
-    @SuppressWarnings("all")
-    private void loadSortConvert(File csv, @NonNull Converter converter) throws IOException {
-        File workDir = FimeContext.getInstance()
-                                  .getWorkDir();
-        File tempCsv = new File(workDir, "temp.csv");
-        // Map<String, List<Item>> itemMap = new TreeMap<>();  // code -> Item[]
-        // BufferedReader reader = new BufferedReader(new FileReader(csv));
-        // String line;
-        // while ((line = reader.readLine()) != null) {
-        //     if (line.startsWith("#")) continue;
-        //     String[] segments = line.split("\t");
-        //     if (segments.length < 2) continue;
-        //
-        //     String text = segments[0];
-        //     StringBuilder code = new StringBuilder();
-        //     for (String each : segments[1].split("[ ]")) {
-        //         code.append(" ")
-        //             .append(converter.convert(each));
-        //     }
-        //     Dict.Item item;
-        //     if (segments.length == 3) {
-        //         item = new Dict.Item(text, code.substring(1), Integer.decode(segments[2]));
-        //     }
-        //     else {
-        //         item = new Dict.Item(text, code.substring(1));
-        //     }
-        //     if (!itemMap.containsKey(item.getCode())) {
-        //         itemMap.put(item.getCode(), new ArrayList<>());
-        //     }
-        //     itemMap.get(item.getCode())
-        //            .add(item);
-        // }
-        // reader.close();
-        CsvDict.convert(csv, converter, tempCsv);
-        CsvDict.sort(tempCsv, new File(workDir, kConvertCsv));
-        // Writer writer = new FileWriter(new File(workDir, kConvertCsv));
-        // for (List<Item> items : itemMap.values()) {
-        //     for (Item item : items) {
-        //         writer.write(
-        //                 Strings.simpleFormat("%s\t%s\t%d\n", item.getText(), item.getCode(),
-        //                                      item.getWeight()));
-        //     }
-        //     writer.flush();
-        // }
-        // itemMap.clear();
-        // writer.close();
     }
 
     @Keep
     public static class Item implements Serializable, Comparable<Item> {
 
-        private /*final*/ String text;  // for Serializable
-        private /*final*/ String code;  // for Serializable
+        private String text;
+        private String code;
         private int weight;
 
         @Keep @SuppressWarnings("unused")
@@ -466,6 +434,10 @@ public class Dict implements Comparator<Dict.Item> {
 
         public String getCode() {
             return code;
+        }
+
+        void setCode(String code) {
+            this.code = code;
         }
 
         public int getWeight() {

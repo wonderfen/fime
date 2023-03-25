@@ -4,7 +4,6 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import top.someapp.fimesdk.FimeContext;
-import top.someapp.fimesdk.engine.Converter;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,8 +18,9 @@ public class CsvDictTest {
     public void testSort() throws IOException {
         FimeContext fimeContext = FimeContext.getInstance();
         File target = new File(fimeContext.getAppHomeDir(), "sort.csv");
-        CsvDict.convert(fimeContext.fileInAppHome("pinyin_dict.csv"), new Converter(), target);
-        CsvDict.sort(target, fimeContext.fileInAppHome("ok.csv"));
+        File source = fimeContext.fileInAppHome("pinyin_dict.csv");
+        CsvDict csvDict = new CsvDict(source, target);
+        csvDict.normalize(fimeContext.getWorkDir());
         assertTrue(target.exists());
     }
 }
