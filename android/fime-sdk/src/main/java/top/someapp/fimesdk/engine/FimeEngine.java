@@ -432,22 +432,28 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
         handler.post(() -> {
             List<Candidate> candidates;
             assert translator != null;
-            if (inputEditor.getSelected() == null) {
-                candidates = translator.translate(searchCodes);
+            try {
+                if (inputEditor.getSelected() == null) {
+                    candidates = translator.translate(searchCodes);
+                }
+                else {
+                    candidates = translator.translate(inputEditor.getSelected().text, searchCodes);
+                }
+                filter(candidates, getSchema());
+                Logs.i("search(" + searchCodes + ") end, result.size=" + candidates.size());
+                inputEditor.clearCandidates();
+                inputEditor.setActiveIndex(0);
+                for (Candidate candidate : candidates) {
+                    inputEditor.appendCandidate(candidate);
+                }
+                notifyHandlers(FimeMessage.create(FimeMessage.MSG_CANDIDATE_CHANGE));
+                if (!candidates.isEmpty()) {
+                    getEjector().ejectOnCandidateChange(getInputEditor());
+                }
             }
-            else {
-                candidates = translator.translate(inputEditor.getSelected().text, searchCodes);
-            }
-            filter(candidates, getSchema());
-            Logs.i("search(" + searchCodes + ") end, result.size=" + candidates.size());
-            inputEditor.clearCandidates();
-            inputEditor.setActiveIndex(0);
-            for (Candidate candidate : candidates) {
-                inputEditor.appendCandidate(candidate);
-            }
-            notifyHandlers(FimeMessage.create(FimeMessage.MSG_CANDIDATE_CHANGE));
-            if (!candidates.isEmpty()) {
-                getEjector().ejectOnCandidateChange(getInputEditor());
+            catch (Exception e) {
+                e.printStackTrace();
+                Logs.e(e.getMessage());
             }
         });
     }

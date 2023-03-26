@@ -46,6 +46,7 @@ public class FimeContext implements Thread.UncaughtExceptionHandler {
     public FimeContext(Application app) {
         this.app = app;
         sInstance = this;
+        Logs.setup(BuildConfig.DEBUG, fileInCacheDir("fime.log"));
         // Log.i("FimeContext", "setDefaultUncaughtExceptionHandler.");
         Thread.setDefaultUncaughtExceptionHandler(this);
         new Thread(this::init).start();
@@ -84,20 +85,38 @@ public class FimeContext implements Thread.UncaughtExceptionHandler {
     }
 
     public void showToastShortCenter(String message) {
-        Toast toast = Toast.makeText(getContext(), message, Toast.LENGTH_SHORT);
-        toast.setGravity(Gravity.CENTER, 0, 0); // Android 12+ setGravity() 无效
-        toast.show();
+        try {
+            Toast toast = Toast.makeText(getContext(), message, Toast.LENGTH_SHORT);
+            toast.setGravity(Gravity.CENTER, 0, 0); // Android 12+ setGravity() 无效
+            toast.show();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            Logs.e(e.getMessage());
+        }
     }
 
     public void showToastLongCenter(String message) {
-        Toast toast = Toast.makeText(getContext(), message, Toast.LENGTH_LONG);
-        toast.setGravity(Gravity.CENTER, 0, 0); // Android 12+ setGravity() 无效
-        toast.show();
+        try {
+            Toast toast = Toast.makeText(getContext(), message, Toast.LENGTH_LONG);
+            toast.setGravity(Gravity.CENTER, 0, 0); // Android 12+ setGravity() 无效
+            toast.show();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            Logs.e(e.getMessage());
+        }
     }
 
     public void showToastDefault(String message) {
-        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT)
-             .show();
+        try {
+            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT)
+                 .show();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            Logs.e(e.getMessage());
+        }
     }
 
     public AssetManager getAssets() {
@@ -233,12 +252,6 @@ public class FimeContext implements Thread.UncaughtExceptionHandler {
     private void init() {
         File dir = getAppHomeDir();
         getCacheDir();
-        if (BuildConfig.DEBUG) {
-            Logs.setup(true, null);
-        }
-        else {
-            Logs.setup(false, fileInCacheDir("fime.log"));
-        }
         fatalLog = fileInAppHome("fime-fatal.log");
         try {
             if (!fatalLog.exists()) fatalLog.createNewFile();

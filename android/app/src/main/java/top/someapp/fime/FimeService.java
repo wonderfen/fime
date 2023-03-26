@@ -1,5 +1,6 @@
 package top.someapp.fime;
 
+import android.annotation.SuppressLint;
 import android.app.AppOpsManager;
 import android.content.ClipDescription;
 import android.content.ComponentName;
@@ -27,7 +28,6 @@ import top.someapp.fime.view.InputView;
 import top.someapp.fimesdk.FimeContext;
 import top.someapp.fimesdk.api.ImeEngine;
 import top.someapp.fimesdk.engine.FimeEngine;
-import top.someapp.fimesdk.engine.PinyinService;
 import top.someapp.fimesdk.utils.Logs;
 
 import java.io.File;
@@ -47,8 +47,8 @@ public class FimeService extends InputMethodService implements ServiceConnection
         super.onCreate();
         Logs.d("create FimeService: 0x%x.", hashCode());
         setupEngine();
-        Intent bindIntent = new Intent(this, PinyinService.class);
-        bindService(bindIntent, this, Context.BIND_AUTO_CREATE);
+        // Intent bindIntent = new Intent(this, PinyinService.class);
+        // bindService(bindIntent, this, Context.BIND_AUTO_CREATE);
     }
 
     @Override public View onCreateInputView() {
@@ -95,7 +95,7 @@ public class FimeService extends InputMethodService implements ServiceConnection
     @Override public void onDestroy() {
         super.onDestroy();
         Logs.d("onDestroy");
-        unbindService(this);
+        // unbindService(this);
         engine.enterState(ImeEngine.ImeState.QUIT);
     }
 
@@ -116,9 +116,16 @@ public class FimeService extends InputMethodService implements ServiceConnection
     }
 
     private void setupEngine() {
-        engine = new FimeEngine(this);
+        try {
+            engine = new FimeEngine(this);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            Logs.e("setupEngine failed: %s", e.getMessage());
+        }
     }
 
+    @SuppressWarnings("unused")
     private boolean isCommitContentSupported(
             @Nullable EditorInfo editorInfo, @NonNull String mimeType) {
         if (editorInfo == null) {
@@ -143,6 +150,7 @@ public class FimeService extends InputMethodService implements ServiceConnection
         return false;
     }
 
+    @SuppressWarnings("unused")
     private void doCommitContent(@NonNull String description, @NonNull String mimeType,
             @NonNull File file) {
         final EditorInfo editorInfo = getCurrentInputEditorInfo();
@@ -192,6 +200,7 @@ public class FimeService extends InputMethodService implements ServiceConnection
                 flag, null);
     }
 
+    @SuppressLint("ObsoleteSdkInt")
     private boolean validatePackageName(@Nullable EditorInfo editorInfo) {
         if (editorInfo == null) {
             return false;
