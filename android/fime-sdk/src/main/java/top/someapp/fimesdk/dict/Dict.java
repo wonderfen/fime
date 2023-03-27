@@ -41,8 +41,8 @@ import java.util.Objects;
 public class Dict implements Comparator<Dict.Item> {
 
     public static final String SUFFIX = ".dic"; // 生成词典的后缀名
-    private static final short kVersion = 2;       // 版本号
-    private static final String kConvertCsv = "convert.csv";
+    static final String kConvertCsv = "convert.csv";
+    static final short kVersion = 2;       // 版本号
     private static H2 h2;   // 用户词词典
     private final String name;  // 词典名
     private MapPatriciaTrie<Long> mapTrie;        // 词条树
@@ -451,6 +451,11 @@ public class Dict implements Comparator<Dict.Item> {
         @JsonIgnore
         public int getLength() {
             return getText().length();
+        }
+
+        @JsonIgnore
+        public String getFirstCode() {
+            return code.indexOf(' ') > 0 ? code.substring(0, code.indexOf(' ')) : code;
         }
 
         @Override public boolean equals(Object o) {

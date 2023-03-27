@@ -8,6 +8,7 @@ import timber.log.Timber;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Calendar;
 
 /**
  * @author zwz
@@ -115,9 +116,11 @@ public class Logs {
 
     private static class LogToFileTree extends Timber.DebugTree {
 
+        private final Calendar calendar;
         private FileWriter writer;
 
         private LogToFileTree(File logFile) {
+            calendar = Calendar.getInstance();
             try {
                 if (logFile.exists()) {
                     writer = new FileWriter(logFile);
@@ -127,7 +130,7 @@ public class Logs {
                         writer = new FileWriter(logFile);
                     }
                 }
-                log(9, "init LogToFileTree, logFile=%s", logFile.getAbsoluteFile());
+                log(9, " init LogToFileTree, logFile=%s", logFile.getAbsoluteFile());
             }
             catch (IOException e) {
                 e.printStackTrace();
@@ -143,24 +146,34 @@ public class Logs {
             }
             else {
                 try {
+                    calendar.setTimeInMillis(System.currentTimeMillis());
+                    String now = Strings.simpleFormat("%04d-%02d-%02dT%02d:%02d:%02d.%03d",
+                                                      calendar.get(Calendar.YEAR),
+                                                      calendar.get(Calendar.MONTH) + 1,
+                                                      calendar.get(Calendar.DATE),
+                                                      calendar.get(Calendar.HOUR_OF_DAY),
+                                                      calendar.get(Calendar.MINUTE),
+                                                      calendar.get(Calendar.SECOND),
+                                                      calendar.get(Calendar.MILLISECOND));
+                    writer.append(now);
                     switch (level) {
                         case VERBOSE:
-                            writer.append("[VERBOSE] ");
+                            writer.append(" [VERBOSE] ");
                             break;
                         case DEBUG:
-                            writer.append("[DEBUG] ");
+                            writer.append(" [DEBUG] ");
                             break;
                         case INFO:
-                            writer.append("[INFO] ");
+                            writer.append(" [INFO] ");
                             break;
                         case WARN:
-                            writer.append("[WARN] ");
+                            writer.append(" [WARN] ");
                             break;
                         case ERROR:
-                            writer.append("[ERROR ]");
+                            writer.append(" [ERROR]");
                             break;
                         case ASSERT:
-                            writer.append("[ASSERT] ");
+                            writer.append(" [ASSERT] ");
                             break;
                     }
                     writer.append(message);
