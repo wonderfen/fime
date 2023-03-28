@@ -73,6 +73,8 @@ public class Serializes {
         }
         T obj;
         obj = (T) in.readObject();
+        in.close();
+        source.close();
         return obj;
     }
 }

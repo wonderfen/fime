@@ -55,6 +55,10 @@ public class Dict implements Comparator<Dict.Item> {
         Logs.d("create dict: %s.", name);
     }
 
+    public static Dict createPinyinDict(@NonNull String name) {
+        return new PinyinDict(name);
+    }
+
     static int compareItems(Item o1, Item o2) {
         String code1 = o1.getCode();
         String code2 = o2.getCode();
