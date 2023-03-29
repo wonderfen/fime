@@ -3,8 +3,10 @@ package top.someapp.fimesdk.dict;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Before;
 import org.junit.Test;
 import top.someapp.fimesdk.FimeContext;
+import top.someapp.fimesdk.utils.Logs;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -18,16 +20,16 @@ import java.util.List;
  */
 public class DictTest {
 
-    @Test
-    public void testCompileTo() throws IOException {
-        Dict dict = new Dict("pinyin_dict");
+    @Before
+    public void setUp() throws Exception {
+        Dict dict = new Dict("pinyin_dict", ' ');
         dict.loadFromCsv(FimeContext.getInstance()
                                     .fileInAppHome("pinyin_dict.csv"));
     }
 
     @Test
     public void testLoadFromCompiled() throws IOException {
-        Dict dict = new Dict("pinyin_dict");
+        Dict dict = new Dict("pinyin_dict", ' ');
         dict.loadFromBuild();
         List<Dict.Item> items = new ArrayList<>();
         dict.search("yi", items, 100);
@@ -42,7 +44,7 @@ public class DictTest {
     public void testByteBuffer() throws IOException {
         ByteBuffer buffer = ByteBuffer.allocate(100);
         OutputStream out = new OutputStream() {
-            @Override public void write(int b) throws IOException {
+            @Override public void write(int b) {
                 System.out.println("write byte:" + b);
             }
         };
@@ -58,7 +60,7 @@ public class DictTest {
     }
 
     @Test
-    public void testSearch() throws IOException {
+    public void testTableSearch() throws IOException {
         FimeContext fimeContext = FimeContext.getInstance();
         Dict dict = new Dict("wubi86_dict");
         dict.loadFromCsv(fimeContext.fileInAppHome("wubi86_dict.csv"));
@@ -79,11 +81,31 @@ public class DictTest {
 
     @Test
     public void testPinyinSearch() throws IOException {
-        Dict dict = new Dict("pinyin_dict");
+        Dict dict = new Dict("pinyin_dict", ' ');
         dict.loadFromBuild();
-
         List<Dict.Item> items = new ArrayList<>();
-        dict.search("l", items, 100);   // 声母为 l 的音节最多， 200+ ms
+        for (int i = 'a'; i <= 'z'; i++) {
+            if (i == 'v' || i == 'i' || i == 'u') continue;
+            dict.search(Character.toString((char) i), items, 100);
+            assertTrue(items.size() > 0);
+            Logs.i(items.get(0)
+                        .toString());
+            items.clear();
+        }
+
+        dict.search("yi", items, 100);
+        assertTrue(items.size() > 0);
+
+        items.clear();
+        dict.search("yi ge", items, 10);
+        assertTrue(items.size() > 0);
+
+        items.clear();
+        dict.search("q", items, 10);
+        assertTrue(items.size() > 0);
+
+        items.clear();
+        dict.search("yi g", items, 10);
         assertTrue(items.size() > 0);
     }
 }

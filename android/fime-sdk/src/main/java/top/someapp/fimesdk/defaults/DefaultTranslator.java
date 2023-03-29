@@ -100,12 +100,13 @@ public class DefaultTranslator implements Translator {
 
         FimeContext fimeContext = FimeContext.getInstance();
         try {
+            char delimiter = c.hasPath("delimiter") ? c.getString("delimiter")
+                                                       .charAt(0) : '\0';
+            dict = new Dict(name, delimiter);
             if (FileStorage.hasFile(fimeContext.fileInCacheDir(name + Dict.SUFFIX))) {
-                dict = new Dict(name);
                 dict.loadFromBuild();
             }
             else {
-                dict = new Dict(name);
                 dictSource = fimeContext.fileInAppHome(c.getString("file"));
                 if (c.hasPath("converter") && c.hasPath("converter.rules")) {
                     converter = new Converter();

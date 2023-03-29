@@ -43,7 +43,7 @@ class PinyinDict extends Dict {
         File workDir = FimeContext.getInstance()
                                   .getWorkDir();
         CsvDict csvDict = new CsvDict(csvFile, new File(workDir, Dict.kConvertCsv));
-        csvDict.normalize(FileStorage.mkdir(workDir, "temp"), converter);
+        csvDict.normalize(FileStorage.mkdir(workDir, "temp"), converter, ' ');
         Logs.d("normalize csv file OK.");
         return build();
     }
@@ -66,6 +66,7 @@ class PinyinDict extends Dict {
 
         int index = prefix.indexOf(' ');
         String first = index > 0 ? prefix.substring(0, index) : prefix;
+        Logs.d("search: [%s] start.", first);
         if (mapTrie.contains(first)) {
             long range = mapTrie.get(first);
             int start = (int) (range >>> 32);
@@ -78,7 +79,7 @@ class PinyinDict extends Dict {
                 String content = new String(bytes, StandardCharsets.UTF_8);
                 String[] lines = content.split("[\n]");
                 start = 0;
-                end = lines.length;
+                end = lines.length - 1;
                 while (len <= prefix.length() && start < end) {
                     Logs.d("start: %d, end: %d", start, end);
                     int mid = (start + end) / 2;
@@ -93,12 +94,12 @@ class PinyinDict extends Dict {
                         end = mid;
                     }
                     else {  // code after prefix, <--
-                        end = mid;
+                        end = mid - 1;
                     }
                 }
                 if (start <= end) { // hit
                     int count = 0;
-                    for (int i = (start + end) / 2; count < limit; i++) {
+                    for (int i = (start + end) / 2; i < lines.length && count < limit; i++) {
                         String line = lines[i];
                         String[] segments = line.split("\t");
                         result.add(new Item(segments[1], segments[0], Integer.decode(segments[2])));
@@ -122,7 +123,7 @@ class PinyinDict extends Dict {
                     raf.seek(start);
                     raf.read(bytes);
                     String content = new String(bytes, StandardCharsets.UTF_8);
-                    String[] lines = content.split("\n", limit + 1);
+                    String[] lines = content.split("[\n]");
                     for (int i = 0, min = Math.min(limit, lines.length); i < min; i++) {
                         String[] segments = lines[i].split("[\t]", 3);
                         result.add(new Item(segments[1], segments[0], Integer.decode(segments[2])));
@@ -166,7 +167,7 @@ class PinyinDict extends Dict {
         String prev = null;
         while (csvIt.hasNext()) {
             Item next = csvIt.next();
-            String head = next.getFirstCode();
+            String head = next.getFirstCode(' ');
             if (!head.equals(prev)) {
                 Logs.d("found head:[%s]", head);
                 singleCodes.put(head, pos);

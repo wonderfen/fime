@@ -4,6 +4,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import top.someapp.fimesdk.FimeContext;
+import top.someapp.fimesdk.utils.Logs;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,6 +35,15 @@ public class PinyinDictTest {
         Dict dict = new PinyinDict("pinyin_dict");
         dict.loadFromBuild();
         List<Dict.Item> items = new ArrayList<>();
+        for (int i = 'a'; i <= 'z'; i++) {
+            if (i == 'v' || i == 'i' || i == 'u') continue;
+            dict.search(Character.toString((char) i), items, 100);
+            assertTrue(items.size() > 0);
+            Logs.i(items.get(0)
+                        .toString());
+            items.clear();
+        }
+
         dict.search("yi", items, 100);
         assertTrue(items.size() > 0);
 

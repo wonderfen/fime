@@ -7,7 +7,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.MappingIterator;
 import it.unimi.dsi.fastutil.objects.ObjectArrayPriorityQueue;
 import org.trie4j.patricia.MapPatriciaTrie;
-import org.trie4j.patricia.MapPatriciaTrieNode;
 import top.someapp.fimesdk.FimeContext;
 import top.someapp.fimesdk.engine.Converter;
 import top.someapp.fimesdk.utils.FileStorage;
@@ -24,9 +23,9 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -43,19 +42,28 @@ public class Dict implements Comparator<Dict.Item> {
     public static final String SUFFIX = ".dic"; // 生成词典的后缀名
     static final String kConvertCsv = "convert.csv";
     static final short kVersion = 2;       // 版本号
+    private static final int kMaxTableHeadLength = 2;   // 码表词库的最长索引长度
     private static H2 h2;   // 用户词词典
     private final String name;  // 词典名
+    private final char delimiter;
+    private transient long tireOffset;
     private MapPatriciaTrie<Long> mapTrie;        // 词条树
     private int size;           // 包含的词条数
     private boolean sealed;     // 词典是否构建完成
     private RandomAccessFile raf;
 
     public Dict(@NonNull String name) {
+        this(name, '\0');
+    }
+
+    public Dict(@NonNull String name, char delimiter) {
         this.name = name;
+        this.delimiter = delimiter;
         Logs.d("create dict: %s.", name);
     }
 
-    public static Dict createPinyinDict(@NonNull String name) {
+    @VisibleForTesting
+    static Dict createPinyinDict(@NonNull String name) {
         return new PinyinDict(name);
     }
 
@@ -82,6 +90,10 @@ public class Dict implements Comparator<Dict.Item> {
         return size;
     }
 
+    public char getDelimiter() {
+        return delimiter;
+    }
+
     public boolean loadFromCsv(File csvFile) throws IOException {
         return loadFromCsv(csvFile, null);
     }
@@ -92,7 +104,7 @@ public class Dict implements Comparator<Dict.Item> {
         File workDir = FimeContext.getInstance()
                                   .getWorkDir();
         CsvDict csvDict = new CsvDict(csvFile, new File(workDir, kConvertCsv));
-        csvDict.normalize(FileStorage.mkdir(workDir, "temp"), converter);
+        csvDict.normalize(FileStorage.mkdir(workDir, "temp"), converter, delimiter);
         Logs.d("normalize csv file OK.");
         return build();
     }
@@ -130,95 +142,14 @@ public class Dict implements Comparator<Dict.Item> {
     public boolean search(@NonNull String prefix, final int wordLength, @NonNull List<Item> result,
             int limit, Comparator<Item> comparator) {
         Logs.d("search: %s start.", prefix);
-        ObjectArrayPriorityQueue<Item> queue = new ObjectArrayPriorityQueue<>(limit * 2,
-                                                                              comparator);
         // 优先查询用户词
         initH2();   // 耗时操作
-        initDictFile();
+        initDictFile(); // 耗时操作
         List<Item> userItems = h2.queryUserItems(prefix, limit);
-        if (mapTrie.contains(prefix)) { // 全部匹配
-            MapPatriciaTrieNode<Long> node = mapTrie.getNode(prefix);
-            final long range = node.getValue(); // [start, end)
-            final int start = (int) (range >> 32);
-            final int end = (int) range;
-            try {
-                raf.seek(start);
-                byte[] buffer = new byte[end - start];
-                raf.read(buffer);
-                String content = new String(buffer, StandardCharsets.UTF_8);
-                for (String record : content.split("[\n]")) {
-                    int index = record.indexOf('\t');
-                    String text = record.substring(0, index);
-                    queue.enqueue(
-                            new Item(text, prefix, Integer.decode(record.substring(index + 1))));
-                }
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        else {    // 前缀预测匹配
-            int length = 0;
-            List<String> codes = new ArrayList<>();
-            List<Long> ranges = new ArrayList<>();   // 先分段
-            for (Map.Entry<String, Long> entry : mapTrie.predictiveSearchEntries(prefix)) {
-                final String code = entry.getKey();
-                if (length == 0) length = code.length();
-                if (code.length() > length) continue;
-                codes.add(entry.getKey());
-                ranges.add(entry.getValue());
-            }
-            // 统一一次 io
-            if (!ranges.isEmpty()) {
-                final int start = (int) (ranges.get(0) >> 32);
-                final int end = ranges.get(ranges.size() - 1)
-                                      .intValue();
-                try {
-                    raf.seek(start);
-                    byte[] buffer = new byte[end - start];
-                    raf.read(buffer);
-                    for (int i = 0, len = codes.size(); queue.size() < limit && i < len; i++) {
-                        String code = codes.get(i);
-                        long range = ranges.get(i);
-                        int offset = (int) (range >> 32) - start;
-                        int size = (int) (range - (range >> 32));
-                        String content = new String(buffer, offset, size, StandardCharsets.UTF_8);
-                        for (String record : content.split("[\n]")) {
-                            int index = record.indexOf('\t');
-                            String text = record.substring(0, index);
-                            // if (wordLength < 0 || text.length() == wordLength) {
-                            //     queue.enqueue(new Item(text, code,
-                            //                            Integer.decode(
-                            //                                    record.substring(index + 1))));
-                            // }
-                            queue.enqueue(new Item(text, code,
-                                                   Integer.decode(record.substring(index + 1))));
-                        }
-                    }
-                }
-                catch (IOException e) {
-                    e.printStackTrace();
-                }
-                // if (queue.size() >= limit) break;
-            }
-        }
-        boolean hit = false;
-        int count = 0;
-        Iterator<Item> it = userItems.iterator();
-        while (it.hasNext() && count < limit) {
-            if (!hit) hit = true;
-            result.add(it.next());
-            it.remove();
-            count++;
-        }
-        while (!queue.isEmpty() && count < limit) {
-            if (!hit) hit = true;
-            result.add(queue.dequeue());
-            count++;
-        }
-        queue.clear();
+        if (userItems.isEmpty()) searchWithTrie(prefix, wordLength, result, limit);
+        mergeResult(userItems, result, limit, comparator);
         Logs.d("search: %s end.", prefix);
-        return hit;
+        return !result.isEmpty();
     }
 
     public boolean searchPrefix(@NonNull String prefix, final int extendCodeLength,
@@ -230,43 +161,13 @@ public class Dict implements Comparator<Dict.Item> {
         // 优先查询用户词
         initH2();   // 耗时操作
         // 前缀预测匹配
-        initDictFile();
+        initDictFile(); // 耗时操作
         final int maxCodeLength = prefix.length() + extendCodeLength;
-        for (Map.Entry<String, Long> entry : mapTrie.predictiveSearchEntries(
-                prefix)) {
-            final long range = entry.getValue(); // [start, end)
-            final int start = (int) (range >> 32);
-            final int end = (int) range;
-            final String code = entry.getKey();
-            if (code.length() > maxCodeLength) continue;
-            try {
-                raf.seek(start);
-                byte[] buffer = new byte[end - start];
-                raf.read(buffer);
-                String content = new String(buffer, StandardCharsets.UTF_8);
-                for (String record : content.split("[\n]")) {
-                    int index = record.indexOf('\t');
-                    String text = record.substring(0, index);
-                    queue.enqueue(
-                            new Item(text, code, Integer.decode(record.substring(index + 1))));
-                }
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-                break;
-            }
-            if (queue.size() >= limit) break;
-        }
-        boolean hit = false;
-        int count = 0;
-        while (!queue.isEmpty() && count < limit) {
-            if (!hit) hit = true;
-            result.add(queue.dequeue());
-            count++;
-        }
-        queue.clear();
+        List<Item> userItems = h2.queryUserItems(prefix, limit);
+        if (userItems.isEmpty()) searchWithTrie(prefix, maxCodeLength, result, limit);
+        mergeResult(userItems, result, limit, comparator);
         Logs.d("searchPrefix: %s end.", prefix);
-        return hit;
+        return !result.isEmpty();
     }
 
     public void recordUserWord(Item item) {
@@ -305,6 +206,113 @@ public class Dict implements Comparator<Dict.Item> {
         return mapTrie;
     }
 
+    private void searchWithTrie(String prefix, final int wordLength,
+            @NonNull List<Item> result, int limit) {
+        if (mapTrie == null || mapTrie.size() == 0) return;
+
+        String first;
+        if (delimiter > 0) {
+            int index = prefix.indexOf(delimiter);
+            first = index > 0 ? prefix.substring(0, index) : prefix;
+        }
+        else {
+            first = prefix.length() > kMaxTableHeadLength ? prefix.substring(0,
+                                                                             kMaxTableHeadLength) : prefix;
+        }
+        Logs.d("search: [%s] start.", first);
+        if (mapTrie.contains(first)) {
+            long range = mapTrie.get(first);
+            int start = (int) (range >>> 32);
+            int end = (int) range;
+            int len = first.length();
+            try {
+                raf.seek(start);
+                byte[] bytes = new byte[end - start];
+                raf.read(bytes);
+                String content = new String(bytes, StandardCharsets.UTF_8);
+                String[] lines = content.split("[\n]");
+                start = 0;
+                end = lines.length - 1;
+                while (len <= prefix.length() && start < end) {
+                    Logs.d("start: %d, end: %d", start, end);
+                    int mid = (start + end) / 2;
+                    String line = lines[mid];
+                    String[] segments = line.split("\t");
+                    String code = segments[0];
+                    int diff = code.compareTo(prefix);
+                    if (diff < 0) { // code before prefix, -->
+                        start = mid + 1;
+                    }
+                    else if (diff == 0) {   // code near prefix, <--
+                        end = mid;
+                    }
+                    else {  // code after prefix, <--
+                        end = mid /*- 1*/;
+                    }
+                }
+                if (start <= end) { // hit
+                    int count = 0;
+                    for (int i = (start + end) / 2; i < lines.length && count < limit; i++) {
+                        String line = lines[i];
+                        String[] segments = line.split("\t");
+                        if (!segments[0].startsWith(prefix)) break;
+                        result.add(new Item(segments[1], segments[0], Integer.decode(segments[2])));
+                        count++;
+                    }
+                }
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            for (String key : mapTrie.predictiveSearch(prefix)) {
+                loadItems(mapTrie.get(key), result, limit);
+                break;
+            }
+        }
+    }
+
+    private void loadItems(long range, List<Item> result, int limit) {
+        int start = (int) (range >>> 32);
+        int end = (int) range;
+        byte[] bytes = new byte[end - start];
+        try {
+            raf.seek(start);
+            raf.read(bytes);
+            String content = new String(bytes, StandardCharsets.UTF_8);
+            String[] lines = content.split("[\n]");
+            for (int i = 0, min = Math.min(limit, lines.length); i < min; i++) {
+                String[] segments = lines[i].split("[\t]", 3);
+                result.add(new Item(segments[1], segments[0], Integer.decode(segments[2])));
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void mergeResult(List<Item> userItems, List<Item> result,
+            int limit, Comparator<Item> comparator) {
+        ObjectArrayPriorityQueue<Item> queue = new ObjectArrayPriorityQueue<>(limit * 2,
+                                                                              comparator);
+        boolean hit = false;
+        int count = 0;
+        Iterator<Item> it = userItems.iterator();
+        while (it.hasNext() && count < limit) {
+            if (!hit) hit = true;
+            result.add(it.next());
+            it.remove();
+            count++;
+        }
+        while (!queue.isEmpty() && count < limit) {
+            if (!hit) hit = true;
+            result.add(queue.dequeue());
+            count++;
+        }
+        queue.clear();
+    }
+
     private void initH2() {
         if (h2 == null) {
             h2 = new H2(name);
@@ -330,65 +338,69 @@ public class Dict implements Comparator<Dict.Item> {
         }
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored") private boolean build() throws IOException {
-        if (sealed) return false;
-
-        Logs.d("build dict start.");
-        FimeContext fimeContext = FimeContext.getInstance();
-        File file = fimeContext.fileInCacheDir(name + SUFFIX);
-        RandomAccessFile raf = new RandomAccessFile(file, "rw");
+    private void writeHead(RandomAccessFile raf) throws IOException {
         raf.writeUTF(Strings.simpleFormat("FimeDict:%s", name));
         raf.writeShort(kVersion);  // version
-        final long dataOffset = raf.getFilePointer();
+        tireOffset = raf.getFilePointer();
         raf.writeLong(0L);  // placeholder to save tire offset
-        raf.writeInt(0);   // keySize
+    }
 
-        StringBuilder content = new StringBuilder();
-        MapPatriciaTrie<Long> mapTrie = new MapPatriciaTrie<>();
+    private void writeItems(RandomAccessFile raf) throws IOException {
+        FimeContext fimeContext = FimeContext.getInstance();
+        mapTrie = new MapPatriciaTrie<>();
         File csv = new File(fimeContext.getWorkDir(), kConvertCsv);
-        MappingIterator<Item> it = CsvDict.load(csv);
         String prev = null;
-        int count = 0;
+        String head;
+        int pos = 0;
+        Map<String, Integer> singleCodes = new LinkedHashMap<>(512); // 单个编码对应的索引
+        MappingIterator<Item> it = CsvDict.load(csv);
+        Logs.d("write all dict items.");
         while (it.hasNext()) {
             Item next = it.next();
-            String text = next.getText();
-            String code = next.getCode();
-            int weight = next.getWeight();
-            count++;
-            if (!code.equals(prev)) {
-                if (content.length() > 0) {
-                    long start = raf.getFilePointer();
-                    raf.write(content.toString()
-                                     .getBytes(StandardCharsets.UTF_8));
-                    content.setLength(0);
-                    mapTrie.insert(prev, start << 32 | raf.getFilePointer());
+            if (delimiter > 0) {
+                head = next.getFirstCode(delimiter);
+            }
+            else {
+                if (next.getCode()
+                        .length() <= kMaxTableHeadLength) {
+                    head = next.getCode();
+                }
+                else {
+                    head = next.getCode()
+                               .substring(0, kMaxTableHeadLength);
                 }
             }
-            if (count % 10000 == 0) Logs.d("write dict %d items.", count);
-            content.append(text)
-                   .append("\t")
-                   .append(weight)
-                   .append("\n");
-            prev = code;
-        }
-        if (content.length() > 0) {
-            Logs.d("write last dict items.");
-            long start = raf.getFilePointer();
-            raf.write(content.toString()
+            if (!head.equals(prev)) {
+                Logs.d("found head:[%s]", head);
+                singleCodes.put(head, pos);
+                if (prev != null && singleCodes.containsKey(prev)) {
+                    //noinspection ConstantConditions
+                    long value = ((long) singleCodes.get(prev) << 32) | pos;
+                    mapTrie.insert(prev, value);
+                }
+            }
+            raf.write(Strings.simpleFormat("%s\t%s\t%d\n", next.getCode(), next.getText(),
+                                           next.getWeight())
                              .getBytes(StandardCharsets.UTF_8));
-            content.setLength(0);
-            mapTrie.insert(prev, start << 32 | raf.getFilePointer());
+            pos = (int) raf.getFilePointer();
+            prev = head;
         }
-        Logs.d("write all dict items OK.");
+        //noinspection ConstantConditions
+        long value = ((long) singleCodes.get(prev) << 32) | pos;
+        mapTrie.insert(prev, value);
+        singleCodes.clear();
+        //noinspection ResultOfMethodCallIgnored
         csv.delete();
+        Logs.d("write all dict items OK.");
+    }
 
+    private void writeTrie(RandomAccessFile raf) throws IOException {
         Logs.d("write dict trie.");
         mapTrie.trimToSize();
         mapTrie.freeze();
         long pos = raf.getFilePointer();
-        raf.seek(dataOffset);
+        raf.seek(tireOffset);
         raf.writeLong(pos);
-        raf.write(mapTrie.size());  // code size
         raf.seek(pos);
         ByteBuffer buffer = ByteBuffer.allocate(1024 * 1024);
         OutputStream out = new OutputStream() {
@@ -406,6 +418,20 @@ public class Dict implements Comparator<Dict.Item> {
             byte[] bytes = buffer.array();
             raf.write(bytes, 0, buffer.position());
         }
+    }
+
+    private boolean build() throws IOException {
+        if (sealed) return false;
+
+        Logs.d("build dict start.");
+        FimeContext fimeContext = FimeContext.getInstance();
+        File file = fimeContext.fileInCacheDir(name + SUFFIX);
+        RandomAccessFile raf = new RandomAccessFile(file, "rw");
+
+        writeHead(raf);
+        writeItems(raf);
+        writeTrie(raf);
+
         raf.close();
         Logs.d("build dict end.");
         return true;
@@ -458,8 +484,8 @@ public class Dict implements Comparator<Dict.Item> {
         }
 
         @JsonIgnore
-        public String getFirstCode() {
-            return code.indexOf(' ') > 0 ? code.substring(0, code.indexOf(' ')) : code;
+        public String getFirstCode(char delimiter) {
+            return code.indexOf(delimiter) > 0 ? code.substring(0, code.indexOf(delimiter)) : code;
         }
 
         @Override public boolean equals(Object o) {

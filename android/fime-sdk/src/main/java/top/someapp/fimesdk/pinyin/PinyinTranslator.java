@@ -37,11 +37,19 @@ public class PinyinTranslator extends DefaultTranslator {
         Logs.d("translate: " + code);
         List<Candidate> candidates = new ArrayList<>(limit);
         StringBuilder normalized = new StringBuilder(code.size() * 6);
-        for (String py : code) {
-            normalized.append(py)
-                      .append(" ");
+        boolean hasDelimiter = dict.getDelimiter() > 0;
+        if (hasDelimiter) {
+            for (String py : code) {
+                normalized.append(py)
+                          .append(dict.getDelimiter());
+            }
         }
-        if (normalized.length() > 0) {
+        else {
+            for (String py : code) {
+                normalized.append(py);
+            }
+        }
+        if (hasDelimiter && normalized.length() > 0) {
             normalized.deleteCharAt(normalized.length() - 1);
             List<Dict.Item> items = new ArrayList<>(limit);
             boolean ok = dict.search(normalized.toString(), code.size(), items, limit);
@@ -53,9 +61,15 @@ public class PinyinTranslator extends DefaultTranslator {
         }
         if (code.size() > 1 && candidates.size() < 9) {
             List<Dict.Item> items = new ArrayList<>(limit);
-            boolean ok = dict.search(normalized.substring(0, normalized.lastIndexOf(" ")),
-                                     code.size() - 1,
-                                     items, limit);
+            boolean ok;
+            if (hasDelimiter) {
+                ok = dict.search(normalized.substring(0, normalized.lastIndexOf(" ")),
+                                 code.size() - 1,
+                                 items, limit);
+            }
+            else {
+                ok = dict.search(normalized.toString(), items, limit);
+            }
             if (ok) {
                 for (Dict.Item item : items) {
                     candidates.add(new Candidate(item.getCode(), item.getText()));

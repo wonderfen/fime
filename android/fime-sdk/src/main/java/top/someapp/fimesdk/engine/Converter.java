@@ -22,7 +22,7 @@ public class Converter {
 
     public Converter() {
         rules = new ArrayList<>(64);
-        kCache.clear();
+        clearCache();
     }
 
     private static String upper(String input) {
@@ -89,6 +89,10 @@ public class Converter {
         }
         kCache.put(input, output);
         return output;
+    }
+
+    void clearCache() {
+        kCache.clear();
     }
 
     private String replace(String input, String rule) {

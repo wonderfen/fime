@@ -16,6 +16,7 @@ import com.fasterxml.sort.TempFileProvider;
 import top.someapp.fimesdk.engine.Converter;
 import top.someapp.fimesdk.utils.FileStorage;
 import top.someapp.fimesdk.utils.Logs;
+import top.someapp.fimesdk.utils.Strings;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -64,10 +65,10 @@ class CsvDict {
     }
 
     void normalize(File workDir) throws IOException {
-        normalize(workDir, null);
+        normalize(workDir, null, '\0');
     }
 
-    void normalize(File workDir, Converter converter) throws IOException {
+    void normalize(File workDir, Converter converter, char delimiter) throws IOException {
         Logs.d("start convert %s => %s", source.getName(), target.getName());
         int[] start = { 10000 };
         TempFileProvider tempFileProvider = () -> {
@@ -75,7 +76,7 @@ class CsvDict {
             return new File(workDir, start[0] + ".csv");
         };
         SortConfig config = new SortConfig().withTempFileProvider(tempFileProvider);
-        Sorter<Dict.Item> sorter = new Sorter<>(config, new ReaderFactory(converter),
+        Sorter<Dict.Item> sorter = new Sorter<>(config, new ReaderFactory(converter, delimiter),
                                                 new WriterFactory(),
                                                 itemComparator);
         sorter.sort(new FileInputStream(source), new FileOutputStream(target));
@@ -86,28 +87,40 @@ class CsvDict {
     static class ReaderFactory extends DataReaderFactory<Dict.Item> {
 
         private final Converter converter;
+        private final char delimiter;
+        private final String splitReg;
+        private boolean converted;
 
-        ReaderFactory(Converter converter) {
+        ReaderFactory(Converter converter, char delimiter) {
             this.converter = converter;
+            this.delimiter = delimiter;
+            this.splitReg = delimiter > 0 ? Strings.simpleFormat("[\\u%04x]",
+                                                                 (int) delimiter) : null;
         }
 
         @Override public DataReader<Dict.Item> constructReader(InputStream in) throws IOException {
             ObjectReader reader = csvMapper.readerWithTypedSchemaFor(Dict.Item.class)
                                            .with(schema);
             MappingIterator<Dict.Item> it = reader.readValues(in);
-            if (converter != null && converter.hasRule()) {
+            if (!converted && converter != null && converter.hasRule()) {
+                converted = true;   // 有隐患!!
                 return new DataReader<Dict.Item>() {
-                    @Override public Dict.Item readNext() throws IOException {
+                    @Override public Dict.Item readNext() {
                         if (it.hasNext()) {
                             Dict.Item next = it.next();
-                            String[] segments = next.getCode()
-                                                    .split("[ ]");
-                            StringBuilder code = new StringBuilder();
-                            for (String seg : segments) {
-                                code.append(" ")
-                                    .append(converter.convert(seg));
+                            if (splitReg == null) {
+                                next.setCode(converter.convert(next.getCode()));
                             }
-                            next.setCode(code.substring(1));
+                            else {
+                                String[] segments = next.getCode()
+                                                        .split(splitReg);
+                                StringBuilder code = new StringBuilder();
+                                for (String seg : segments) {
+                                    code.append(delimiter)
+                                        .append(converter.convert(seg));
+                                }
+                                next.setCode(code.substring(1));
+                            }
                             return next;
                         }
                         return null;
@@ -117,12 +130,12 @@ class CsvDict {
                         return it.hasNext() ? 1024 : 0;
                     }
 
-                    @Override public void close() throws IOException {
+                    @Override public void close() {
                     }
                 };
             }
             return new DataReader<Dict.Item>() {
-                @Override public Dict.Item readNext() throws IOException {
+                @Override public Dict.Item readNext() {
                     return it.hasNext() ? it.next() : null;
                 }
 
@@ -130,7 +143,7 @@ class CsvDict {
                     return it.hasNext() ? 1024 : 0;
                 }
 
-                @Override public void close() throws IOException {
+                @Override public void close() {
                 }
             };
         }

@@ -134,8 +134,10 @@ public class SchemaManager {
             }
             Config c = config.getConfig("translator.dict");
             String dictName = c.getString("name");
+            char delimiter = c.hasPath("delimiter") ? c.getString("delimiter")
+                                                       .charAt(0) : '\0';
             if (!FileStorage.hasFile(fimeContext.fileInCacheDir(dictName + Dict.SUFFIX))) {
-                Dict dict = new Dict(dictName);
+                Dict dict = new Dict(dictName, delimiter);
                 if (c.hasPath("converter")) {
                     Converter converter = new Converter();
                     List<String> rules = c.getConfig("converter")
