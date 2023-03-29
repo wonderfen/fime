@@ -42,11 +42,11 @@ public class Dict implements Comparator<Dict.Item> {
     public static final String SUFFIX = ".dic"; // 生成词典的后缀名
     static final String kConvertCsv = "convert.csv";
     static final short kVersion = 2;       // 版本号
-    private static final int kMaxTableHeadLength = 2;   // 码表词库的最长索引长度
+    private static final int kMaxTableHeadLength = 3;   // 码表词库的最长索引长度
     private static H2 h2;   // 用户词词典
     private final String name;  // 词典名
     private final char delimiter;
-    private transient long tireOffset;
+    private transient long trieOffset;
     private MapPatriciaTrie<Long> mapTrie;        // 词条树
     private int size;           // 包含的词条数
     private boolean sealed;     // 词典是否构建完成
@@ -119,7 +119,7 @@ public class Dict implements Comparator<Dict.Item> {
         if (version < 1 || version > kVersion) {
             throw new UnsupportedEncodingException("Not supported version: " + version + "!");
         }
-        long trieOffset = raf.readLong();
+        trieOffset = raf.readLong();
         @SuppressWarnings("unused")
         int keySize = raf.readInt();
         raf.seek(trieOffset);
@@ -146,7 +146,7 @@ public class Dict implements Comparator<Dict.Item> {
         initH2();   // 耗时操作
         initDictFile(); // 耗时操作
         List<Item> userItems = h2.queryUserItems(prefix, limit);
-        if (userItems.isEmpty()) searchWithTrie(prefix, wordLength, result, limit);
+        if (userItems.size() < limit) searchWithTrie(prefix, wordLength, result, limit);
         mergeResult(userItems, result, limit, comparator);
         Logs.d("search: %s end.", prefix);
         return !result.isEmpty();
@@ -156,15 +156,13 @@ public class Dict implements Comparator<Dict.Item> {
             @NonNull List<Item> result, int limit,
             Comparator<Item> comparator) {
         Logs.d("searchPrefix: %s start.", prefix);
-        ObjectArrayPriorityQueue<Item> queue = new ObjectArrayPriorityQueue<>(limit * 2,
-                                                                              comparator);
         // 优先查询用户词
         initH2();   // 耗时操作
         // 前缀预测匹配
         initDictFile(); // 耗时操作
         final int maxCodeLength = prefix.length() + extendCodeLength;
         List<Item> userItems = h2.queryUserItems(prefix, limit);
-        if (userItems.isEmpty()) searchWithTrie(prefix, maxCodeLength, result, limit);
+        if (userItems.size() < limit) searchWithTrie(prefix, maxCodeLength, result, limit);
         mergeResult(userItems, result, limit, comparator);
         Logs.d("searchPrefix: %s end.", prefix);
         return !result.isEmpty();
@@ -220,6 +218,7 @@ public class Dict implements Comparator<Dict.Item> {
                                                                              kMaxTableHeadLength) : prefix;
         }
         Logs.d("search: [%s] start.", first);
+        int count = 0;
         if (mapTrie.contains(first)) {
             long range = mapTrie.get(first);
             int start = (int) (range >>> 32);
@@ -251,8 +250,7 @@ public class Dict implements Comparator<Dict.Item> {
                     }
                 }
                 if (start <= end) { // hit
-                    int count = 0;
-                    for (int i = (start + end) / 2; i < lines.length && count < limit; i++) {
+                    for (int i = (start + end) / 2; i < lines.length; i++) {
                         String line = lines[i];
                         String[] segments = line.split("\t");
                         if (!segments[0].startsWith(prefix)) break;
@@ -265,10 +263,18 @@ public class Dict implements Comparator<Dict.Item> {
                 e.printStackTrace();
             }
         }
-        else {
+        if (count == 0) {
             for (String key : mapTrie.predictiveSearch(prefix)) {
-                loadItems(mapTrie.get(key), result, limit);
+                loadItems(mapTrie.get(key), result, limit - count);
                 break;
+            }
+        }
+        else if (count < limit) {
+            for (String key : mapTrie.predictiveSearch(prefix)) {
+                if (key.length() > prefix.length()) {
+                    loadItems(mapTrie.get(key), result, limit - count);
+                    break;
+                }
             }
         }
     }
@@ -341,7 +347,7 @@ public class Dict implements Comparator<Dict.Item> {
     private void writeHead(RandomAccessFile raf) throws IOException {
         raf.writeUTF(Strings.simpleFormat("FimeDict:%s", name));
         raf.writeShort(kVersion);  // version
-        tireOffset = raf.getFilePointer();
+        trieOffset = raf.getFilePointer();
         raf.writeLong(0L);  // placeholder to save tire offset
     }
 
@@ -399,7 +405,7 @@ public class Dict implements Comparator<Dict.Item> {
         mapTrie.trimToSize();
         mapTrie.freeze();
         long pos = raf.getFilePointer();
-        raf.seek(tireOffset);
+        raf.seek(trieOffset);
         raf.writeLong(pos);
         raf.seek(pos);
         ByteBuffer buffer = ByteBuffer.allocate(1024 * 1024);

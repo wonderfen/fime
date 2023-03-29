@@ -96,7 +96,7 @@ class H2 {
 
     List<Dict.Item> queryUserItems(String code, int limit) {
         PreparedStatement ps = prepareStatement(
-                "select text from T_DICT_USER where code = ? order by hit desc limit ?",
+                "select text, hit from T_DICT_USER where code = ? order by hit desc limit ?",
                 code,
                 limit);
         List<Dict.Item> items = new ArrayList<>(limit);
@@ -104,7 +104,8 @@ class H2 {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 String text = rs.getString(1);
-                items.add(new Dict.Item(text, code));
+                int hit = rs.getInt(2);  // for sorting
+                items.add(new Dict.Item(text, code, hit));
             }
             close(rs, ps);
         }
