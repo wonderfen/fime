@@ -24,7 +24,6 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,12 +70,15 @@ public class Dict implements Comparator<Dict.Item> {
         String code1 = o1.getCode();
         String code2 = o2.getCode();
         if (code1.equals(code2)) { // 编码相同时，weight 优先
-            if (o1.getWeight() >= o2.getWeight()) return -1;
-            return o2.getWeight() - o1.getWeight();
+            return Integer.compare(o2.getWeight(), o1.getWeight());
         }
-        if (o1.getLength() == o2.getLength()) { // 编码不同，词长相同， weight 优先
-            if (o1.getWeight() >= o2.getWeight()) return -1;
-            return o2.getWeight() - o1.getWeight();
+        if (code1.length() == code2.length()) { // 编码不同，长度相同
+            if (o1.getLength() == o2.getLength()) { // 词长相同
+                return Integer.compare(o2.getWeight(), o1.getWeight());
+            }
+            else {
+                return o1.getLength() - o2.getLength(); // 短词优先
+            }
         }
         // 编码不同，词长不同，编码短的优先
         return code1.length() - code2.length();
@@ -146,7 +148,7 @@ public class Dict implements Comparator<Dict.Item> {
         initH2();   // 耗时操作
         initDictFile(); // 耗时操作
         List<Item> userItems = h2.queryUserItems(prefix, limit);
-        if (userItems.size() < limit) searchWithTrie(prefix, wordLength, result, limit);
+        if (userItems.size() < limit) searchWithTrie(prefix, wordLength, -1, result, limit);
         mergeResult(userItems, result, limit, comparator);
         Logs.d("search: %s end.", prefix);
         return !result.isEmpty();
@@ -162,7 +164,7 @@ public class Dict implements Comparator<Dict.Item> {
         initDictFile(); // 耗时操作
         final int maxCodeLength = prefix.length() + extendCodeLength;
         List<Item> userItems = h2.queryUserItems(prefix, limit);
-        if (userItems.size() < limit) searchWithTrie(prefix, maxCodeLength, result, limit);
+        if (userItems.size() < limit) searchWithTrie(prefix, -1, maxCodeLength, result, limit);
         mergeResult(userItems, result, limit, comparator);
         Logs.d("searchPrefix: %s end.", prefix);
         return !result.isEmpty();
@@ -204,7 +206,7 @@ public class Dict implements Comparator<Dict.Item> {
         return mapTrie;
     }
 
-    private void searchWithTrie(String prefix, final int wordLength,
+    private void searchWithTrie(String prefix, final int wordLength, final int codeLength,
             @NonNull List<Item> result, int limit) {
         if (mapTrie == null || mapTrie.size() == 0) return;
 
@@ -252,8 +254,8 @@ public class Dict implements Comparator<Dict.Item> {
                 if (start <= end) { // hit
                     for (int i = (start + end) / 2; i < lines.length; i++) {
                         String line = lines[i];
+                        if (!line.startsWith(prefix)) break;
                         String[] segments = line.split("\t");
-                        if (!segments[0].startsWith(prefix)) break;
                         result.add(new Item(segments[1], segments[0], Integer.decode(segments[2])));
                         count++;
                     }
@@ -269,11 +271,13 @@ public class Dict implements Comparator<Dict.Item> {
                 break;
             }
         }
-        else if (count < limit) {
-            for (String key : mapTrie.predictiveSearch(prefix)) {
-                if (key.length() > prefix.length()) {
-                    loadItems(mapTrie.get(key), result, limit - count);
-                    break;
+        if (count < limit) {
+            if (codeLength > 0) {
+                for (String key : mapTrie.predictiveSearch(prefix)) {
+                    if (key.length() == codeLength) {
+                        loadItems(mapTrie.get(key), result, limit - count);
+                        break;
+                    }
                 }
             }
         }
@@ -302,17 +306,15 @@ public class Dict implements Comparator<Dict.Item> {
             int limit, Comparator<Item> comparator) {
         ObjectArrayPriorityQueue<Item> queue = new ObjectArrayPriorityQueue<>(limit * 2,
                                                                               comparator);
-        boolean hit = false;
-        int count = 0;
-        Iterator<Item> it = userItems.iterator();
-        while (it.hasNext() && count < limit) {
-            if (!hit) hit = true;
-            result.add(it.next());
-            it.remove();
-            count++;
+        for (Item item : result) {
+            queue.enqueue(item);
         }
+        result.clear();
+        result.addAll(userItems);
+        userItems.clear();
+
+        int count = result.size();
         while (!queue.isEmpty() && count < limit) {
-            if (!hit) hit = true;
             result.add(queue.dequeue());
             count++;
         }
@@ -357,7 +359,7 @@ public class Dict implements Comparator<Dict.Item> {
         File csv = new File(fimeContext.getWorkDir(), kConvertCsv);
         String prev = null;
         String head;
-        int pos = 0;
+        int pos = (int) raf.getFilePointer();
         Map<String, Integer> singleCodes = new LinkedHashMap<>(512); // 单个编码对应的索引
         MappingIterator<Item> it = CsvDict.load(csv);
         Logs.d("write all dict items.");
