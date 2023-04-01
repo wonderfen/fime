@@ -225,6 +225,8 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
 
     void useSchema(String conf) {
         engine.useSchema(conf);
+        actionBar.setInputEditor(engine.getSchema()
+                                       .getInputEditor());
     }
 
     void commitText(String text) {

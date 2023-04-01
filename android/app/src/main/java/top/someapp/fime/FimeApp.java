@@ -16,7 +16,7 @@ public class FimeApp extends Application {
     public void onCreate() {
         super.onCreate();
         new FimeContext(this);
-        AppDatabase.getInstance(this);
+        // AppDatabase.getInstance(this);
     }
 
     public Activity getActivity() {

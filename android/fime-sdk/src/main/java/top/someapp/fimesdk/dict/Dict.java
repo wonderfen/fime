@@ -1,11 +1,11 @@
 package top.someapp.fimesdk.dict;
 
+import android.util.Pair;
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.MappingIterator;
-import it.unimi.dsi.fastutil.objects.ObjectArrayPriorityQueue;
 import org.trie4j.patricia.MapPatriciaTrie;
 import top.someapp.fimesdk.FimeContext;
 import top.someapp.fimesdk.engine.Converter;
@@ -50,6 +50,7 @@ public class Dict implements Comparator<Dict.Item> {
     private int size;           // 包含的词条数
     private boolean sealed;     // 词典是否构建完成
     private RandomAccessFile raf;
+    private Pair<String, Integer> prevHit;
 
     public Dict(@NonNull String name) {
         this(name, '\0');
@@ -232,7 +233,7 @@ public class Dict implements Comparator<Dict.Item> {
                 raf.read(bytes);
                 String content = new String(bytes, StandardCharsets.UTF_8);
                 String[] lines = content.split("[\n]");
-                start = 0;
+                start = prevHit != null && prefix.startsWith(prevHit.first) ? prevHit.second : 0;
                 end = lines.length - 1;
                 while (len <= prefix.length() && start < end) {
                     Logs.d("start: %d, end: %d", start, end);
@@ -258,7 +259,9 @@ public class Dict implements Comparator<Dict.Item> {
                         String[] segments = line.split("\t");
                         result.add(new Item(segments[1], segments[0], Integer.decode(segments[2])));
                         count++;
+                        if (count >= limit) break;
                     }
+                    prevHit = count > 0 ? new Pair<>(prefix, start) : null;
                 }
             }
             catch (Exception e) {
@@ -304,21 +307,13 @@ public class Dict implements Comparator<Dict.Item> {
 
     private void mergeResult(List<Item> userItems, List<Item> result,
             int limit, Comparator<Item> comparator) {
-        ObjectArrayPriorityQueue<Item> queue = new ObjectArrayPriorityQueue<>(limit * 2,
-                                                                              comparator);
-        for (Item item : result) {
-            queue.enqueue(item);
+        Logs.d("mergeResult start.");
+        result.addAll(0, userItems);
+        if (result.size() > limit) {
+            result.subList(limit, result.size())
+                  .clear();
         }
-        result.clear();
-        result.addAll(userItems);
-        userItems.clear();
-
-        int count = result.size();
-        while (!queue.isEmpty() && count < limit) {
-            result.add(queue.dequeue());
-            count++;
-        }
-        queue.clear();
+        Logs.d("mergeResult end.");
     }
 
     private void initH2() {

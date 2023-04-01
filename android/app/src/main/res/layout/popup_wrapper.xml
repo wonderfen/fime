@@ -34,7 +34,6 @@
         android:layout_height="wrap_content"
         android:padding="8dp"
         android:id="@+id/btnSchema"
-        android:visibility="gone"
         android:text="@string/schema"
         />
 

@@ -86,7 +86,10 @@ class FimePopup extends PopupWindow implements View.OnClickListener,
         }
         else if (active == R.id.btnSchema) {
             if (rootView instanceof InputView) {
-                ((InputView) rootView).useSchema(item.split("[:/]")[1]);
+                String conf = item.split("[:/]")[1];
+                Setting.getInstance()
+                       .setString(Setting.kActiveSchema, conf);
+                ((InputView) rootView).useSchema(conf);
             }
         }
         else if (active == R.id.btnClipboard) {
@@ -148,6 +151,7 @@ class FimePopup extends PopupWindow implements View.OnClickListener,
                                                                 android.R.layout.simple_list_item_single_choice);
                 String activeSchema = setting.getString(Setting.kActiveSchema);
                 for (SchemaManager.SchemaInfo info : SchemaManager.scan()) {
+                    if (!info.precompiled) continue;
                     String item = Strings.join('/', info.getName(), info.conf);
                     adapter.add(item);
                     if (activeSchema.equals(info.conf)) {

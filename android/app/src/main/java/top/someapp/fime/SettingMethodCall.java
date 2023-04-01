@@ -159,10 +159,13 @@ class SettingMethodCall {
     }
 
     private Map<String, Object> setActiveSchema(String conf) {
-        SchemaManager.build(conf);
-        setting.setString(Setting.kActiveSchema, conf)
-               .save();
-        return buildMessage("success", true);
+        SchemaManager.SchemaInfo info = SchemaManager.find(conf);
+        if (info.precompiled) {
+            setting.setString(Setting.kActiveSchema, conf)
+                   .save();
+            return buildMessage("success", true);
+        }
+        return buildMessage("success", false);
     }
 
     private Map<String, Object> importExternalSchema() {

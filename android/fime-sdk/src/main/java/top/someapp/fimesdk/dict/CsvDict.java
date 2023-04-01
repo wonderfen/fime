@@ -47,8 +47,14 @@ class CsvDict {
             .enable(CsvParser.Feature.WRAP_AS_ARRAY)
             .enable(CsvParser.Feature.ALLOW_COMMENTS)
             .enable(CsvParser.Feature.SKIP_EMPTY_LINES);
-    private static final Comparator<Dict.Item> itemComparator = Comparator.comparing(
-            Dict.Item::getCode);
+    private static final Comparator<Dict.Item> itemComparator = (o1, o2) -> {
+        if (o1.getCode()
+              .equals(o2.getCode())) {
+            return o2.getWeight() - o1.getWeight();
+        }
+        return o1.getCode()
+                 .compareTo(o2.getCode());
+    };
 
     private final File source;
     private final File target;

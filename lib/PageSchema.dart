@@ -216,6 +216,26 @@ class _PageSchemaState<PageSchema> extends State {
   }
 
   void setActiveSchema(item) {
+    if (!item['precompiled']) {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('${AppLocalizations.of(context).i18n('warn')}'),
+              content: Text(
+                  '${AppLocalizations.of(context).i18n('schema-not-build')}'),
+              actions: [
+                TextButton(
+                  child: Text('${AppLocalizations.of(context).i18n('ok')}'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          });
+      return;
+    }
     showSnackBar(Text(
         '${AppLocalizations.of(context).i18n('set-default-schema-working')}：${item["name"]}！'));
     callNative('setActiveSchema', item).then((value) {
@@ -223,6 +243,9 @@ class _PageSchemaState<PageSchema> extends State {
         setState(() {
           active = item['conf'];
         });
+      } else {
+        showSnackBar(
+            Text('${AppLocalizations.of(context).i18n('operation-failed')}'));
       }
     });
   }
@@ -288,7 +311,7 @@ class _PageSchemaState<PageSchema> extends State {
                 },
               ),
               TextButton(
-                child: const Text('取消'),
+                child: Text('${AppLocalizations.of(context).i18n('cancel')}'),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
