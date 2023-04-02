@@ -340,7 +340,7 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
             pressKeyDown(key);
             if (key.isShift()) shiftHold = !shiftHold;
             prevKey = key;
-            Effects.playSound();
+            Effects.playSoundAndVibrateIf();
         }
 
         @Override public void onTouchMove(PointF pos) {

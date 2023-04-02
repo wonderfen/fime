@@ -20,17 +20,14 @@ if (flutterRoot == null) {
       "Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
 }
 
-def versionMajor = Integer.valueOf(localProperties.getProperty('versionMajor'))
-if (versionMajor == null) {
-  versionMajor = 1
+def versionProp = new Properties()
+rootProject.file('version.properties').withReader('UTF-8') { reader ->
+  versionProp.load(reader)
 }
-project.ext.versionMajor = versionMajor
 
-def versionMinor = Integer.valueOf(localProperties.getProperty('versionMinor'))
-if (versionMinor == null) {
-  versionMinor = 0
-}
-project.ext.versionMinor = versionMinor
+project.ext.versionMajor = Integer.valueOf(versionProp.getProperty('versionMajor'))
+project.ext.versionMinor = Integer.valueOf(versionProp.getProperty('versionMinor'))
+project.ext.versionPatch = Integer.valueOf(versionProp.getProperty('versionPatch'))
 
 def getCommitCount() {
   def count
@@ -47,16 +44,15 @@ def getCommitCount() {
 def initVersionInfo() {
   println('initVersionInfo')
   // 2.0.1 => 02_00_001 max: 99_99_999
+  // see: https://semver.org/lang/zh-CN/ and https://regex101.com/r/oQpExV/1
   if (project.ext.versionCode == 0) {
     def major = project.ext.versionMajor
     def minor = project.ext.versionMinor
-    def patch = getCommitCount()
+    def patch = project.ext.versionPatch
+    def update = getCommitCount()
     project.ext.versionCode = major * 100000 + minor * 1000 + patch
-
-    versionName = "$major.$minor.$patch"
-    if (!gradle.startParameter.taskNames.contains('assembleRelease')) {
-      versionName += '-dev'
-    }
+    def devFlag = gradle.startParameter.taskNames.contains('assembleRelease') ? '' : '-dev'
+    versionName = "$major.${minor}.$patch${devFlag}+$update"
     project.ext.versionName = versionName
   }
   println("app.versionCode = ${project.ext.versionCode}")
