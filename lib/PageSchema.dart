@@ -2,6 +2,7 @@ import 'package:fime/AppLocalizations.dart';
 import 'package:fime/NativeBridge.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 class PageSchema extends StatefulWidget {
   static const String ROUTER_NAME = "/schema";
@@ -17,11 +18,14 @@ class PageSchema extends StatefulWidget {
 class _PageSchemaState<PageSchema> extends State {
   String active = '';
   List<Map<String, dynamic>> schemas = [];
+  bool busy = false;
 
   @override
   void initState() {
     super.initState();
     registerHandler('_onSchemaResult', _onSchemaResult);
+    registerHandler('_onSchemaBuildResult', _onSchemaBuildResult);
+    EasyLoading.dismiss();
     getSchemas();
   }
 
@@ -50,7 +54,7 @@ class _PageSchemaState<PageSchema> extends State {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        return true;
+        return !busy;
       },
       child: Scaffold(
         appBar: AppBar(
@@ -215,6 +219,27 @@ class _PageSchemaState<PageSchema> extends State {
     }
   }
 
+  void _onSchemaBuildResult(Map<dynamic, dynamic> params) {
+    EasyLoading.dismiss();
+    busy = false;
+    if (mounted && params.isNotEmpty) {
+      if (params['success'] ?? false) {
+        getSchemas();
+        EasyLoading.showSuccess(
+            '${AppLocalizations.of(context).i18n('schema-build-ok')}',
+            maskType: EasyLoadingMaskType.custom,
+            duration: Duration(milliseconds: 800),
+            dismissOnTap: true);
+      } else {
+        EasyLoading.showError(
+            '${AppLocalizations.of(context).i18n('operation-failed')}',
+            maskType: EasyLoadingMaskType.custom,
+            duration: Duration(milliseconds: 800),
+            dismissOnTap: true);
+      }
+    }
+  }
+
   void setActiveSchema(item) {
     if (!item['precompiled']) {
       showDialog(
@@ -265,15 +290,18 @@ class _PageSchemaState<PageSchema> extends State {
   }
 
   void buildSchema(item) {
-    showSnackBar(Text(
-        '${AppLocalizations.of(context).i18n('schema-is-building')}：${item["name"]}！'));
+    // show loading
+    busy = true;
+    EasyLoading.show(
+      status:
+          '${AppLocalizations.of(context).i18n('schema-is-building')}：${item["name"]}...',
+      maskType: EasyLoadingMaskType.custom,
+      dismissOnTap: false,
+    );
     callNative('buildSchema', item).then((value) {
       if (value!['success'] ?? false) {
-        showSnackBar(
-            Text('${AppLocalizations.of(context).i18n('schema-build-ok')}'));
-        setState(() {
-          item['precompiled'] = true;
-        });
+        showSnackBar(Text(
+            '${AppLocalizations.of(context).i18n('schema-is-building')}：${item["name"]}！'));
       } else {
         showSnackBar(
             Text('${AppLocalizations.of(context).i18n('operation-failed')}'));

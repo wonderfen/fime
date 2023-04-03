@@ -1,6 +1,5 @@
 package top.someapp.fime;
 
-import android.app.Activity;
 import android.content.Intent;
 import androidx.annotation.NonNull;
 import io.flutter.plugin.common.MethodCall;
@@ -23,10 +22,10 @@ import java.util.Map;
 @SuppressWarnings("unchecked")
 class SettingMethodCall {
 
-    private final Activity activity;
+    private final MainActivity activity;
     private final Setting setting;
 
-    SettingMethodCall(Activity activity) {
+    SettingMethodCall(MainActivity activity) {
         this.activity = activity;
         setting = Setting.getInstance();
     }
@@ -190,7 +189,13 @@ class SettingMethodCall {
     }
 
     private Map<String, Object> buildSchema(String conf) {
-        return buildMessage("success", SchemaManager.build(conf));
+        SchemaManager.build(conf, () -> {
+            SchemaManager.SchemaInfo schemaInfo = SchemaManager.find(conf);
+            activity.callFlutter(Fime.NOTIFY_FLUTTER_SCHEMA_BUILD_RESULT,
+                                 buildMessage("success",
+                                              schemaInfo != null && schemaInfo.precompiled));
+        });
+        return buildMessage("success", true);
     }
 
     private Map<String, Object> validateSchema(String conf) {

@@ -165,6 +165,13 @@ public class MainActivity extends FlutterFragmentActivity implements MethodChann
         }
     }
 
+    void callFlutter(String method, Map<String, Object> params) {
+        runOnUiThread(() -> {
+            if (methodChannel == null) return;
+            methodChannel.invokeMethod(method, params == null ? Collections.EMPTY_MAP : params);
+        });
+    }
+
     private void init() {
         // Instantiate a FlutterEngine.
         flutterEngine = new FlutterEngine(this);
@@ -181,10 +188,5 @@ public class MainActivity extends FlutterFragmentActivity implements MethodChann
         methodChannel = new MethodChannel(flutterEngine.getDartExecutor()
                                                        .getBinaryMessenger(), "FimeApp");
         methodChannel.setMethodCallHandler(this);
-    }
-
-    private void callFlutter(String method, Map<String, Object> params) {
-        if (methodChannel == null) return;
-        methodChannel.invokeMethod(method, params == null ? Collections.EMPTY_MAP : params);
     }
 }

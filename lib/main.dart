@@ -11,6 +11,7 @@ import 'package:fime/PagePlugins.dart';
 import 'package:fime/PageSchema.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
@@ -42,6 +43,7 @@ class FimeApp extends StatelessWidget {
       ),
       home: I18nWidget(key: i18nKey, child: const HomePage()),
       routes: _routes(),
+      builder: EasyLoading.init(),
     );
   }
 
@@ -76,6 +78,18 @@ class _HomePageState extends State<HomePage> {
     testing = false;
     focusNode = FocusNode();
     backPressedTime = DateTime.now().add(Duration(minutes: -1));
+    EasyLoading.instance
+      ..indicatorType = EasyLoadingIndicatorType.wave
+      ..loadingStyle = EasyLoadingStyle.custom
+      ..indicatorSize = 45.0
+      ..radius = 8.0
+      ..progressColor = Colors.blue
+      ..backgroundColor = Colors.white
+      ..indicatorColor = Colors.black
+      ..textColor = Colors.black
+      ..maskColor = Colors.grey.withOpacity(0.5)
+      ..userInteractions = false
+      ..dismissOnTap = false;
   }
 
   @override

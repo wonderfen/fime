@@ -9,6 +9,7 @@ public class Fime {
     public static final int REQUEST_READ_URI = 100;
     public static final int REQUEST_WRITE_URI = 200;
     public static final String NOTIFY_FLUTTER_SCHEMA_RESULT = "_onSchemaResult";
+    public static final String NOTIFY_FLUTTER_SCHEMA_BUILD_RESULT = "_onSchemaBuildResult";
     public static final String SCHEMA_RESULT_IMPORT = "kSchemaImport";
     public static final String SCHEMA_RESULT_ACTIVE = "kSchemaActive";
     public static final String SCHEMA_RESULT_VALIDATE = "kSchemaValidate";

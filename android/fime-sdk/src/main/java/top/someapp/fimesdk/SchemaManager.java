@@ -1,6 +1,7 @@
 package top.someapp.fimesdk;
 
 import android.util.Pair;
+import androidx.annotation.NonNull;
 import com.typesafe.config.Config;
 import top.someapp.fimesdk.config.Configs;
 import top.someapp.fimesdk.dict.Dict;
@@ -99,6 +100,28 @@ public class SchemaManager {
             }
         }
         return ok;
+    }
+
+    public static SchemaInfo build(@NonNull String conf, @NonNull Runnable done) {
+        SchemaInfo schemaInfo = find(conf);
+        if (schemaInfo.precompiled) {
+            done.run();
+        }
+        else {
+            new Thread(() -> {
+                try {
+                    build(schemaInfo, schemaInfo.loadConfig());
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                    Logs.e("build %s error:%s", conf, e.getMessage());
+                }
+                finally {
+                    done.run();
+                }
+            }).start();
+        }
+        return schemaInfo;
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
