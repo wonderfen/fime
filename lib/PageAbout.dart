@@ -1,6 +1,5 @@
 import 'package:fime/AppLocalizations.dart';
 import 'package:fime/NativeBridge.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class PageAbout extends StatelessWidget {
@@ -12,44 +11,41 @@ class PageAbout extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${AppLocalizations.of(context).i18n('about')}'),
+        title: Text(AppLocalizations.of(context).i18n('about')),
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
             ListTile(
-              title: Text('${AppLocalizations.of(context).i18n('version')}'),
+              title: Text(AppLocalizations.of(context).i18n('version')),
               subtitle: versionInfo(),
               trailing: OutlinedButton(
                 style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: Colors.blue),
+                  side: const BorderSide(color: Colors.blue),
                 ),
-                child: Text(
-                    '${AppLocalizations.of(context).i18n('check-update')}'),
                 onPressed: null,
+                child: Text(AppLocalizations.of(context).i18n('check-update')),
               ),
             ),
             ListTile(
-              title: Text(
-                  '${AppLocalizations.of(context).i18n('privacy-policy')}'),
+              title: Text(AppLocalizations.of(context).i18n('privacy-policy')),
               subtitle: Text(
-                  '${AppLocalizations.of(context).i18n('privacy-policy-info')}'),
+                  AppLocalizations.of(context).i18n('privacy-policy-info')),
             ),
             _ThirdPartLibrariesWidget(),
             ListTile(
-              title:
-                  Text('${AppLocalizations.of(context).i18n('source-code')}'),
-              subtitle: Text('https://gitee.com/zelde/fime'),
+              title: Text(AppLocalizations.of(context).i18n('source-code')),
+              subtitle: const Text('https://gitee.com/zelde/fime'),
             ),
             ListTile(
-              title: Text('${AppLocalizations.of(context).i18n('license')}'),
-              subtitle: Text('MIT'),
+              title: Text(AppLocalizations.of(context).i18n('license')),
+              subtitle: const Text('MIT'),
             ),
             ListTile(
               title: Text(
-                  '${AppLocalizations.of(context).i18n('feedback-and-discuss')}'),
+                  AppLocalizations.of(context).i18n('feedback-and-discuss')),
               subtitle:
-                  Text('${AppLocalizations.of(context).i18n('qq-group-info')}'),
+                  Text(AppLocalizations.of(context).i18n('qq-group-info')),
             ),
           ],
         ),
@@ -71,7 +67,7 @@ class PageAbout extends StatelessWidget {
                 '${AppLocalizations.of(context).i18n('fime')} ${versionInfo["versionName"]}');
           }
           return Text(
-              '${AppLocalizations.of(context).i18n('fetching-version-info')}');
+              AppLocalizations.of(context).i18n('fetching-version-info'));
         });
   }
 }
@@ -99,7 +95,7 @@ class _ThirdPartLibrariesWidgetState extends State<_ThirdPartLibrariesWidget> {
             headerBuilder: (context, isExpanded) {
               return ListTile(
                 title: Text(
-                    '${AppLocalizations.of(context).i18n('third-party-libraries')}'),
+                    AppLocalizations.of(context).i18n('third-party-libraries')),
               );
             },
             body: Column(
@@ -112,6 +108,11 @@ class _ThirdPartLibrariesWidgetState extends State<_ThirdPartLibrariesWidget> {
                   title: Text('Flutter Markdown'),
                   subtitle: Text(
                       'https://pub.flutter-io.cn/packages/flutter_markdown'),
+                ),
+                ListTile(
+                  title: Text('Flutter EasyLoading'),
+                  subtitle: Text(
+                      'https://pub.flutter-io.cn/packages/flutter_easyloading'),
                 ),
                 ListTile(
                   title: Text('HOCON'),
@@ -136,6 +137,10 @@ class _ThirdPartLibrariesWidgetState extends State<_ThirdPartLibrariesWidget> {
                 ListTile(
                   title: Text('h2database'),
                   subtitle: Text('https://github.com/h2database/h2database'),
+                ),
+                ListTile(
+                  title: Text('FasterXML'),
+                  subtitle: Text('https://github.com/FasterXML'),
                 ),
               ],
             )),

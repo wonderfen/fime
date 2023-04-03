@@ -58,7 +58,7 @@ class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
 class I18nWidget extends StatefulWidget {
   final child;
 
-  I18nWidget({super.key, required this.child});
+  const I18nWidget({super.key, required this.child});
 
   @override
   State<StatefulWidget> createState() {
@@ -78,7 +78,7 @@ class I18nWidgetState extends State<I18nWidget> {
   }
 
   void _setLanguage(Map<dynamic, dynamic> params) {
-    var language = params!['language'];
+    var language = params['language'];
     _changeLanguage(language);
   }
 
@@ -94,11 +94,11 @@ class I18nWidgetState extends State<I18nWidget> {
   void _changeLanguage(String language) {
     var l;
     if ('zh-Hant' == language) {
-      l = Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant');
+      l = const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant');
     } else if ('zh-Hans' == language) {
-      l = Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans');
+      l = const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans');
     } else if ('en' == language) {
-      l = Locale('en');
+      l = const Locale('en');
     }
     if (l != null) changeLanguage(l);
   }

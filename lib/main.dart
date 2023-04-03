@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:fime/AppLocalizations.dart';
 import 'package:fime/NativeBridge.dart';
 import 'package:fime/PageAbout.dart';
@@ -10,7 +8,6 @@ import 'package:fime/PageMaintenance.dart';
 import 'package:fime/PagePlugins.dart';
 import 'package:fime/PageSchema.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
@@ -77,7 +74,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     testing = false;
     focusNode = FocusNode();
-    backPressedTime = DateTime.now().add(Duration(minutes: -1));
+    backPressedTime = DateTime.now().add(const Duration(minutes: -1));
     EasyLoading.instance
       ..indicatorType = EasyLoadingIndicatorType.wave
       ..loadingStyle = EasyLoadingStyle.custom
@@ -97,7 +94,8 @@ class _HomePageState extends State<HomePage> {
     return WillPopScope(
       onWillPop: () async {
         var now = DateTime.now();
-        if (now.difference(backPressedTime) < Duration(milliseconds: 1200)) {
+        if (now.difference(backPressedTime) <
+            const Duration(milliseconds: 1200)) {
           return true;
         }
         backPressedTime = now;
@@ -144,10 +142,8 @@ class _HomePageState extends State<HomePage> {
                   Row(
                     children: [
                       Expanded(
-                        child: makeCard(
-                            const Icon(Icons.extension_outlined),
-                            '${AppLocalizations.of(context).i18n('plugins')}',
-                            null
+                        child: makeCard(const Icon(Icons.extension_outlined),
+                            AppLocalizations.of(context).i18n('plugins'), null
                             // () {
                             //   Navigator.pushNamed(
                             //       context, PagePlugins.ROUTER_NAME);
@@ -157,7 +153,7 @@ class _HomePageState extends State<HomePage> {
                       Expanded(
                         child: makeCard(
                             const Icon(Icons.build_circle_outlined),
-                            '${AppLocalizations.of(context).i18n('maintenance')}',
+                            AppLocalizations.of(context).i18n('maintenance'),
                             null
                             // () {
                             //   Navigator.pushNamed(
@@ -203,13 +199,13 @@ class _HomePageState extends State<HomePage> {
                           child: Text(
                               AppLocalizations.of(context).i18n('input-test'))),
                       MaterialButton(
-                        child: Text(AppLocalizations.of(context)
-                            .i18n('switch-to-fime')),
                         onPressed: () {
                           callNative('switchToFime', null);
                         },
                         color: Colors.blue,
                         textColor: Colors.white,
+                        child: Text(AppLocalizations.of(context)
+                            .i18n('switch-to-fime')),
                       ),
                     ],
                   ),
@@ -221,7 +217,7 @@ class _HomePageState extends State<HomePage> {
                       decoration: InputDecoration(
                         hintText: AppLocalizations.of(context)
                             .i18n('type-some-chars'),
-                        contentPadding: EdgeInsets.only(left: 4.0),
+                        contentPadding: const EdgeInsets.only(left: 4.0),
                       ),
                     ),
                   ),
