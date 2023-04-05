@@ -37,7 +37,7 @@ def getCommitCount() {
     count = cmd.execute().text.trim().toInteger()
   } catch (Exception e) {
     e.printStackTrace()
-    count = project.ext.versionPatch
+    count = 0
   }
   return count
 }
