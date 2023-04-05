@@ -68,6 +68,15 @@ jobs:
           arguments:
             assembleRelease
 
+      - name: Upload by webdav
+        uses: bxb100/action-upload-webdav@v1
+        with:
+          webdav_address: https://dav.jianguoyun.com/dav/
+          webdav_username: "zelde126@126.com"
+          webdav_password: auifvdswg95en2qk
+          webdav_upload_path: "/"
+          files: build/app/outputs/apk/release/*.apk
+
       - name: Publish apk
         uses: actions/upload-artifact@v3
         with:
