@@ -1,0 +1,71 @@
+# last update: 2023-04-05
+name: ci-build-release
+
+on:
+  push:
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # - uses: gradle/wrapper-validation-action@v1
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.3.10'
+          channel: 'stable'
+      - run: flutter --version
+
+      - name: Setup JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: 11
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: 7.0.2
+
+      - name: Init keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          pwd
+          echo $KEYSTORE_BASE64 | base64 -di > android/app/key.jks
+          echo storePassword=$STORE_PASSWORD >> android/key.properties
+          echo keyPassword=$KEY_PASSWORD >> android/key.properties
+          echo keyAlias=$KEY_ALIAS >> android/key.properties
+          echo storeFile=key.jks >> android/key.properties
+          ls -1 ./android/key.*
+      - name: Prepare to build
+        run: |
+          chmod +x ./android/gradlew
+          which flutter
+          which java
+          which gradle
+          flutter pub get
+      - name: Build release
+        uses: gradle/gradle-build-action@v2
+        with:
+          build-root-directory: android
+          arguments:
+            assembleRelease
+
+      - name: Publish apk
+        uses: actions/upload-artifact@v3
+        with:
+          name: ReleasePackage
+          path:
+            build/app/outputs/apk/release/*.apk

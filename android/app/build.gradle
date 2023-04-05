@@ -170,7 +170,7 @@ dependencies {
   implementation 'com.github.takawitter:trie4j:0.9.8'
 
   // popup
-  implementation 'io.github.razerdp:BasePopup:3.2.1'
+//  implementation 'io.github.razerdp:BasePopup:3.2.1'
 
   // for test
   testImplementation "junit:junit:4.12"
