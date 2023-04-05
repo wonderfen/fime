@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # - uses: gradle/wrapper-validation-action@v1
       - name: Checkout
         uses: actions/checkout@v3
 
@@ -49,13 +48,16 @@ jobs:
           echo keyAlias=$KEY_ALIAS >> android/key.properties
           echo storeFile=key.jks >> android/key.properties
           ls -1 ./android/key.*
+
       - name: Prepare to build
         run: |
           chmod +x ./android/gradlew
-          which flutter
-          which java
-          which gradle
+          echo git: `which git`
+          echo flutter: `which flutter`
+          echo java: `which java`
+          echo gradle: `which gradle`
           flutter pub get
+
       - name: Build release
         uses: gradle/gradle-build-action@v2
         with:
@@ -66,6 +68,6 @@ jobs:
       - name: Publish apk
         uses: actions/upload-artifact@v3
         with:
-          name: ReleasePackage
+          name: release-packages.zip
           path:
             build/app/outputs/apk/release/*.apk
