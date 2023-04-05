@@ -36,6 +36,7 @@ def getCommitCount() {
     // or git rev-list HEAD --abbrev-commit --max-count=1
     count = cmd.execute().text.trim().toInteger()
   } catch (Exception e) {
+    e.printStackTrace()
     count = project.ext.versionPatch
   }
   return count

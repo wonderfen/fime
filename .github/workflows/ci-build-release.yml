@@ -68,6 +68,6 @@ jobs:
       - name: Publish apk
         uses: actions/upload-artifact@v3
         with:
-          name: release-packages.zip
+          name: release-packages
           path:
             build/app/outputs/apk/release/*.apk

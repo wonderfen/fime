@@ -67,6 +67,6 @@ jobs:
       - name: Publish apk
         uses: actions/upload-artifact@v3
         with:
-          name: dev-packages.zip
+          name: dev-packages
           path:
             build/app/outputs/apk/debug/*.apk
