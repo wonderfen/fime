@@ -71,10 +71,10 @@ jobs:
       - name: Upload by webdav
         uses: bxb100/action-upload-webdav@v1
         with:
-          webdav_address: https://dav.jianguoyun.com/dav/
-          webdav_username: "zelde126@126.com"
-          webdav_password: auifvdswg95en2qk
-          webdav_upload_path: "/"
+          webdav_address: ${{secrets.webdav_address}}
+          webdav_username: ${{secrets.webdav_username}}
+          webdav_password: ${{secrets.webdav_password}}
+          webdav_upload_path: "/fime"
           files: build/app/outputs/apk/release/*.apk
 
       - name: Publish apk
