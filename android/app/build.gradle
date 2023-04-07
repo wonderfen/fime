@@ -29,17 +29,40 @@ project.ext.versionMajor = Integer.valueOf(versionProp.getProperty('versionMajor
 project.ext.versionMinor = Integer.valueOf(versionProp.getProperty('versionMinor'))
 project.ext.versionPatch = Integer.valueOf(versionProp.getProperty('versionPatch'))
 
-def getCommitCount() {
+static String exec(String cmd) {
+  def result = ""
+  try {
+    result = cmd.execute().text.trim()
+  } catch (Exception e) {
+    e.printStackTrace()
+  }
+  return result
+}
+
+static def getCommitCount() {
   def count
   try {
-    def cmd = 'git rev-list HEAD --count'
-    // or git rev-list HEAD --abbrev-commit --max-count=1
-    count = cmd.execute().text.trim().toInteger()
+    count = exec('git rev-list HEAD --count').toInteger()
   } catch (Exception e) {
     e.printStackTrace()
     count = 0
   }
   return count
+}
+
+static String getGitShortHash() {
+  return exec('git rev-parse --short HEAD')
+}
+
+static String getBuildTime() {
+  def now = Calendar.getInstance(TimeZone.getTimeZone("GMT+08:00"))
+  return String.format("%04d-%02d-%02dT%02d:%02d:%02d+08",
+      now.get(Calendar.YEAR),
+      now.get(Calendar.MONTH) + 1,
+      now.get(Calendar.DATE),
+      now.get(Calendar.HOUR_OF_DAY),
+      now.get(Calendar.MINUTE),
+      now.get(Calendar.SECOND))
 }
 
 def initVersionInfo() {
@@ -93,6 +116,8 @@ android {
         app_name: "@string/app_name",
         file_provider_auth: "top.someapp.fime.fileprovider"
     ]
+    buildConfigField "String", "BUILD_GIT_SHORT_HASH", "\"${gitShortHash}\""
+    buildConfigField "String", "BUILD_TIME", "\"${buildTime}\""
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
     ndk {
@@ -171,7 +196,7 @@ dependencies {
   implementation 'com.github.takawitter:trie4j:0.9.8'
 
   // popup
-//  implementation 'io.github.razerdp:BasePopup:3.2.1'
+  //  implementation 'io.github.razerdp:BasePopup:3.2.1'
 
   // for test
   testImplementation "junit:junit:4.12"

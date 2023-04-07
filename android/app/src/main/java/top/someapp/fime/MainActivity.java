@@ -89,6 +89,8 @@ public class MainActivity extends FlutterFragmentActivity implements MethodChann
             versionInfo.put("debug", BuildConfig.DEBUG);
             versionInfo.put("versionCode", BuildConfig.VERSION_CODE);
             versionInfo.put("versionName", BuildConfig.VERSION_NAME);
+            versionInfo.put("gitShortHash", BuildConfig.BUILD_GIT_SHORT_HASH);
+            versionInfo.put("buildTime", BuildConfig.BUILD_TIME);
             result.success(versionInfo);
             return;
         }

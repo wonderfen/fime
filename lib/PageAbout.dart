@@ -35,7 +35,8 @@ class PageAbout extends StatelessWidget {
             _ThirdPartLibrariesWidget(),
             ListTile(
               title: Text(AppLocalizations.of(context).i18n('source-code')),
-              subtitle: const Text('https://gitee.com/zelde/fime'),
+              subtitle: const Text(
+                  'https://gitee.com/zelde/fime OR https://github.com/wonderfen/fime'),
             ),
             ListTile(
               title: Text(AppLocalizations.of(context).i18n('license')),
@@ -64,7 +65,9 @@ class PageAbout extends StatelessWidget {
               versionInfo[key] = value;
             });
             return Text(
-                '${AppLocalizations.of(context).i18n('fime')} ${versionInfo["versionName"]}');
+              '${versionInfo["debug"] ? 'dev ' : ''} ${versionInfo["versionName"]}#${versionInfo["gitShortHash"]}\n${versionInfo["buildTime"]}',
+              maxLines: 2,
+            );
           }
           return Text(
               AppLocalizations.of(context).i18n('fetching-version-info'));

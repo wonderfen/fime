@@ -3,15 +3,16 @@ name: ci-build-release
 on:
   push:
     branches: [ "master" ]
-
+#env:
+#  version_name: false
 permissions:
   contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    outputs:
+      version_name: ${{ steps.version.outputs.version_name }}
 
     steps:
       - name: Checkout
@@ -72,26 +73,40 @@ jobs:
           arguments:
             assembleRelease
 
+      #      - name: Upload by webdav
+      #        uses: bxb100/action-upload-webdav@v1
+      #        with:
+      #          webdav_address: ${{secrets.webdav_address}}
+      #          webdav_username: ${{secrets.webdav_username}}
+      #          webdav_password: ${{secrets.webdav_password}}
+      #          webdav_upload_path: "/fime"
+      #          files: build/app/outputs/apk/release/*.apk
+      #
+      - id: version
+        name: Set version name
+        run: echo version_name=`ls build/app/outputs/apk/release/*.apk | sed s/^[a-z/-]*//g | sed s/.apk//` > "$GITHUB_OUTPUT"
+
+      - name: Make artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.version_name }}release-packages
+          path:
+            build/app/outputs/apk/release/*.apk
+
+  release:
+    needs: build
+    if: needs.build.outputs.version_name
+    env:
+      version_name: ${{ needs.build.outputs.version_name }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
       - name: Publish release
         uses: ncipollo/release-action@v1
         with:
-          tag: "v0.3.1"
+          tag: ${{ env.version_name }}
           artifacts: build/app/outputs/apk/release/*.apk
-          body: "A new version released."
+          body: "${{ env.version_name }} released."
           token: ${{ secrets.GITHUB_TOKEN }}
-
-#      - name: Upload by webdav
-#        uses: bxb100/action-upload-webdav@v1
-#        with:
-#          webdav_address: ${{secrets.webdav_address}}
-#          webdav_username: ${{secrets.webdav_username}}
-#          webdav_password: ${{secrets.webdav_password}}
-#          webdav_upload_path: "/fime"
-#          files: build/app/outputs/apk/release/*.apk
-#
-#      - name: Publish apk
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: release-packages
-#          path:
-#            build/app/outputs/apk/release/*.apk
