@@ -3,8 +3,6 @@ name: ci-build-release
 on:
   push:
     branches: [ "master" ]
-#env:
-#  version_name: false
 permissions:
   contents: read
 
@@ -60,10 +58,6 @@ jobs:
       - name: Prepare to build
         run: |
           chmod +x ./android/gradlew
-          echo git: `which git`
-          echo flutter: `which flutter`
-          echo java: `which java`
-          echo gradle: `which gradle`
           flutter pub get
 
       - name: Build release
@@ -73,25 +67,30 @@ jobs:
           arguments:
             assembleRelease
 
-      #      - name: Upload by webdav
-      #        uses: bxb100/action-upload-webdav@v1
-      #        with:
-      #          webdav_address: ${{secrets.webdav_address}}
-      #          webdav_username: ${{secrets.webdav_username}}
-      #          webdav_password: ${{secrets.webdav_password}}
-      #          webdav_upload_path: "/fime"
-      #          files: build/app/outputs/apk/release/*.apk
-      #
       - id: version
         name: Set version name
-        run: echo version_name=`ls build/app/outputs/apk/release/*.apk | sed s/^[a-z/-]*//g | sed s/.apk//` > "$GITHUB_OUTPUT"
+        run: |
+          tag=`ls build/app/outputs/apk/release/*.apk | sed s/^[a-z/-]*//g | sed s/.apk//`
+          echo tag=$tag
+          echo version_name=$tag > $GITHUB_OUTPUT
+          echo TAG=$tag >> $GITHUB_OUTPUT
 
-      - name: Make artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.version_name }}release-packages
+          name: ${{ steps.version.outputs.TAG }}-release
           path:
             build/app/outputs/apk/release/*.apk
+  #            android/version.properties
+
+  #      - name: Upload by webdav
+  #        uses: bxb100/action-upload-webdav@v1
+  #        with:
+  #          webdav_address: ${{secrets.webdav_address}}
+  #          webdav_username: ${{secrets.webdav_username}}
+  #          webdav_password: ${{secrets.webdav_password}}
+  #          webdav_upload_path: "/fime"
+  #          files: build/app/outputs/apk/release/*.apk
 
   release:
     needs: build
@@ -103,10 +102,16 @@ jobs:
       contents: write
 
     steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.version_name }}-release
+      - run: ls -R
+
       - name: Publish release
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ env.version_name }}
-          artifacts: build/app/outputs/apk/release/*.apk
+          artifacts: ./*.*
           body: "${{ env.version_name }} released."
           token: ${{ secrets.GITHUB_TOKEN }}
