@@ -2,6 +2,22 @@
 -keepattributes SourceFile,LineNumberTable
 
 -dontwarn java.awt.**
+-dontwarn java.beans.**
+-dontwarn java.lang.management.**
+-dontwarn javax.management.**
+-dontwarn javax.naming.**
+-dontwarn javax.servlet.**
+-dontwarn javax.sql.**
+-dontwarn javax.security.**
+-dontwarn javax.script.**
+-dontwarn javax.tools.**
+-dontwarn javax.transaction.**
+-dontwarn javax.xml.**
+-dontwarn org.apache.lucene.**
+-dontwarn org.locationtech.**
+-dontwarn org.osgi.**
+-dontwarn org.slf4j.**
+-dontwarn org.w3c.dom.**
 
 # Serializable
 -keepnames class * implements java.io.Serializable
