@@ -16,7 +16,7 @@ public class FimeMessage {
     public static final int MSG_CHECK_LONG_PRESS = 0x05;
     public static final int MSG_SCHEMA_ACTIVE = MULTIPLE_HANDLER | 0x06;
     public static final int MSG_REQUEST_SEARCH = 0x07;
-    public static final int MSG_INPUT_CHANGE = 0x08;
+    public static final int MSG_INPUT_CHANGE = MULTIPLE_HANDLER | 0x08;
     public static final int MSG_APPLY_THEME = 0X09;
 
     FimeMessage() {

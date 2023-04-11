@@ -4,20 +4,19 @@
   -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:orientation="vertical"
+  android:background="@color/mdSecondaryText"
+  android:minHeight="128dp">
+
+  <top.someapp.fime.view.ActionBarView
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/mdSecondaryText"
-    android:minHeight="128dp"
-    >
-  <top.someapp.fime.view.ActionBar2
-      android:layout_width="match_parent"
-      android:layout_height="64dp"
-      android:id="@+id/actionBar"
-      />
+    android:layout_height="64dp"
+    android:id="@+id/actionBarView" />
+
   <WebView
-      android:layout_width="match_parent"
-      android:layout_height="match_parent"
-      android:id="@+id/webview"
-      />
+    android:layout_width="match_parent"
+    android:layout_height="240dp"
+    android:id="@+id/webview" />
 </LinearLayout>

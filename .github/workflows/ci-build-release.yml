@@ -74,14 +74,15 @@ jobs:
           echo tag=$tag
           echo version_name=$tag > $GITHUB_OUTPUT
           echo TAG=$tag >> $GITHUB_OUTPUT
+          cp build/app/outputs/apk/debug/*.apk build/
+          cp build/app/outputs/apk/release/*.apk build/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.version.outputs.TAG }}-outputs
           path: |
-            build/app/outputs/apk/debug/*.apk
-            build/app/outputs/apk/release/*.apk
+            build/*.apk
   #            android/version.properties
 
   #      - name: Upload by webdav
