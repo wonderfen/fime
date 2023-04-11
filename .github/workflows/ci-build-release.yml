@@ -79,7 +79,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.version.outputs.TAG }}-outputs
-          path:
+          path: |
             build/app/outputs/apk/debug/*.apk
             build/app/outputs/apk/release/*.apk
   #            android/version.properties
