@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023  Fime project https://fime.site
+ * Initial author: zelde126@126.com
+ */
+
 package top.someapp.fime;
 
 import android.annotation.SuppressLint;
@@ -14,7 +19,6 @@ import android.os.Build;
 import android.os.IBinder;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputBinding;
 import android.view.inputmethod.InputConnection;
@@ -24,7 +28,7 @@ import androidx.core.content.FileProvider;
 import androidx.core.view.inputmethod.EditorInfoCompat;
 import androidx.core.view.inputmethod.InputConnectionCompat;
 import androidx.core.view.inputmethod.InputContentInfoCompat;
-import top.someapp.fime.view.InputView;
+import top.someapp.fime.view.InputView2;
 import top.someapp.fimesdk.FimeContext;
 import top.someapp.fimesdk.api.ImeEngine;
 import top.someapp.fimesdk.engine.FimeEngine;
@@ -41,33 +45,31 @@ public class FimeService extends InputMethodService implements ServiceConnection
     private static final String TAG = "FimeService";
     private static final String AUTHORITY = "com.example.android.commitcontent.ime.inputcontent";
     private ImeEngine engine;
-    private InputView inputView;
+    private InputView2 inputView;
 
     @Override public void onCreate() {
         super.onCreate();
         Logs.d("create FimeService: 0x%x.", hashCode());
         setupEngine();
-        // Intent bindIntent = new Intent(this, PinyinService.class);
-        // bindService(bindIntent, this, Context.BIND_AUTO_CREATE);
     }
 
     @Override public View onCreateInputView() {
         Logs.d("onCreateInputView");
-        inputView = new InputView(engine); // 无条件创建一个新的 view，因为它不一定可以重用
-        return inputView;
+        inputView = new InputView2(engine); // 无条件创建一个新的 view，因为它不一定可以重用
+        return inputView.getContainer();
     }
 
     @Override public void onWindowShown() {
         super.onWindowShown();
         Logs.d("onWindowShown");
-        if (!inputView.isPainterValid()) {  // android 12 上 inputView 被隐藏后再次显示， surfaceView 会被销毁!
-            ViewGroup parent = (ViewGroup) inputView.getParent();
-            parent.removeAllViews();
-            inputView = new InputView(engine); // 创建一个新的 view
-            parent.addView(inputView);
-        }
+        // if (!inputView.isPainterValid()) {  // android 12 上 inputView 被隐藏后再次显示， surfaceView 会被销毁!
+        //     ViewGroup parent = (ViewGroup) inputView.getParent();
+        //     parent.removeAllViews();
+        //     inputView = new InputView(engine); // 创建一个新的 view
+        //     parent.addView(inputView);
+        // }
         FimeContext fimeContext = FimeContext.getInstance();
-        fimeContext.setRootView(inputView);
+        // fimeContext.setRootView(inputView);
         fimeContext.setImeDialog(getWindow());
         ImeEngine.ImeState state = engine.getState();
         if (state == ImeEngine.ImeState.FREEZE || state == ImeEngine.ImeState.QUIT) {
@@ -95,7 +97,6 @@ public class FimeService extends InputMethodService implements ServiceConnection
     @Override public void onDestroy() {
         super.onDestroy();
         Logs.d("onDestroy");
-        // unbindService(this);
         engine.enterState(ImeEngine.ImeState.QUIT);
     }
 

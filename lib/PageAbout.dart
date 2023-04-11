@@ -65,7 +65,7 @@ class PageAbout extends StatelessWidget {
               versionInfo[key] = value;
             });
             return Text(
-              '${versionInfo["debug"] ? 'dev ' : ''} ${versionInfo["versionName"]}#${versionInfo["gitShortHash"]}\n${versionInfo["buildTime"]}',
+              '${versionInfo["versionName"]}#${versionInfo["gitShortHash"]}\n${versionInfo["buildTime"]}',
               maxLines: 2,
             );
           }

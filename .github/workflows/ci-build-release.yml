@@ -65,7 +65,7 @@ jobs:
         with:
           build-root-directory: android
           arguments:
-            assembleRelease
+            assembleDebug assembleRelease
 
       - id: version
         name: Set version name
@@ -78,8 +78,9 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ steps.version.outputs.TAG }}-release
+          name: ${{ steps.version.outputs.TAG }}-outputs
           path:
+            build/app/outputs/apk/debug/*.apk
             build/app/outputs/apk/release/*.apk
   #            android/version.properties
 
@@ -105,7 +106,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
-          name: ${{ env.version_name }}-release
+          name: ${{ env.version_name }}-outputs
       - run: ls -R
 
       - name: Publish release

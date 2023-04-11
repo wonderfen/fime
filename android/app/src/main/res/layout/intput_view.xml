@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ Copyright (c) 2023  Fime project https://fime.site
+  ~ Initial author: zelde126@126.com
+  -->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/mdSecondaryText"
+    android:minHeight="128dp"
+    >
+  <top.someapp.fime.view.ActionBar2
+      android:layout_width="match_parent"
+      android:layout_height="64dp"
+      android:id="@+id/actionBar"
+      />
+  <WebView
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:id="@+id/webview"
+      />
+</LinearLayout>
