@@ -7,8 +7,10 @@ package top.someapp.fime.view;
 
 import android.annotation.SuppressLint;
 import android.os.Message;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import androidx.annotation.NonNull;
@@ -19,11 +21,15 @@ import top.someapp.fimesdk.api.FimeHandler;
 import top.someapp.fimesdk.api.FimeMessage;
 import top.someapp.fimesdk.api.ImeEngine;
 import top.someapp.fimesdk.api.InputEditor;
+import top.someapp.fimesdk.config.Keycode;
 import top.someapp.fimesdk.utils.Logs;
+import top.someapp.fimesdk.utils.Strings;
 import top.someapp.fimesdk.view.Keyboards;
 import top.someapp.fimesdk.view.Theme;
+import top.someapp.fimesdk.view.VirtualKey;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -51,6 +57,7 @@ public class InputView2 implements View.OnAttachStateChangeListener {
         this.engine = engine;
         init();
         setupPainter();
+        setupKeyboard();
     }
 
     public View getContainer() {
@@ -58,21 +65,21 @@ public class InputView2 implements View.OnAttachStateChangeListener {
     }
 
     @Override public void onViewAttachedToWindow(View v) {
-        WebSettings webViewSettings = webView.getSettings();
-        webViewSettings.setJavaScriptEnabled(true);
-        webViewSettings.setUseWideViewPort(true);
-        webViewSettings.setDisplayZoomControls(false);
-        webViewSettings.setAllowFileAccess(true);
-        webViewSettings.setDomStorageEnabled(true);
-        webViewSettings.setDatabaseEnabled(true);
-        webViewSettings.setAppCacheEnabled(true);
-        webViewSettings.setLoadsImagesAutomatically(true);
-        webViewSettings.setDefaultTextEncodingName("utf-8");
-        webView.loadUrl("file:///android_asset/keyboards/qwerty.html");
     }
 
     @Override public void onViewDetachedFromWindow(View v) {
 
+    }
+
+    @JavascriptInterface
+    public void jsCallNative(long id, String cmd, String args) {
+        Logs.d("jsCallNative, cmd=%s", cmd);
+        // Map<String, Object> map = JsonHelper.INSTANCE.toMap(args);
+        // CommandFactory.execute(cmd, map);
+        if ("onKey".equals(cmd) && !Strings.isNullOrEmpty(args)) {
+            String name = args.replaceAll("[\"]", "");
+            engine.onTap(new VirtualKey(Keycode.getByName(name).code));
+        }
     }
 
     FimeHandler getPainter() {
@@ -82,6 +89,27 @@ public class InputView2 implements View.OnAttachStateChangeListener {
     InputEditor getInputEditor() {
         return engine.getSchema()
                      .getInputEditor();
+    }
+
+    @SuppressLint("SetJavaScriptEnabled") private void setupKeyboard() {
+        WebSettings s = webView.getSettings();
+        s.setJavaScriptEnabled(true);
+        s.setUseWideViewPort(true);
+        s.setDisplayZoomControls(false);
+        s.setAllowFileAccess(true);
+        s.setDomStorageEnabled(true);
+        s.setDatabaseEnabled(true);
+        s.setAppCacheEnabled(true);
+        s.setLoadsImagesAutomatically(true);
+        s.setSavePassword(false);
+        s.setSaveFormData(false);
+        s.setAllowUniversalAccessFromFileURLs(true);
+        s.setSupportZoom(false);
+        s.setDomStorageEnabled(true);
+        s.setTextZoom(100);   // 处理系统设置字体大小对应用的影响，如miui
+        s.setDefaultTextEncodingName("utf-8");
+        webView.addJavascriptInterface(this, "android");
+        webView.loadUrl("file:///android_asset/keyboards/qwerty.html");
     }
 
     @SuppressLint("InflateParams") private void init() {
