@@ -68,7 +68,7 @@ public class InputView2 implements View.OnAttachStateChangeListener {
         webViewSettings.setAppCacheEnabled(true);
         webViewSettings.setLoadsImagesAutomatically(true);
         webViewSettings.setDefaultTextEncodingName("utf-8");
-        webView.loadUrl("file:///android_asset/keyboard/qwerty.html");
+        webView.loadUrl("file:///android_asset/keyboards/qwerty.html");
     }
 
     @Override public void onViewDetachedFromWindow(View v) {

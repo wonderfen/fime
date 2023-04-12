@@ -1,0 +1,99 @@
+<!--
+  ~ Copyright (c) 2023 Fime project https://fime.site
+  ~ Initial author: zelde126@126.com
+  -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="simple-keyboard.min.css">
+    <style>
+        body {
+            padding:0;
+            margin:0;
+        }
+    </style>
+    <title>Qwerty</title>
+</head>
+
+<body>
+<div class="keyboardContainer">
+    <div class="simple-keyboard"></div>
+</div>
+<script src="simple-keyboard.min.js"></script>
+<script src="swipe-keyboard.min.js"></script>
+<script>
+        const Keyboard = window.SimpleKeyboard.default
+        const swipe = window.SimpleKeyboardSwipe.default
+
+        const keyboard = new Keyboard({
+            debug: true,
+            onChange: input => onChange(input),
+            onKeyPress: button => onKeyPress(button),
+            onKeyeReleased: button => onKeyeReleased(button),
+            useMouseEvents: true,
+            // useTouchEvents: true,
+            mergeDisplay: true,
+            layoutName: "default",
+            layout: {
+                default: [
+                    "q w e r t y u i o p",
+                    "a s d f g h j k l",
+                    "{shift} z x c v b n m {backspace}",
+                    "{abc} {space} {ent}"
+                ],
+                shift: [
+                    "Q W E R T Y U I O P",
+                    "A S D F G H J K L",
+                    "{shift} Z X C V B N M {backspace}",
+                    "{abc} {space} {ent}"
+                ],
+                numbers: ["1 2 3", "4 5 6", "7 8 9", "{abc} 0 {backspace}"]
+            },
+            display: {
+                "{numbers}": "123",
+                "{ent}": "Ent",
+                "{escape}": "Esc",
+                "{tab}": "⇥",
+                "{backspace}": "⌫",
+                "{capslock}": "⇪",
+                "{shift}": "⇧",
+                "{controlleft}": "ctrl ⌃",
+                "{controlright}": "ctrl ⌃",
+                "{altleft}": "alt ⌥",
+                "{altright}": "alt ⌥",
+                "{metaleft}": "cmd ⌘",
+                "{metaright}": "cmd ⌘",
+                "{abc}": "ABC"
+            },
+            maxLength: 64,
+            modules: [
+                swipe
+            ]
+        })
+
+        function onChange(input) {
+            console.debug("qwerty: Input changed", input)
+        }
+
+        function onChangeAll(input) {
+            console.debug("On change all", input)
+            keyboard.clearInput()
+        }
+
+        function onKeyPress(button) {
+            console.debug("qwerty: Button pressed", button)
+            keyboard.clearInput()
+        }
+
+        function onKeyeReleased(button) {
+            keyboard.clearInput()
+        }
+
+</script>
+</body>
+
+</html>
