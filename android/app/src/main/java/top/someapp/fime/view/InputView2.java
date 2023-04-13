@@ -7,7 +7,6 @@ package top.someapp.fime.view;
 
 import android.annotation.SuppressLint;
 import android.os.Message;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.webkit.JavascriptInterface;
@@ -29,7 +28,6 @@ import top.someapp.fimesdk.view.Theme;
 import top.someapp.fimesdk.view.VirtualKey;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -101,6 +99,7 @@ public class InputView2 implements View.OnAttachStateChangeListener {
         s.setDatabaseEnabled(true);
         s.setAppCacheEnabled(true);
         s.setLoadsImagesAutomatically(true);
+        //noinspection deprecation
         s.setSavePassword(false);
         s.setSaveFormData(false);
         s.setAllowUniversalAccessFromFileURLs(true);
