@@ -2,6 +2,7 @@
   ~ Copyright (c) 2023 Fime project https://fime.site
   ~ Initial author: zelde126@126.com
   -->
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -12,17 +13,43 @@
     <link rel="stylesheet" href="simple-keyboard.min.css">
     <style>
         body {
-            overflow: hidden;
             padding: 0;
             margin: 0;
+        }
+
+        .hg-button:active {
+            background: #ccc;
         }
 
         .fn-style {
             width: 10%;
         }
 
+        .fn-key {
+            background: #b5bdc6 !important;
+        }
+
         .spacebar-style {
             width: 32%;
+        }
+
+        .hg-button {
+            flex-direction: column;
+            padding: 0 !important;
+        }
+
+        symbol {
+            color: #b5b5b5;
+            font-size: 1px;
+        }
+
+        .hg-button span {
+            font-size: 18px;
+        }
+
+        hint {
+            color: #b5b5b5;
+            font-size: 1px;
         }
     </style>
     <title>Qwerty</title>
@@ -30,111 +57,190 @@
 
 <body>
     <div class="keyboardContainer">
-        <div class="simple-keyboard"></div>
+        <div class="simple-keyboard hg-theme-default hg-layout-default hg-touch-events"
+            data-skinstance="simpleKeyboard">
+            <div class="hg-rows fime-keyboard">
+                <div class="hg-row">
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>1</symbol>
+                        <span>q</span>
+                        <!-- <hint>iu</hint> -->
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>2</symbol>
+                        <span>w</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>3</symbol>
+                        <span>e</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>4</symbol>
+                        <span>r</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>5</symbol>
+                        <span>t</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>6</symbol>
+                        <span>y</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>7</symbol>
+                        <span>u</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>8</symbol>
+                        <span>i</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>9</symbol>
+                        <span>o</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>0</symbol>
+                        <span>p</span>
+                    </div>
+                </div>
+                <div class="hg-row">
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>~</symbol>
+                        <span>a</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>!</symbol>
+                        <span>s</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>@</symbol>
+                        <span>d</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>#</symbol>
+                        <span>f</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>$</symbol>
+                        <span>g</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>%</symbol>
+                        <span>h</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>^</symbol>
+                        <span>j</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>&</symbol>
+                        <span>k</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>;</symbol>
+                        <span>l</span>
+                    </div>
+                </div>
+                <div class="hg-row">
+                    <div class="hg-button hg-functionBtn hg-button-shift fn-key">
+                        <span>⇧</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>(</symbol>
+                        <span>z</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>)</symbol>
+                        <span>x</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>[</symbol>
+                        <span>c</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>]</symbol>
+                        <span>v</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>{</symbol>
+                            <span>b</span>
+                        </div>
+                        <div class="hg-button hg-standardBtn">
+                        <symbol>}</symbol>
+                        <span>n</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>/</symbol>
+                        <span>m</span>
+                    </div>
+                    <div class="hg-button hg-functionBtn hg-button-backspace fn-key"><span>⌫</span></div>
+                </div>
+                <div class="hg-row">
+                    <div class="hg-button hg-functionBtn hg-button-abc fn-style fn-key"><span>ABC</span></div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>？</symbol>
+                        <span>'分</span>
+                    </div>
+                    <div class="hg-button hg-functionBtn hg-button-space spacebar-style"><span>Space</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>，</symbol>
+                        <span>,</span>
+                    </div>
+                    <div class="hg-button hg-standardBtn">
+                        <symbol>。</symbol>
+                        <span>.</span>
+                    </div>
+                    <div class="hg-button hg-functionBtn hg-button-ent fn-style fn-key"><span>⏎</span></div>
+                </div>
+            </div>
+        </div>
     </div>
-    <script src="simple-keyboard.min.js"></script>
-    <script src="swipe-keyboard.min.js"></script>
-    <script src="jsbridge.js"></script>
+    <script src="touch.js"></script>
+    <script src="fime.js"></script>
     <script>
-        const Keyboard = window.SimpleKeyboard.default
-        const swipe = window.SimpleKeyboardSwipe.default
+        fime.callNative('init', 'keyboard')
 
-        const keyboard = new Keyboard({
-            debug: true,
-            // modules: [
-            //     swipe
-            // ],
-            onChange: onChange,
-            onKeyPress: onKeyPress,
-            onKeyReleased: onKeyReleased,
-            onChangeAll: onChangeAll,
-            // useMouseEvents: true,
-            autoUseTouchEvents: true,
-            mergeDisplay: true,
-            maxLength: 64,
-            layoutName: "default",
-            layout: {
-                default: [
-                    "q w e r t y u i o p",
-                    "a s d f g h j k l",
-                    "{shift} z x c v b n m {backspace}",
-                    "{abc} ' {space} , . {ent}"
-                ],
-                shift: [
-                    "Q W E R T Y U I O P",
-                    "A S D F G H J K L",
-                    "{shift} Z X C V B N M {backspace}",
-                    "{abc} ， {space} 。 {ent}"
-                ],
-                numbers: ["1 2 3", "4 5 6", "7 8 9", "{abc} 0 {backspace}"]
-            },
-            display: {
-                "{numbers}": "123",
-                "{ent}": "Ent",
-                "{escape}": "Esc",
-                "{tab}": "⇥",
-                "{backspace}": "⌫",
-                "{capslock}": "⇪",
-                "{shift}": "⇧",
-                "{space}": "simple-keyboard",
-                "{controlleft}": "ctrl ⌃",
-                "{controlright}": "ctrl ⌃",
-                "{altleft}": "alt ⌥",
-                "{altright}": "alt ⌥",
-                "{metaleft}": "cmd ⌘",
-                "{metaright}": "cmd ⌘",
-                "{abc}": "ABC",
-                "'": "'分"
-            },
-            buttonTheme: [{
-                class: 'spacebar-style',
-                buttons: '{space}'
-            }, {
-                class: 'fn-style',
-                buttons: '{number} {abc} {ent}'
-            }]
-        })
-
-        function onChange(input) {
-            console.debug("qwerty: Input changed", input)
+        function initListeners(el) {
+            el.addEventListener('tap', function (e) {
+                activeButton(e.target)
+                let name = e.target.querySelector('span').innerHTML
+                console.log('on key: ' + name)
+                fime.callNative('onKey', name)
+            })
+            el.addEventListener('swipeup', function (e) {
+                activeButton(e.target)
+                let symbol = e.target.querySelector('symbol')
+                if (symbol) console.log('on key: ' + symbol.innerHTML)
+            })
+            el.addEventListener('swipedown', function (e) {
+                activeButton(e.target)
+                console.log('on swipedown')
+            })
+            el.addEventListener('swipeleft', function (e) {
+                activeButton(e.target)
+                console.log('on swipeleft')
+            })
+            el.addEventListener('swiperight', function (e) {
+                activeButton(e.target)
+                console.log('on swiperight')
+            })
+            new Touch(el)
         }
 
-        function onChangeAll(input) {
-            // console.debug("On change all", input)
-            // keyboard.clearInput()
+        function activeButton(btn) {
+            btn.classList.add('hg-activeButton')
+            setTimeout(function () { deactiveButton(btn) }, 300)
         }
 
-        function onKeyPress(button) {
-            console.debug("qwerty: Button pressed", button)
-            keyboard.clearInput()
+        function deactiveButton(btn) {
+            btn.classList.remove('hg-activeButton')
         }
 
-        function onKeyReleased(button) {
-            console.debug('qwerty: key released')
-            keyboard.clearInput()
-            let key = button
-            if (key.substr(0, 1) == '{') {
-                switch (key) {
-                    case '{space}':
-                        key = 'VK_SPACE'
-                        break
-                    case '{backspace}':
-                        key = 'FN_BACKSPACE'
-                        break
-                    case '{ent}':
-                        key = 'FN_ENTER'
-                        break
-                    case '{escape}':
-                        key = 'FN_ESCAPE'
-                        break
-                    default:
-                        break
-                }
-            }
-            jsCallNative('onKey', key)
+        let btns = fime.qsa('.hg-button')
+        for (let i = 0; i < btns.length; i++) {
+            initListeners(btns[i])
         }
-
-        jsCallNative('init', 'keyboard')
     </script>
 </body>
 
