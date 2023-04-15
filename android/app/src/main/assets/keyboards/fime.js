@@ -20,6 +20,14 @@
         }
     }
 
+    fime.onKey = function (name) {
+        fime.callNative('onKey', name)
+    }
+
+    fime.setMode = function (mode) {
+        fime.callNative('setMode', mode)
+    }
+
     fime.qs = function (selector) {
         return d.querySelector(selector)
     }

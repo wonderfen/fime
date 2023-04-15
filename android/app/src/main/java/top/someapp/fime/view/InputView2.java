@@ -21,6 +21,7 @@ import top.someapp.fimesdk.api.FimeMessage;
 import top.someapp.fimesdk.api.ImeEngine;
 import top.someapp.fimesdk.api.InputEditor;
 import top.someapp.fimesdk.config.Keycode;
+import top.someapp.fimesdk.utils.Effects;
 import top.someapp.fimesdk.utils.Logs;
 import top.someapp.fimesdk.utils.Strings;
 import top.someapp.fimesdk.view.Keyboards;
@@ -74,9 +75,14 @@ public class InputView2 implements View.OnAttachStateChangeListener {
         Logs.d("jsCallNative, cmd=%s", cmd);
         // Map<String, Object> map = JsonHelper.INSTANCE.toMap(args);
         // CommandFactory.execute(cmd, map);
-        if ("onKey".equals(cmd) && !Strings.isNullOrEmpty(args)) {
-            String name = args.replaceAll("[\"]", "");
-            engine.onTap(new VirtualKey(Keycode.getByName(name).code));
+        String unwrap = args.replaceAll("[\"]", "");
+        if (Strings.isNullOrEmpty(unwrap)) return;
+        if ("onKey".equals(cmd)) {
+            onKey(unwrap);
+        }
+        else if ("setMode".equals(cmd)) {
+            int mode = Integer.decode(unwrap);
+            setMode(mode);
         }
     }
 
@@ -87,6 +93,22 @@ public class InputView2 implements View.OnAttachStateChangeListener {
     InputEditor getInputEditor() {
         return engine.getSchema()
                      .getInputEditor();
+    }
+
+    private void onKey(String name) {
+        Effects.playSoundAndVibrateIf();
+        Keycode keycode = Keycode.getByName(name);
+        if (Keycode.isAnyKeyCode(keycode.code)) {
+            engine.commitText(name);
+        }
+        else {
+            engine.onTap(new VirtualKey(keycode.code));
+        }
+    }
+
+    private void setMode(int mode) {
+        Effects.playSoundAndVibrateIf();
+        engine.setMode(mode);
     }
 
     @SuppressLint("SetJavaScriptEnabled") private void setupKeyboard() {
