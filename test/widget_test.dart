@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023 Fime project https://fime.fit
+ * Initial author: zelde126@126.com
+ */
+
 // This is a basic Flutter widget test.
 //
 // To perform an interaction with a widget in your test, use the WidgetTester

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023 Fime project https://fime.fit
+ * Initial author: zelde126@126.com
+ */
+
 package top.someapp.fimesdk.defaults;
 
 import android.util.Pair;
@@ -29,10 +34,10 @@ public class DefaultInputEditor implements InputEditor {
     // private static final String TAG = Fime.makeTag("DefaultInputEditor");
     private ImeEngine engine;
     private Config config;
-    private StringBuilder rawInput;         // 已输入的原始编码
-    private List<Candidate> candidateList;  // 候选列表
+    private final StringBuilder rawInput;         // 已输入的原始编码
+    private final List<Candidate> candidateList;  // 候选列表
     // 记录选字/词时光标的位置, first: rawInput.length, second: text.length
-    private Stack<Pair<Integer, Integer>> selectedCursor;
+    private final Stack<Pair<Integer, Integer>> selectedCursor;
     private int activeIndex;                // 选中候选的索引
     private Candidate selected;             // 已选择的候选
     private String alphabet = "qwertyuiopasdfghjklzxcvbnm";

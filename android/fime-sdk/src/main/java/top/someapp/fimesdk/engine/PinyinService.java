@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023 Fime project https://fime.fit
+ * Initial author: zelde126@126.com
+ */
+
 package top.someapp.fimesdk.engine;
 
 import android.app.Service;
@@ -35,20 +40,20 @@ public class PinyinService extends Service implements SearchService {
         }
     }
 
-    private IBinder binder = new SearchService.ServiceBinder(this);
+    private final IBinder binder = new SearchService.ServiceBinder(this);
     private String mUsr_dict_file;
 
-    native static boolean nativeImOpenDecoder(byte fn_sys_dict[],
-            byte fn_usr_dict[]);
+    native static boolean nativeImOpenDecoder(byte[] fn_sys_dict,
+            byte[] fn_usr_dict);
 
     native static boolean nativeImOpenDecoderFd(FileDescriptor fd,
-            long startOffset, long length, byte fn_usr_dict[]);
+            long startOffset, long length, byte[] fn_usr_dict);
 
     native static void nativeImSetMaxLens(int maxSpsLen, int maxHzsLen);
 
     native static boolean nativeImCloseDecoder();
 
-    native static int nativeImSearch(byte pyBuf[], int pyLen);
+    native static int nativeImSearch(byte[] pyBuf, int pyLen);
 
     native static int nativeImDelSearch(int pos, boolean is_pos_in_splid,
             boolean clear_fixed_this_step);
@@ -145,7 +150,7 @@ public class PinyinService extends Service implements SearchService {
     }
 
     // Get file name of the specified dictionary
-    private boolean getUsrDictFileName(byte usr_dict[]) {
+    private boolean getUsrDictFileName(byte[] usr_dict) {
         if (null == usr_dict) {
             return false;
         }
@@ -159,7 +164,7 @@ public class PinyinService extends Service implements SearchService {
     }
 
     private void initPinyinEngine() {
-        byte usr_dict[];
+        byte[] usr_dict;
         usr_dict = new byte[MAX_PATH_FILE_LENGTH];
 
         // Here is how we open a built-in dictionary for access through

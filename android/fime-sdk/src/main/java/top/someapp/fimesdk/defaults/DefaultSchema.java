@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023 Fime project https://fime.fit
+ * Initial author: zelde126@126.com
+ */
+
 package top.someapp.fimesdk.defaults;
 
 import androidx.annotation.NonNull;
@@ -36,8 +41,8 @@ public class DefaultSchema implements Schema {
     private InputEditor inputEditor;
     private Translator translator;
     private Ejector ejector;
-    private File appHome;
-    private File buildDir;
+    private final File appHome;
+    private final File buildDir;
 
     public DefaultSchema() {
         FimeContext fimeContext = FimeContext.getInstance();

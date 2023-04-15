@@ -20,7 +20,7 @@ Fime 是一个在 Android 平台上，支持自定义输入方案、键盘和词
 ## 下载和安装
 
 - 最新版 
-  - [Github Actions Artifacts release-packages](https://github.com/wonderfen/fime/actions)
+  - [Github Releases](https://github.com/wonderfen/fime/releases/latest)
   - [QQ群](https://jq.qq.com/?_wv=1027&k=wntFOKGk)
 - 最新代码
   - [gitee 仓库(国内推荐)](https://gitee.com/zelde/fime)
@@ -28,7 +28,7 @@ Fime 是一个在 Android 平台上，支持自定义输入方案、键盘和词
 
 ## 致谢
 
-- [在线网站](https://fime.site)：Noor Ty
+- [在线网站](https://fime.fit)：Noor Ty
 - [QQ群](https://jq.qq.com/?_wv=1027&k=wntFOKGk)中提供建议的朋友们
 
 ## 从源代码构建
@@ -91,7 +91,7 @@ git clone https://gitee.com/zelde/fime.git
 
 - Flutter：[flutter.cn](https://flutter.cn)
 
-- Fime 在线文档: [fime.site](https://fime.site)
+- Fime 在线文档: [fime.fit](https://fime.fit)
 
 - Github 仓库地址: [wonderfen/fime](https://github.com/wonderfen/fime)
 

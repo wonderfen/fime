@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023 Fime project https://fime.fit
+ * Initial author: zelde126@126.com
+ */
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';

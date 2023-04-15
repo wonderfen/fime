@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023 Fime project https://fime.fit
+ * Initial author: zelde126@126.com
+ */
+
 package top.someapp.fimesdk.engine;
 
 import android.content.ComponentName;
@@ -23,8 +28,8 @@ import java.util.List;
 public class ImeEngine implements ServiceConnection {
 
     private static final String TAG = "ImeEngine";
-    private HandlerThread workThread;
-    private Handler handler;
+    private final HandlerThread workThread;
+    private final Handler handler;
     private SearchService searchService;
 
     public ImeEngine() {

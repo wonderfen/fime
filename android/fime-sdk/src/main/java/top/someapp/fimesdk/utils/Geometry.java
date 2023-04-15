@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023 Fime project https://fime.fit
+ * Initial author: zelde126@126.com
+ */
+
 package top.someapp.fimesdk.utils;
 
 import android.graphics.Bitmap;
@@ -15,7 +20,7 @@ import top.someapp.fimesdk.FimeContext;
  * Created on 2022-12-29
  */
 public class Geometry {
- 
+
     private Geometry() {
     }
 

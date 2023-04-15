@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023 Fime project https://fime.fit
+ * Initial author: zelde126@126.com
+ */
+
 package top.someapp.fimesdk.engine;
 
 import android.content.Context;
@@ -50,9 +55,9 @@ public class FimeEngine implements ImeEngine, Filter<Candidate> {
     private FimeContext fimeContext;
     private SchemaManager.SchemaInfo schemaInfo;
     private Schema schema;
-    private Map<String, FimeHandler> handlerMap = new HashMap<>();
-    private HandlerThread workThread;
-    private Handler handler;
+    private final Map<String, FimeHandler> handlerMap = new HashMap<>();
+    private final HandlerThread workThread;
+    private final Handler handler;
 
     public FimeEngine(InputMethodService ims) {
         this.workThread = new HandlerThread(TAG);

@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2023 Fime project https://fime.fit
+  ~ Initial author: zelde126@126.com
+  -->
+
 <paths>
   <external-path
       name="external_files"

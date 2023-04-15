@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023 Fime project https://fime.fit
+ * Initial author: zelde126@126.com
+ */
+
 import 'dart:convert';
 
 import 'package:fime/NativeBridge.dart';

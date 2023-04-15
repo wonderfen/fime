@@ -92,6 +92,11 @@ if (keystorePropertiesFile.exists()) {
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
+/*
+ * Copyright (c) 2023 Fime project https://fime.fit
+ * Initial author: zelde126@126.com
+ */
+
 //apply plugin: 'kotlin-kapt'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 

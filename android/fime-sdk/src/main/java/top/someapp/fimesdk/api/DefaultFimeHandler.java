@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023 Fime project https://fime.fit
+ * Initial author: zelde126@126.com
+ */
+
 package top.someapp.fimesdk.api;
 
 import android.os.Message;
@@ -9,7 +14,7 @@ import androidx.annotation.NonNull;
  */
 public class DefaultFimeHandler implements FimeHandler {
 
-    private String name;
+    private final String name;
 
     public DefaultFimeHandler(@NonNull String name) {
         this.name = name;

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023 Fime project https://fime.fit
+ * Initial author: zelde126@126.com
+ */
+
 package top.someapp.fime;
 
 import android.app.Activity;
@@ -27,4 +32,3 @@ public class FimeApp extends Application {
         this.activity = activity;
     }
 }
-

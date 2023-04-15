@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023 Fime project https://fime.fit
+ * Initial author: zelde126@126.com
+ */
+
 package top.someapp.fimesdk.dict;
 
 /**
@@ -9,5 +14,4 @@ package top.someapp.fimesdk.dict;
 public class Searcher {
 
     private Dict dict;
-
 }

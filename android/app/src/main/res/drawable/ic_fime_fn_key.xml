@@ -1,3 +1,8 @@
+<!--
+  ~ Copyright (c) 2023 Fime project https://fime.fit
+  ~ Initial author: zelde126@126.com
+  -->
+
 <vector android:height="128dp" android:viewportHeight="181.418"
     android:viewportWidth="181.418" android:width="128dp" xmlns:android="http://schemas.android.com/apk/res/android">
     <path android:fillColor="#9B9C9F"

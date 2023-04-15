@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2023 Fime project https://fime.fit
+  ~ Initial author: zelde126@126.com
+  -->
+
 <resources>
   <string name="app_name">Fime 输入法</string>
   <string name="app_name_dev">Fime 开发版</string>

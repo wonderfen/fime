@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023 Fime project https://fime.fit
+ * Initial author: zelde126@126.com
+ */
+
 package top.someapp.fimesdk.utils;
 
 import java.util.HashMap;
@@ -16,8 +21,7 @@ public class Classes {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T newInstance(String className) throws ReflectiveOperationException,
-            IllegalAccessException {
+    public static <T> T newInstance(String className) throws ReflectiveOperationException {
         Class<?> clz = null;
         if (classCache.containsKey(className)) {
             clz = classCache.get(className);

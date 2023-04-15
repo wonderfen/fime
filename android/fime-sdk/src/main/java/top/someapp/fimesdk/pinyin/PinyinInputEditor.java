@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023 Fime project https://fime.fit
+ * Initial author: zelde126@126.com
+ */
+
 package top.someapp.fimesdk.pinyin;
 
 import androidx.annotation.Keep;
@@ -19,7 +24,7 @@ import java.util.Stack;
 @Keep
 public class PinyinInputEditor extends DefaultInputEditor {
 
-    private Stack<String> searchCodes = new Stack<>();
+    private final Stack<String> searchCodes = new Stack<>();
     private String lastSegment = "";
 
     @Override public String getLastSegment() {

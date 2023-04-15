@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023 Fime project https://fime.fit
+ * Initial author: zelde126@126.com
+ */
+
 package top.someapp.fime.view;
 
 import android.content.Context;
@@ -63,7 +68,7 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
     private Paint pathPaint;
     private MotionEvent lastTouchEvent;
     private PointF touchDown;               // 按下的位置
-    private int longPressThreshold = 500;   // 触发长按的阀值
+    private final int longPressThreshold = 500;   // 触发长按的阀值
     private boolean inLongPressCheck;
 
     public InputView(ImeEngine engine) {

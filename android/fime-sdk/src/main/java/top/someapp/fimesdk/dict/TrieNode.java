@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023 Fime project https://fime.fit
+ * Initial author: zelde126@126.com
+ */
+
 package top.someapp.fimesdk.dict;
 
 import java.io.Serializable;
@@ -14,7 +19,7 @@ import java.util.Map;
 class TrieNode implements Serializable {
 
     private final byte key;
-    private List<TrieNode> children;
+    private final List<TrieNode> children;
     private boolean end;
 
     TrieNode(byte key) {

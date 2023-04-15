@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023 Fime project https://fime.fit
+ * Initial author: zelde126@126.com
+ */
+
 package top.someapp.fimesdk.table;
 
 import androidx.annotation.Keep;
@@ -19,7 +24,7 @@ import java.util.Stack;
 @Keep
 public class TableInputEditor extends DefaultInputEditor {
 
-    private Stack<String> searchCodes = new Stack<>();
+    private final Stack<String> searchCodes = new Stack<>();
     private String lastSegment = "";
     private boolean canOverflow;
     private String overflowWithEmpty; // clear | accept | reject

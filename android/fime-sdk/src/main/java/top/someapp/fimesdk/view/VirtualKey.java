@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023 Fime project https://fime.fit
+ * Initial author: zelde126@126.com
+ */
+
 package top.someapp.fimesdk.view;
 
 import android.graphics.PointF;
@@ -19,7 +24,7 @@ public class VirtualKey {
     private Box container;
     private Style style;
     private Theme theme;
-    private boolean repeatable;
+    private final boolean repeatable;
     private String onTap;
 
     public VirtualKey(int code) {

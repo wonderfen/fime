@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023 Fime project https://fime.fit
+ * Initial author: zelde126@126.com
+ */
+
 package top.someapp.fimesdk.view;
 
 import android.graphics.Bitmap;
@@ -44,7 +49,7 @@ public class Keyboards implements ImeEngineAware, Widget.OnVirtualKeyListener {
     private final Map<String, Keyboard> keyboardMap = new LinkedHashMap<>();
     private final Config config;
     private ImeEngine engine;
-    private int width;  // px
+    private final int width;  // px
     private String name;
     private Keyboard current;
     private Theme theme;

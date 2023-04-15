@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023 Fime project https://fime.fit
+ * Initial author: zelde126@126.com
+ */
+
 package top.someapp.fime.view;
 
 import android.content.Context;
@@ -31,7 +36,7 @@ import top.someapp.fimesdk.utils.Strings;
 class FimePopup extends PopupWindow implements View.OnClickListener,
         AdapterView.OnItemSelectedListener, AdapterView.OnItemClickListener {
 
-    private FimeContext fimeContext;
+    private final FimeContext fimeContext;
     private Button btnReturn;
     private Button btnTheme;
     private Button btnSchema;
@@ -113,7 +118,7 @@ class FimePopup extends PopupWindow implements View.OnClickListener,
         setHeight(ViewGroup.LayoutParams.MATCH_PARENT);
         setBackgroundDrawable(new ColorDrawable(0)); // 去掉背景
         View view = LayoutInflater.from(fimeContext.getContext())
-                                  .inflate(R.layout.popup_wrapper, (ViewGroup) null);
+                                  .inflate(R.layout.popup_wrapper, null);
         setContentView(view);
         setOutsideTouchable(true);
 
