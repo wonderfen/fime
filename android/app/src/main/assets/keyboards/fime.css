@@ -1,0 +1,76 @@
+body {
+    font-family: HelveticaNeue-Light,
+        Helvetica Neue Light,
+        Helvetica Neue,
+        Helvetica,
+        Arial,
+        Lucida Grande,
+        sans-serif;
+}
+
+.fime-box {
+    padding: 0;
+    margin: 0;
+}
+
+.fime-kbd-box {
+    min-height: 16px;
+    background: #d5d7dd;
+    display: flex;
+    flex-direction: column;
+}
+
+.fime-key-row {
+    display: flex;
+    padding: 0 4px;
+    margin: 3px 0;
+    height: 44px;
+    /* flex-grow: 1; */
+}
+
+.fime-key-col {
+    display: flex;
+    min-width: 10vw;
+    flex-direction: column;
+}
+
+.fime-key {
+    background: #fafafa;
+    width: 100%;
+    border-radius: 5px;
+    margin: 0 2px;
+    position: relative;
+    flex-grow: 1;
+    box-shadow: 0 4px 3px -1px rgba(0, 0, 0, 0.4);
+}
+
+.fime-key-active,
+.fime-key:active {
+    background: #efefef;
+    box-shadow: none;
+}
+
+.fime-fnkey {
+    background: #b5bdc6;
+}
+
+.fime-symbol {
+    position: absolute;
+    color: #b5b5b5;
+    top: 2px;
+    right: 4px;
+    font-size: 9pt;
+}
+
+.fime-label {
+    display: block;
+    color: #161616;
+    text-align: center;
+    font-size: 18pt;
+    height: 100%;
+    line-height: 44px;
+    padding: 2px 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}

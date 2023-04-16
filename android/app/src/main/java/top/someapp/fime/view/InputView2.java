@@ -9,6 +9,7 @@ import android.annotation.SuppressLint;
 import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -45,7 +46,7 @@ public class InputView2 implements View.OnAttachStateChangeListener {
     private final ImeEngine engine;
     @SuppressWarnings("unused")
     private final Set<Theme> themes = new HashSet<>();
-    private View container;
+    private ViewGroup container;
     private ActionBarView actionBarView;
     private WebView webView;
     @SuppressWarnings("unused")
@@ -130,12 +131,12 @@ public class InputView2 implements View.OnAttachStateChangeListener {
         s.setTextZoom(100);   // 处理系统设置字体大小对应用的影响，如miui
         s.setDefaultTextEncodingName("utf-8");
         webView.addJavascriptInterface(this, "android");
-        webView.loadUrl("file:///android_asset/keyboards/qwerty.html");
+        webView.loadUrl("file:///android_asset/keyboards/touch.html");
     }
 
     @SuppressLint("InflateParams") private void init() {
-        container = LayoutInflater.from(engine.getContext())
-                                  .inflate(R.layout.intput_view, null);
+        container = (ViewGroup) LayoutInflater.from(engine.getContext())
+                                              .inflate(R.layout.intput_view, null);
         actionBarView = container.findViewById(R.id.actionBarView);
         actionBarView.setInputView(this);
         webView = container.findViewById(R.id.webview);

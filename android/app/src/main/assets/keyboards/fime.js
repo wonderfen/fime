@@ -2,18 +2,20 @@
     const fime = {}
 
     let callbacks = {}
-
     function nextId() {
         return (new Date).getTime()
     }
 
+    let hasBridge_ = false
     function hasBridge() {
-        return w.android && w.android.jsCallNative
+        if (hasBridge === true) return true
+        hasBridge_ = w.android && w.android.jsCallNative
+        return hasBridge_
     }
 
     fime.callNative = function (action, args) {
         if (hasBridge()) {
-            console.log('jsCallNative')
+            // console.log('jsCallNative')
             w.android.jsCallNative(nextId(), action, JSON.stringify(args))
         } else {
             console.warn('Only works on Android！')

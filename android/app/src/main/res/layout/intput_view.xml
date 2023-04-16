@@ -7,7 +7,7 @@
   android:layout_width="match_parent"
   android:layout_height="match_parent"
   android:orientation="vertical"
-  android:background="@color/mdSecondaryText"
+  android:background="@color/white"
   android:minHeight="128dp">
 
   <top.someapp.fime.view.ActionBarView
