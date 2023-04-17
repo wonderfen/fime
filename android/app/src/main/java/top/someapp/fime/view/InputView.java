@@ -34,7 +34,6 @@ import top.someapp.fimesdk.utils.Geometry;
 import top.someapp.fimesdk.utils.Logs;
 import top.someapp.fimesdk.utils.Strings;
 import top.someapp.fimesdk.view.Box;
-import top.someapp.fimesdk.view.Keyboards;
 import top.someapp.fimesdk.view.Theme;
 import top.someapp.fimesdk.view.VirtualKey;
 import top.someapp.fimesdk.view.Widget;
@@ -50,7 +49,9 @@ import java.util.Set;
  *
  * @author zwz
  * Created on 2022-12-29
+ * @deprecated 在 0.3.2 及之后版本，已不再使用，请使用 {@link top.someapp.fime.view.InputView2}
  */
+@Deprecated
 public class InputView extends SurfaceView implements SurfaceHolder.Callback, View.OnKeyListener {
 
     private static final String TAG = "InputView";
@@ -58,8 +59,8 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
     private static boolean drawPath;
     private final ImeEngine engine;
     private final Set<Theme> themes = new HashSet<>();
+    private final int longPressThreshold = 500;   // 触发长按的阀值
     private ActionBar actionBar;
-    private Keyboards keyboards;
     private FimeHandler painter;
     private Box container;
     private Canvas canvas;
@@ -68,7 +69,6 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
     private Paint pathPaint;
     private MotionEvent lastTouchEvent;
     private PointF touchDown;               // 按下的位置
-    private final int longPressThreshold = 500;   // 触发长按的阀值
     private boolean inLongPressCheck;
 
     public InputView(ImeEngine engine) {
@@ -104,8 +104,8 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
             actionBar.setInputEditor(engine.getSchema()
                                            .getInputEditor());
         }
-        keyboards = engine.getSchema()
-                          .getKeyboards();
+        // keyboards = engine.getSchema()
+        //                   .getKeyboards();
         setupPainter();
         repaint();
     }
@@ -191,7 +191,7 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
         if (container == null) {
             DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
             container = new Box(displayMetrics.widthPixels,
-                                keyboards.getHeightPx() + actionBarHeight);
+                    /*keyboards.getHeightPx() +*/ actionBarHeight);
         }
         setMeasuredDimension((int) container.getWidth(), (int) container.getHeight());
     }
@@ -221,7 +221,7 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
             if (name.equals(theme.getName())) {
                 Logs.d("applyTheme: %s", name);
                 actionBar.applyTheme(theme);
-                keyboards.applyTheme(theme);
+                // keyboards.applyTheme(theme);
                 repaint();
                 break;
             }
@@ -287,7 +287,7 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
                      .surround(pos)) {
             return actionBar;
         }
-        return keyboards.getCurrent();
+        return null; // keyboards.getCurrent();
     }
 
     private void init() {
@@ -303,8 +303,8 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
 
         final DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
         actionBar = new ActionBar(new Box(displayMetrics.widthPixels, actionBarHeight));
-        keyboards = engine.getSchema()
-                          .getKeyboards();
+        // keyboards = engine.getSchema()
+        //                   .getKeyboards();
         if (BuildConfig.DEBUG) setDrawPath(true);
     }
 
@@ -331,10 +331,10 @@ public class InputView extends SurfaceView implements SurfaceHolder.Callback, Vi
             }
             else {
                 actionBar.onDraw(canvas, actionBar.getContainer(), painter);
-                keyboards.getCurrent()
-                         .onDraw(canvas,
-                                 new Box(new PointF(0, actionBarHeight), container.getWidth(),
-                                         container.getHeight() - actionBarHeight), painter);
+                // keyboards.getCurrent()
+                //          .onDraw(canvas,
+                //                  new Box(new PointF(0, actionBarHeight), container.getWidth(),
+                //                          container.getHeight() - actionBarHeight), painter);
                 if (drawPath) canvas.drawPath(path, pathPaint);
             }
         }

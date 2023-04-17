@@ -11,8 +11,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
 import androidx.annotation.NonNull;
 import top.someapp.fime.R;
 import top.someapp.fimesdk.FimeContext;
@@ -25,7 +23,6 @@ import top.someapp.fimesdk.config.Keycode;
 import top.someapp.fimesdk.utils.Effects;
 import top.someapp.fimesdk.utils.Logs;
 import top.someapp.fimesdk.utils.Strings;
-import top.someapp.fimesdk.view.Keyboards;
 import top.someapp.fimesdk.view.Theme;
 import top.someapp.fimesdk.view.VirtualKey;
 
@@ -39,6 +36,7 @@ import java.util.Set;
  *
  * @author zwz
  * Created on 2023-04-11
+ * @since 0.3.2
  */
 public class InputView2 implements View.OnAttachStateChangeListener {
 
@@ -48,16 +46,13 @@ public class InputView2 implements View.OnAttachStateChangeListener {
     private final Set<Theme> themes = new HashSet<>();
     private ViewGroup container;
     private ActionBarView actionBarView;
-    private WebView webView;
-    @SuppressWarnings("unused")
-    private Keyboards keyboards;
+    private KeyboardView keyboardView;
     private FimeHandler painter;
 
     public InputView2(ImeEngine engine) {
         this.engine = engine;
         init();
         setupPainter();
-        setupKeyboard();
     }
 
     public View getContainer() {
@@ -68,14 +63,11 @@ public class InputView2 implements View.OnAttachStateChangeListener {
     }
 
     @Override public void onViewDetachedFromWindow(View v) {
-
     }
 
     @JavascriptInterface
     public void jsCallNative(long id, String cmd, String args) {
         Logs.d("jsCallNative, cmd=%s", cmd);
-        // Map<String, Object> map = JsonHelper.INSTANCE.toMap(args);
-        // CommandFactory.execute(cmd, map);
         String unwrap = args.replaceAll("[\"]", "");
         if (Strings.isNullOrEmpty(unwrap)) return;
         if ("onKey".equals(cmd)) {
@@ -97,7 +89,7 @@ public class InputView2 implements View.OnAttachStateChangeListener {
     }
 
     private void onKey(String name) {
-        Effects.playSoundAndVibrateIf();
+        engine.post(Effects::playSoundAndVibrateIf);
         Keycode keycode = Keycode.getByName(name);
         if (Keycode.isAnyKeyCode(keycode.code)) {
             engine.commitText(name);
@@ -108,30 +100,8 @@ public class InputView2 implements View.OnAttachStateChangeListener {
     }
 
     private void setMode(int mode) {
-        Effects.playSoundAndVibrateIf();
+        engine.post(Effects::playSoundAndVibrateIf);
         engine.setMode(mode);
-    }
-
-    @SuppressLint("SetJavaScriptEnabled") private void setupKeyboard() {
-        WebSettings s = webView.getSettings();
-        s.setJavaScriptEnabled(true);
-        s.setUseWideViewPort(true);
-        s.setDisplayZoomControls(false);
-        s.setAllowFileAccess(true);
-        s.setDomStorageEnabled(true);
-        s.setDatabaseEnabled(true);
-        s.setAppCacheEnabled(true);
-        s.setLoadsImagesAutomatically(true);
-        //noinspection deprecation
-        s.setSavePassword(false);
-        s.setSaveFormData(false);
-        s.setAllowUniversalAccessFromFileURLs(true);
-        s.setSupportZoom(false);
-        s.setDomStorageEnabled(true);
-        s.setTextZoom(100);   // 处理系统设置字体大小对应用的影响，如miui
-        s.setDefaultTextEncodingName("utf-8");
-        webView.addJavascriptInterface(this, "android");
-        webView.loadUrl("file:///android_asset/keyboards/touch.html");
     }
 
     @SuppressLint("InflateParams") private void init() {
@@ -139,7 +109,10 @@ public class InputView2 implements View.OnAttachStateChangeListener {
                                               .inflate(R.layout.intput_view, null);
         actionBarView = container.findViewById(R.id.actionBarView);
         actionBarView.setInputView(this);
-        webView = container.findViewById(R.id.webview);
+        keyboardView = new KeyboardView(engine.getContext());
+        keyboardView.enableJsBridge(this);
+        container.addView(keyboardView);
+        keyboardView.loadKeyboard();
         container.addOnAttachStateChangeListener(this);
         FimeContext.getInstance()
                    .setRootView(container);

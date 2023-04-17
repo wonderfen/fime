@@ -5,8 +5,6 @@
 
 package top.someapp.fimesdk.api;
 
-import top.someapp.fimesdk.view.Keyboards;
-
 /**
  * 输入方案
  *
@@ -18,10 +16,6 @@ public interface Schema extends ImeEngineAware, Configurable {
     String getName();
 
     void setName(String name);
-
-    Keyboards getKeyboards();
-
-    void setKeyboards(Keyboards keyboards);
 
     boolean hasOptionKey(String key);
 

@@ -8,9 +8,8 @@
 
     let hasBridge_ = false
     function hasBridge() {
-        if (hasBridge === true) return true
-        hasBridge_ = w.android && w.android.jsCallNative
-        return hasBridge_
+        if (hasBridge_ === true) return true
+        return hasBridge_ = w.android && w.android.jsCallNative
     }
 
     fime.callNative = function (action, args) {

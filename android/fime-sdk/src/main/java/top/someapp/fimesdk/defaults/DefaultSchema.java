@@ -14,14 +14,10 @@ import top.someapp.fimesdk.api.ImeEngine;
 import top.someapp.fimesdk.api.InputEditor;
 import top.someapp.fimesdk.api.Schema;
 import top.someapp.fimesdk.api.Translator;
-import top.someapp.fimesdk.config.Configs;
 import top.someapp.fimesdk.utils.Classes;
-import top.someapp.fimesdk.utils.FileStorage;
 import top.someapp.fimesdk.utils.Logs;
-import top.someapp.fimesdk.view.Keyboards;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,17 +28,16 @@ import java.util.Map;
  */
 public class DefaultSchema implements Schema {
 
+    private final File appHome;
+    private final File buildDir;
     private ImeEngine engine;
     private Config config;
     private String name;
     private Map<String, List<String>> options;
     private Map<String, Integer> activeOptions;
-    private Keyboards keyboards;
     private InputEditor inputEditor;
     private Translator translator;
     private Ejector ejector;
-    private final File appHome;
-    private final File buildDir;
 
     public DefaultSchema() {
         FimeContext fimeContext = FimeContext.getInstance();
@@ -80,14 +75,6 @@ public class DefaultSchema implements Schema {
 
     @Override public void setEjector(Ejector ejector) {
         this.ejector = ejector;
-    }
-
-    @Override public Keyboards getKeyboards() {
-        return keyboards;
-    }
-
-    @Override public void setKeyboards(Keyboards keyboards) {
-        this.keyboards = keyboards;
     }
 
     @Override public boolean hasOptionKey(String key) {
@@ -159,7 +146,6 @@ public class DefaultSchema implements Schema {
 
     @Override public void setup(@NonNull ImeEngine engine) {
         this.engine = engine;
-        if (keyboards != null) keyboards.setup(engine);
         inputEditor.setup(engine);
         translator.setup(engine);
         ejector.setup(engine);
@@ -178,21 +164,20 @@ public class DefaultSchema implements Schema {
     }
 
     private void setupKeyboards() {
-        String file = config.getString("keyboards");
-        try {
-            Config config;
-            if (FileStorage.hasFile(buildDir, file + ".s")) {
-                config = Configs.deserialize(new File(buildDir, file + ".s"));
-            }
-            else {
-                config = Configs.load(new File(appHome, file), true);
-            }
-            keyboards = new Keyboards(config);
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-            Logs.e("setupKeyboards error:%s", e.getMessage());
-        }
+        // String file = config.getString("keyboards");
+        // try {
+        //     Config config;
+        //     if (FileStorage.hasFile(buildDir, file + ".s")) {
+        //         config = Configs.deserialize(new File(buildDir, file + ".s"));
+        //     }
+        //     else {
+        //         config = Configs.load(new File(appHome, file), true);
+        //     }
+        // }
+        // catch (IOException e) {
+        //     e.printStackTrace();
+        //     Logs.e("setupKeyboards error:%s", e.getMessage());
+        // }
     }
 
     private void setupInputEditor() {

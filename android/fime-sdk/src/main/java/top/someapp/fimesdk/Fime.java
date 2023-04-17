@@ -27,17 +27,11 @@ public class Fime {
             "default_user.conf",
             // 汉语拼音
             "pinyin_dict.csv",
-            "fime_keyboards.conf",
             "fime_pinyin_schema.conf",
             // 自然码双拼
             "zrm_schema.conf",
             // 拼音93
-            "pinyin93_keyboards.conf",
             "pinyin93_schema.conf",
-            // 五笔画
-            "stroke5_dict.csv",
-            "stroke5_keyboards.conf",
-            "stroke5_schema.conf",
             // 五笔86
             "wubi86_dict.csv",
             "wubi86_schema.conf",
@@ -45,11 +39,9 @@ public class Fime {
             "sbfj_dict.csv",
             "sbfj_schema.conf",
             // 自然码93
-            "zrm93_keyboards.conf",
             "zrm93_schema.conf",
             // 连山易码
             "lian_shan_dict.csv",
-            "lian_shan_keyboards.conf",
             "lian_shan_schema.conf",
     };
 
