@@ -40,6 +40,7 @@ import java.io.File;
  * @author zwz
  * Created on 2022-12-20
  */
+@SuppressWarnings("SpellCheckingInspection")
 public class FimeService extends InputMethodService implements ServiceConnection {
 
     private static final String TAG = "FimeService";
@@ -69,12 +70,12 @@ public class FimeService extends InputMethodService implements ServiceConnection
         //     parent.addView(inputView);
         // }
         FimeContext fimeContext = FimeContext.getInstance();
-        // fimeContext.setRootView(inputView);
         fimeContext.setImeDialog(getWindow());
         ImeEngine.ImeState state = engine.getState();
         if (state == ImeEngine.ImeState.FREEZE || state == ImeEngine.ImeState.QUIT) {
             engine.enterState(ImeEngine.ImeState.READY);
         }
+        inputView.update();
     }
 
     @Override public void onWindowHidden() {

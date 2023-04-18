@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
  * @author zwz
  * Created on 2022-12-31
  */
+@SuppressWarnings("SpellCheckingInspection")
 public interface FimeHandler {
 
     @NonNull String getName();

@@ -11,6 +11,7 @@ import android.os.Message;
  * @author zwz
  * Created on 2022-12-30
  */
+@SuppressWarnings("SpellCheckingInspection")
 public class FimeMessage {
 
     public static final int MULTIPLE_HANDLER = 0b1_0000_0000;   // 需要多个 Handler 处理，默认一个 Handler 处理

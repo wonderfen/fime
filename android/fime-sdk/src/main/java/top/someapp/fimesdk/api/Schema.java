@@ -5,6 +5,10 @@
 
 package top.someapp.fimesdk.api;
 
+import androidx.annotation.NonNull;
+
+import java.util.Map;
+
 /**
  * 输入方案
  *
@@ -26,6 +30,10 @@ public interface Schema extends ImeEngineAware, Configurable {
     boolean activeOption(String key, int index);
 
     void toggleOption(String key);
+
+    Map<String, Object> getKeyboardConfig();
+
+    void useKeyboardConfig(@NonNull Map<String, Object> config);
 
     InputEditor getInputEditor();
 

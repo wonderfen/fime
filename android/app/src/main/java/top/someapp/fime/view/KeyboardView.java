@@ -13,11 +13,13 @@ import android.webkit.WebView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import top.someapp.fimesdk.FimeContext;
+import top.someapp.fimesdk.utils.Jsons;
 import top.someapp.fimesdk.utils.Logs;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Map;
 
 /**
  * @author zwz
@@ -58,6 +60,39 @@ public class KeyboardView extends WebView {
             }
             if (loaded) break;
         }
+    }
+
+    void nativeCallJs(long id, Map<String, Object> args) {
+        evalScript("fime.nativeCallback", id, Jsons.toJSONString(args, "{}"));
+    }
+
+    @SuppressWarnings("SpellCheckingInspection")
+    void useLayout(String layout) {
+        if (layout != null) {
+            evalScript("fime.onNativeCall", "'onKeyboardLayout'", "{layout:'" + layout + "'}");
+        }
+    }
+
+    private void evalScript(@NonNull String function, Object... args) {
+        StringBuilder script = new StringBuilder(function);
+        if (args == null || args.length == 0) {
+            script.append("()");
+        }
+        else {
+            boolean first = true;
+            script.append("(");
+            for (Object o : args) {
+                if (first) {
+                    first = false;
+                }
+                else {
+                    script.append(",");
+                }
+                script.append(o);
+            }
+            script.append(")");
+        }
+        post(() -> evaluateJavascript(script.toString(), null));
     }
 
     @SuppressLint("SetJavaScriptEnabled") private void init() {

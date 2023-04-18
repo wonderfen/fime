@@ -21,12 +21,13 @@ import top.someapp.fimesdk.api.ImeEngine;
 import top.someapp.fimesdk.api.InputEditor;
 import top.someapp.fimesdk.config.Keycode;
 import top.someapp.fimesdk.utils.Effects;
+import top.someapp.fimesdk.utils.Jsons;
 import top.someapp.fimesdk.utils.Logs;
-import top.someapp.fimesdk.utils.Strings;
 import top.someapp.fimesdk.view.Theme;
 import top.someapp.fimesdk.view.VirtualKey;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -38,7 +39,7 @@ import java.util.Set;
  * Created on 2023-04-11
  * @since 0.3.2
  */
-public class InputView2 implements View.OnAttachStateChangeListener {
+public class InputView2 implements View.OnAttachStateChangeListener, View.OnLayoutChangeListener {
 
     private static final String TAG = "InputView2";
     private final ImeEngine engine;
@@ -65,17 +66,40 @@ public class InputView2 implements View.OnAttachStateChangeListener {
     @Override public void onViewDetachedFromWindow(View v) {
     }
 
+    @Override
+    public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft,
+            int oldTop, int oldRight, int oldBottom) {
+        Logs.d("onLayoutChange");
+    }
+
+    public void update() {
+        actionBarView.repaint();
+        Map<String, Object> keyboardConfig = engine.getSchema()
+                                                   .getKeyboardConfig();
+        if (keyboardConfig != null) {
+            keyboardView.useLayout((String) keyboardConfig.get("default-layout"));
+        }
+    }
+
     @JavascriptInterface
+    @SuppressWarnings("all")
     public void jsCallNative(long id, String cmd, String args) {
         Logs.d("jsCallNative, cmd=%s", cmd);
-        String unwrap = args.replaceAll("[\"]", "");
-        if (Strings.isNullOrEmpty(unwrap)) return;
-        if ("onKey".equals(cmd)) {
-            onKey(unwrap);
+        try {
+            Map<String, Object> map = Jsons.toMap(args);
+            if ("onKey".equals(cmd)) {
+                onKey((String) map.get("name"));
+            }
+            else if ("setMode".equals(cmd)) {
+                int mode = (int) map.get("mode");
+                setMode(mode);
+            }
+            else if ("getDefaultLayout".equals(cmd)) {
+                getDefaultLayout(id);
+            }
         }
-        else if ("setMode".equals(cmd)) {
-            int mode = Integer.decode(unwrap);
-            setMode(mode);
+        catch (Exception e) {
+            Logs.e(e.getMessage());
         }
     }
 
@@ -104,6 +128,12 @@ public class InputView2 implements View.OnAttachStateChangeListener {
         engine.setMode(mode);
     }
 
+    private void getDefaultLayout(long id) {
+        Map<String, Object> keyboardConfig = engine.getSchema()
+                                                   .getKeyboardConfig();
+        if (keyboardConfig != null) keyboardView.nativeCallJs(id, keyboardConfig);
+    }
+
     @SuppressLint("InflateParams") private void init() {
         container = (ViewGroup) LayoutInflater.from(engine.getContext())
                                               .inflate(R.layout.intput_view, null);
@@ -114,6 +144,7 @@ public class InputView2 implements View.OnAttachStateChangeListener {
         container.addView(keyboardView);
         keyboardView.loadKeyboard();
         container.addOnAttachStateChangeListener(this);
+        container.addOnLayoutChangeListener(this);
         FimeContext.getInstance()
                    .setRootView(container);
     }

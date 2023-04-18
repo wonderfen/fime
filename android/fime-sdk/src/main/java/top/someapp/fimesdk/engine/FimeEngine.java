@@ -46,18 +46,19 @@ import java.util.Set;
  * @author zwz
  * Create on 2023-01-31
  */
+@SuppressWarnings("SpellCheckingInspection")
 public class FimeEngine implements ImeEngine, Filter<Candidate> {
 
     private static final String TAG = "FimeEngine";
+    private final Map<String, FimeHandler> handlerMap = new HashMap<>();
+    private final HandlerThread workThread;
+    private final Handler handler;
     private ImeState state = ImeState.FREEZE;
     private int mode = CN_MODE;
     private InputMethodService ims;
     private FimeContext fimeContext;
     private SchemaManager.SchemaInfo schemaInfo;
     private Schema schema;
-    private final Map<String, FimeHandler> handlerMap = new HashMap<>();
-    private final HandlerThread workThread;
-    private final Handler handler;
 
     public FimeEngine(InputMethodService ims) {
         this.workThread = new HandlerThread(TAG);

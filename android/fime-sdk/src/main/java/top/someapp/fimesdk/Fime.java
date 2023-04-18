@@ -9,6 +9,7 @@ package top.someapp.fimesdk;
  * @author zwz
  * Created on 2022-12-29
  */
+@SuppressWarnings("SpellCheckingInspection")
 public class Fime {
 
     public static final int REQUEST_READ_URI = 100;

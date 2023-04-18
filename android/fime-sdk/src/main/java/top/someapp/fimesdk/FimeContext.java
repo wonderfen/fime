@@ -38,6 +38,7 @@ import java.util.Calendar;
  * @author zwz
  * Created on 2022-12-23
  */
+@SuppressWarnings("SpellCheckingInspection")
 public class FimeContext implements Thread.UncaughtExceptionHandler {
 
     @SuppressLint("StaticFieldLeak")

@@ -35,6 +35,7 @@ public class DefaultSchema implements Schema {
     private String name;
     private Map<String, List<String>> options;
     private Map<String, Integer> activeOptions;
+    private Map<String, Object> keyboardConfig;
     private InputEditor inputEditor;
     private Translator translator;
     private Ejector ejector;
@@ -115,6 +116,14 @@ public class DefaultSchema implements Schema {
         }
     }
 
+    @Override public Map<String, Object> getKeyboardConfig() {
+        return keyboardConfig;
+    }
+
+    @Override public void useKeyboardConfig(@NonNull Map<String, Object> config) {
+        this.keyboardConfig = config;
+    }
+
     @Override public void build() {
         // try {
         //     Configs.serialize(config, new FileOutputStream(new File(buildDir, "s/schema.s")));
@@ -164,20 +173,22 @@ public class DefaultSchema implements Schema {
     }
 
     private void setupKeyboards() {
-        // String file = config.getString("keyboards");
-        // try {
-        //     Config config;
-        //     if (FileStorage.hasFile(buildDir, file + ".s")) {
-        //         config = Configs.deserialize(new File(buildDir, file + ".s"));
-        //     }
-        //     else {
-        //         config = Configs.load(new File(appHome, file), true);
-        //     }
-        // }
-        // catch (IOException e) {
-        //     e.printStackTrace();
-        //     Logs.e("setupKeyboards error:%s", e.getMessage());
-        // }
+        Map<String, Object> keyboards = null;
+        if (config.hasPath("keyboards")) {
+            try {
+                keyboards = config.getConfig("keyboards")
+                                  .root()
+                                  .unwrapped();
+            }
+            catch (Exception e) {
+                Logs.e(e.getMessage());
+            }
+        }
+        if (keyboards == null) {
+            keyboards = new HashMap<>();
+            keyboards.put("default-layout", "qwerty");
+        }
+        useKeyboardConfig(keyboards);
     }
 
     private void setupInputEditor() {

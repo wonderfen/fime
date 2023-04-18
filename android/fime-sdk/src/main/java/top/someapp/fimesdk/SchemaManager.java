@@ -155,11 +155,9 @@ public class SchemaManager {
         }
         try {
             Configs.serialize(config, new FileOutputStream(compiledFile));
-            String keyboards = config.getString("keyboards");
-            if (!FileStorage.hasFile(fimeContext.fileInCacheDir(keyboards + ".s"))) {
-                Configs.serialize(Configs.load(fimeContext.fileInAppHome(keyboards), true),
-                                  new FileOutputStream(new File(buildDir, keyboards + ".s")));
-            }
+            // if (config.hasPath("keyboard")) {
+            //     Config keyboard = config.getConfig("keyboard");
+            // }
             Config c = config.getConfig("translator.dict");
             String dictName = c.getString("name");
             char delimiter = c.hasPath("delimiter") ? c.getString("delimiter")
