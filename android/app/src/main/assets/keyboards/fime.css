@@ -1,11 +1,76 @@
+@font-face {
+    font-family: 'icomoon';
+    src: url('fonts/icomoon.eot?xahf3z');
+    src: url('fonts/icomoon.eot?xahf3z#iefix') format('embedded-opentype'), url('fonts/icomoon.ttf?xahf3z') format('truetype'), url('fonts/icomoon.woff?xahf3z') format('woff'), url('fonts/icomoon.svg?xahf3z#icomoon') format('svg');
+    font-weight: normal;
+    font-style: normal;
+    font-display: block;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+    /* use !important to prevent issues with browser extensions that change fonts */
+    font-family: 'icomoon' !important;
+    speak: never;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    /* Better Font Rendering =========== */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-enter:before {
+    content: "\e900";
+}
+
+.icon-at:before {
+    content: "\e901";
+}
+
+.icon-backspace:before {
+    content: "\e902";
+}
+
+.icon-backspace-fill:before {
+    content: "\e903";
+}
+
+.icon-capslock:before {
+    content: "\e904";
+}
+
+.icon-capslock-fill:before {
+    content: "\e905";
+}
+
+.icon-emoji:before {
+    content: "\e906";
+}
+
+.icon-palette:before {
+    content: "\e908";
+}
+
+.icon-return:before {
+    content: "\e909";
+}
+
+.icon-shift:before {
+    content: "\e90a";
+}
+
+.icon-shift-fill:before {
+    content: "\e90b";
+}
+
+.icon-hashtag-solid:before {
+    content: "\e907";
+}
+
 body {
-    font-family: HelveticaNeue-Light,
-        Helvetica Neue Light,
-        Helvetica Neue,
-        Helvetica,
-        Arial,
-        Lucida Grande,
-        sans-serif;
+    font-family: HelveticaNeue-Light, Helvetica Neue Light, Helvetica Neue, Helvetica, Arial, Lucida Grande, sans-serif;
 }
 
 .fime-box {
@@ -16,6 +81,8 @@ body {
 .fime-kbd-box {
     min-height: 16px;
     background: #d5d7dd;
+    user-select: none;
+    touch-action: none;
     display: flex;
     flex-direction: column;
 }
@@ -44,8 +111,7 @@ body {
     box-shadow: 0 4px 3px -1px rgba(0, 0, 0, 0.4);
 }
 
-.fime-key-active,
-.fime-key:active {
+.fime-key-active, .fime-key:active {
     background: #efefef;
     box-shadow: none;
 }

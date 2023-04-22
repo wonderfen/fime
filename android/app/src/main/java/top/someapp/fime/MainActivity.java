@@ -39,9 +39,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("SpellCheckingInspection")
 public class MainActivity extends FlutterFragmentActivity implements MethodChannel.MethodCallHandler {
 
-    private static final String TAG = "MainActivity";
     private static final String kFlutterEngineId = "fime_flutter_engine";
     private static final String[] PERMISSIONS = {
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -54,7 +54,6 @@ public class MainActivity extends FlutterFragmentActivity implements MethodChann
             // Manifest.permission.ACCESS_FINE_LOCATION,
             // Manifest.permission.CAMERA,
     };
-    private FlutterEngine flutterEngine;
     private MethodChannel methodChannel;
     private SettingMethodCall settingMethodCall;
 
@@ -63,7 +62,7 @@ public class MainActivity extends FlutterFragmentActivity implements MethodChann
             @NonNull int[] grantResults) {
     }
 
-    @Override
+    @Override @SuppressWarnings("unchecked")
     public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
         if ("switchToFime".equals(call.method)) {
             InputMethodManager imm = (InputMethodManager) getSystemService(
@@ -181,7 +180,7 @@ public class MainActivity extends FlutterFragmentActivity implements MethodChann
 
     private void init() {
         // Instantiate a FlutterEngine.
-        flutterEngine = new FlutterEngine(this);
+        FlutterEngine flutterEngine = new FlutterEngine(this);
 
         // Start executing Dart code to pre-warm the FlutterEngine.
         flutterEngine.getDartExecutor()

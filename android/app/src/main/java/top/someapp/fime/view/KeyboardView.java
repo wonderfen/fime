@@ -46,7 +46,7 @@ public class KeyboardView extends WebView {
     }
 
     void loadKeyboard() {
-        loadKeyboard("keyboards/index.html", "/keyboard.html");
+        loadKeyboard("keyboards/index.html", "keyboards/keyboard.html", "/keyboard.html");
     }
 
     void loadKeyboard(@NonNull String... urls) {
