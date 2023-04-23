@@ -536,7 +536,7 @@
             layouts[el.dataset.layout] = el
         });
 
-        function handle(keyboard, event, key) {
+        let handle = (keyboard, event, key) => {
             if (event == 'tap') {
                 if (key == 'En' || key == 'abc') {
                     fime.useKeyboard('abc', EN_MODE)
@@ -560,14 +560,12 @@
 
         fime.setupKeyboard(layouts, handle)
 
-        fime.callNative('getDefaultLayout', {}, function (args) {
+        fime.callNative('getDefaultLayout', {}, (args) => {
             let layout = args['default-layout']
             fime.useKeyboard(layout, CN_MODE, handle)
         })
 
-        fime.addListener('onKeyboardLayout', function (json) {
-            fime.useKeyboard(json.layout)
-        })
+        fime.addListener('onKeyboardLayout', (json) => fime.useKeyboard(json.layout))
     </script>
 </body>
 

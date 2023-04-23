@@ -28,7 +28,6 @@
     const SINGLE_QUOTE = 'VK_SINGLE_QUOTE'
 
     const REG_ALPHABET = new RegExp("^[a-zA-Z]$")
-
     const fime = {}
 
     let callbacks = {}
@@ -51,59 +50,52 @@
             w.android.jsCallNative(id, action, JSON.stringify(args))
             if (callback) {
                 callbacks[id] = callback
-                setTimeout(() => {
-                    delete callbacks[id]
-                }, 3000)
+                setTimeout(() => delete callbacks[id], 3000)
             }
         } else {
             console.warn('Only works on Android！')
         }
     }
 
-    fime.nativeCallback = function (id, args) {
+    fime.nativeCallback = (id, args) => {
         if (callbacks[id]) {
             callbacks[id](args)
             delete callbacks[id]
         }
     }
 
-    fime.onNativeCall = function (name, args) {
+    fime.onNativeCall = (name, args) => {
         if (listeners[name]) listeners[name](args)
     }
 
-    fime.addListener = function (name, fn) {
-        listeners[name] = fn
-    }
+    fime.addListener = (name, fn) => listeners[name] = fn
 
-    fime.onKey = function (name) {
-        fime.callNative('onKey', { name: name })
-    }
+    fime.onKey = (name) => fime.callNative('onKey', { name: name })
 
-    fime.setMode = function (mode) {
-        fime.callNative('setMode', { mode: mode })
-    }
+    fime.setMode = (mode) => fime.callNative('setMode', { mode: mode })
 
-    fime.qs = function (selector) {
+    fime.qs = (selector) => {
         return d.querySelector(selector)
     }
 
-    fime.qsa = function (selector) {
+    fime.qsa = (selector) => {
         return d.querySelectorAll(selector)
     }
 
-    function getKeyName(el) {
+    getKeyName = (el) => {
         return el.dataset['name'] || el.querySelector('.fime-label').innerHTML
     }
 
-    const tapTimeout = 200
-    const longPressInterval = 150
+    const TAP_TIMEOUT = 200
+    const LONG_PRESS_INTERVAL = 150
+    const MIN_TOUCH_MOVE = 144
+    const TAN_30D = Math.tan(Math.PI / 6)
     let timer = null
     let touch = {
         keyboard: null
     }
-    const tan30d = Math.tan(Math.PI / 6)
 
-    function startLongPress() {
+    startLongPress = () => {
         if (timer) clearInterval(timer)
         timer = setInterval(function () {
             if (touch.longPressStarted) {
@@ -114,10 +106,10 @@
                 clearInterval(timer)
                 timer = null
             }
-        }, longPressInterval)
+        }, LONG_PRESS_INTERVAL)
     }
 
-    function onTouchStart(e) {
+    onTouchStart = (e) => {
         e.preventDefault()
         if (e.target.tagName == 'SPAN') {
             touch.at = e.target.parentNode
@@ -136,7 +128,7 @@
         startLongPress()
     }
 
-    function onTouchMove(e) {
+    onTouchMove = (e) => {
         touch.longPressStarted = false
         if (!touch.longPressKeep) {
             touch.moveTo = e.touches[0]
@@ -144,7 +136,7 @@
         }
     }
 
-    function onTouchEnd(e) {
+    onTouchEnd = (e) => {
         const at = touch.at
         const start = touch.start
         const moveTo = touch.moveTo
@@ -157,7 +149,7 @@
             return
         }
         // console.log('at.classList=' + at.classList)
-        setTimeout(() => at.classList.remove('fime-key-active'), 50)
+        setTimeout(() => at.classList.remove('fime-key-active'), 100)
         if (timer) clearInterval(timer)
         if (!touch.keyboard) return
 
@@ -165,32 +157,32 @@
         if (start && moveTo) { // swipe
             let dx = moveTo.screenX - start.screenX
             let dy = moveTo.screenY - start.screenY
-            if (dx * dx + dy * dy <= 8) {
+            if (dx * dx + dy * dy < MIN_TOUCH_MOVE) {
                 console.log('assume tap end')
                 kbd.onTap(at)
             } else {
-                if (Math.abs(dy) / Math.abs(dx) <= tan30d) {   // swipe in x direction
-                    if (dx > 0) {
+                if (Math.abs(dy) / Math.abs(dx) <= TAN_30D) {   // swipe in x direction
+                    if (dx >= 0) {
                         kbd.onSwipe(at, 'right')
                     } else {
                         kbd.onSwipe(at, 'left')
                     }
                 } else {    // swipe in y direction
-                    if (dy > 0) {
+                    if (dy >= 0) {
                         kbd.onSwipe(at, 'down')
                     } else {
                         kbd.onSwipe(at, 'up')
                     }
                 }
             }
-        } else if (getTimestamp() - touch.startTime <= tapTimeout) {    // tap
+        } else if (getTimestamp() - touch.startTime <= TAP_TIMEOUT) {    // tap
             kbd.onTap(at)
         } else {    // long press end
             console.log('long press end')
         }
     }
 
-    function onTouchCancel(e) {
+    onTouchCancel = (e) => {
         console.log('touchcancel')
         if (timer) {
             clearInterval(timer)
@@ -201,7 +193,6 @@
         touch.longPressStarted = false
         touch.longPressKeep = false
     }
-
 
     let keyboards = {}
     let handler = null
@@ -324,18 +315,14 @@
                 el.classList.add('key-shift-fill')
                 this.el.querySelectorAll('.fime-label').forEach(el => {
                     let label = el.innerHTML
-                    if (REG_ALPHABET.test(label)) {
-                        el.innerHTML = label.toUpperCase()
-                    }
+                    if (REG_ALPHABET.test(label)) el.innerHTML = label.toUpperCase()
                 })
             } else {
                 el.classList.remove('key-shift-fill')
                 el.classList.add('key-shift')
                 this.el.querySelectorAll('.fime-label').forEach(el => {
                     let label = el.innerHTML
-                    if (REG_ALPHABET.test(label)) {
-                        el.innerHTML = label.toLowerCase()
-                    }
+                    if (REG_ALPHABET.test(label)) el.innerHTML = label.toLowerCase()
                 })
             }
             this.shifted = state
@@ -355,12 +342,9 @@
             let name = getKeyName(el) || el.innerHTML
             console.log('onSwipe, name=' + name + ', direction=' + dir)
             if (handler && handler(this, 'swipe' + dir, name)) return
-            let handle = false
-            if (name == BACKSPACE) {
+            if (dir == 'left' && name == BACKSPACE) {
                 fime.onKey(CLEAR)
-                handle = true
-            }
-            if (!handle) {
+            } else if (dir == 'up') {
                 let symbol = el.querySelector('.fime-symbol')
                 if (symbol && symbol.innerHTML) fime.onKey(symbol.innerHTML)
             }
@@ -373,7 +357,7 @@
         }
     }
 
-    fime.setupKeyboard = function (layouts, h) {
+    fime.setupKeyboard = (layouts, h) => {
         for (let name in layouts) {
             let el = layouts[name]
             if (typeof el === 'string') le = fime.qs(el)
@@ -382,7 +366,7 @@
         if (typeof h == 'function') handler = h
     }
 
-    fime.useKeyboard = function (layout, mode) {
+    fime.useKeyboard = (layout, mode) => {
         for (let key in keyboards) {
             let kbd = keyboards[key]
             if (layout == key) {
