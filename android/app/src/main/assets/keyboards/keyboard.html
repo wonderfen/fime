@@ -3,8 +3,8 @@
   ~ Initial author: zelde126@126.com
   -->
 
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="zh-CN">
 
 <head>
     <meta charset="UTF-8">
@@ -34,7 +34,7 @@
             content: "\e909";
         }
     </style>
-    <title>Keyboard</title>
+    <title>Touch</title>
 </head>
 
 <body class="fime-box clearfix icon-fime">
@@ -316,7 +316,7 @@
             <div class="fime-key fime-fnkey key-return">
                 <span class="fime-label"></span>
             </div>
-            <div class="fime-key" style="width: 300%;">
+            <div class="fime-key" style="width: 300%;" data-name="VK_SPACE">
                 <span class="fime-label">Space</span>
             </div>
             <div class="fime-key fime-fnkey">
@@ -525,180 +525,48 @@
         </div>
     </div>
 
-    <script src="any-touch.umd.min.js"></script>
     <script src="fime.js"></script>
     <script>
         const CN_MODE = 1
         const EN_MODE = 0
 
-        const ESC = 'VK_FN_ESC'
-        const TAB = 'VK_FN_TAB'
-        const SHIFT = 'VK_FN_SHIFT'
-        const CTRL = 'VK_FN_CTRL'
-        const ALT = 'VK_FN_ALT'
-        const BACKSPACE = 'VK_FN_BACKSPACE'
-        const DELETE = 'VK_FN_DELETE'
-        const HOME = 'VK_FN_HOME'
-        const END = 'VK_FN_END'
-        const PAGE_UP = 'VK_FN_PAGE_UP'
-        const PAGE_DOWN = 'VK_FN_PAGE_DOWN'
-        const ENTER = 'VK_FN_ENTER'
-        const CLEAR = 'VK_FN_CLEAR'
-        const CAPS_LOCK = 'VK_FN_CAPS_LOCK'
-        const LEFT = 'VK_FN_LEFT'
-        const UP = 'VK_FN_UP'
-        const RIGHT = 'VK_FN_RIGHT'
-        const DOWN = 'VK_FN_DOWN'
-        const ABC = 'VK_FN_ABC'
-        const DIGITAL = 'VK_FN_123'
-        const SYMBOL = 'VK_FN_SYMBOL'
-        const RETURN = 'VK_FN_RETURN'
-        const SPACE = 'VK_SPACE'
-        const SINGLE_QUOTE = 'VK_SINGLE_QUOTE'
+        let layouts = {}
+        fime.qsa('[data-layout]').forEach(el => {
+            if (el.dataset.layout != 'qwerty') el.style.display = 'none'
+            layouts[el.dataset.layout] = el
+        });
 
-        const REG_ALPHABET = new RegExp("^[a-zA-Z]$")
-
-        const layouts = fime.qsa('.fime-kbd-box')
-        let defaultLayout = 'qwerty'
-        let activeLayout = ''
-        let shifted = false
-        let longPressCheck = false
-        const LONG_PRESS_INTERVAL = 100
-
-
-        switchLayout(defaultLayout)
-        !(function () {
-            fime.qsa('.fime-fnkey').forEach(el => {
-                if (el.classList.contains('key-shift')) {
-                    el.dataset.name = SHIFT
-                } else if (el.classList.contains('key-backspace')) {
-                    el.dataset.name = BACKSPACE
-                } else if (el.classList.contains('key-enter')) {
-                    el.dataset.name = ENTER
-                } else if (el.classList.contains('key-space')) {
-                    el.dataset.name = SPACE
-                } else if (el.classList.contains('key-return')) {
-                    el.dataset.name = RETURN
+        function handle(keyboard, event, key) {
+            if (event == 'tap') {
+                if (key == 'En' || key == 'abc') {
+                    fime.useKeyboard('abc', EN_MODE)
+                    return true
                 }
-            })
-        })();
-
-        let at = new AnyTouch(fime.qs('.fime-box'))
-        at.on(['at:start', 'at:end', 'tap', 'panend', 'press'], function (e) {
-            let info = [e.type, e.name, e.phase, '@', e.target.tagName]
-            // console.log(info.join(' '))
-            let t = e.target
-            if (e.target.tagName != 'DIV') t = e.target.parentNode
-            let name = t.dataset.name || t.querySelector('span.fime-label').innerHTML
-            t.classList.add('fime-key-active')
-            if (e.type == 'at:start') {
-                longPressCheck = true
-                setTimeout(function () { if (longPressCheck) startLongPress(name) }, 150)
-            } else if (e.type == 'tap') {
-                longPressCheck = false
-                onTap(name)
-            } else if (e.type == 'panend') {
-                longPressCheck = false
-                let s = t.querySelector('span.fime-symbol')
-                if (s && e.direction == 'up') {
-                    onTap(s.innerHTML)
+                if (key == '123' || key == 'digital') {
+                    fime.useKeyboard('digital', EN_MODE)
+                    return true
                 }
-            } else if (e.type == 'press') {
-                onTap(name)
-            }
-            if (e.isEnd) {
-                longPressCheck = false
-                setTimeout(function () { t.classList.remove('fime-key-active') }, 200)
-            }
-        })
-
-        function toggleShift() {
-            setShift(!shifted)
-        }
-
-        function setShift(state) {
-            if (shifted == state) return
-            shifted = state
-            let layout = fime.qs('[data-layout="' + activeLayout + '"]')
-            let shift = layout.querySelector('[data-name="' + SHIFT + '"]')
-            if (!shift) return  // shift key not found
-
-            if (shifted) {
-                shift.classList.remove('key-shift')
-                shift.classList.add('key-shift-fill')
-                layout.querySelectorAll('.fime-label').forEach(el => {
-                    if (REG_ALPHABET.test(el.innerHTML)) el.innerHTML = el.innerHTML.toUpperCase()
-                })
-            } else {
-                shift.classList.remove('key-shift-fill')
-                shift.classList.add('key-shift')
-                layout.querySelectorAll('.fime-label').forEach(el => {
-                    if (REG_ALPHABET.test(el.innerHTML)) el.innerHTML = el.innerHTML.toLowerCase()
-                })
-            }
-        }
-
-        function startLongPress(name) {
-            let timer = setInterval(() => {
-                // console.log('longPressCheck=' + longPressCheck)
-                if (longPressCheck) {
-                    onTap(name)
-                } else {
-                    clearInterval(timer)
+                if (key == 'symbol' || key == '¥') {
+                    fime.useKeyboard('symbol', EN_MODE)
+                    return true
                 }
-            }, LONG_PRESS_INTERVAL)
-        }
-
-        function onTap(name) {
-            // console.log('on key: ' + name)
-            if (name == SHIFT) {
-                toggleShift()
-            } else if (name == 'En') {
-                switchLayout('abc')
-                fime.setMode(EN_MODE)
-            } else if (name == '123' || name == DIGITAL) {
-                switchLayout('digital')
-                fime.setMode(EN_MODE)
-            } else if (name == RETURN) {
-                switchLayout(defaultLayout)
-                fime.setMode(CN_MODE)
-            } else if (name == '¥' || name == SYMBOL) {
-                switchLayout('symbol')
-                fime.setMode(EN_MODE)
-            } else if (name == 'Space' || name == SPACE) {
-                fime.onKey(SPACE)
-            } else if (name == BACKSPACE) {
-                fime.onKey(BACKSPACE)
-            } else if (name == ENTER) {
-                fime.onKey(ENTER)
-            } else if (name == "'" || name == SINGLE_QUOTE) {
-                fime.onKey(SINGLE_QUOTE)
-            } else {
-                fime.onKey(name)
+                if (key == 'VK_FN_RETURN') {
+                    fime.useKeyboard('qwerty', CN_MODE)
+                    return true
+                }
             }
+            return false
         }
 
-        function onSwipe(symbol) {
-            console.log('on swipe: ' + symbol)
-        }
-
-        function switchLayout(layout) {
-            if (activeLayout == layout) return
-            console.log('switchLayout:' + layout)
-            layouts.forEach(l => {
-                l.style.display = l.dataset.layout == layout ? '' : 'none'
-            })
-            activeLayout = layout
-            setShift(false)
-        }
+        fime.setupKeyboard(layouts, handle)
 
         fime.callNative('getDefaultLayout', {}, function (args) {
-            defaultLayout = args['default-layout']
-            switchLayout(defaultLayout)
+            let layout = args['default-layout']
+            fime.useKeyboard(layout, CN_MODE, handle)
         })
 
         fime.addListener('onKeyboardLayout', function (json) {
-            switchLayout(json.layout)
+            fime.useKeyboard(json.layout)
         })
     </script>
 </body>
