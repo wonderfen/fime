@@ -56,6 +56,8 @@ jobs:
           ls -1 ./android/key.*
 
       - name: Prepare to build
+        env:
+          WORK_DIR: ${{GITHUB_WORKSPACE}}
         run: |
           chmod +x ./android/gradlew
           chmod +x ./android/changelog/gitlog.sh

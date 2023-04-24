@@ -44,7 +44,7 @@ class Changelog {
         String command = os.contains("windows") ? "android/changelog/gitlog.bat" : "android/changelog/gitlog.sh";
         Runtime.getRuntime()
                .exec(command);
-        InputStream ins = new FileInputStream("changelog/log.txt");
+        InputStream ins = new FileInputStream("android/changelog/log.txt");
         BufferedReader reader = new BufferedReader(
                 new InputStreamReader(ins, StandardCharsets.UTF_8));
         String line;
