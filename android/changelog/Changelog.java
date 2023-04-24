@@ -41,7 +41,8 @@ class Changelog {
 
         String os = System.getProperty("os.name")
                           .toLowerCase();
-        String command = os.contains("windows") ? "android/changelog/gitlog.bat" : "android/changelog/gitlog.sh";
+        String command = os.contains(
+                "windows") ? "android/changelog/gitlog.bat" : "android/changelog/gitlog.sh";
         Runtime.getRuntime()
                .exec(command);
         InputStream ins = new FileInputStream("android/changelog/log.txt");
