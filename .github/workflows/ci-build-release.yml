@@ -119,6 +119,6 @@ jobs:
         with:
           tag: ${{ env.version_name }}
           artifacts: ./*.apk
-          body: ${{ env.version_name }} released.
+          # body: ${{ env.version_name }} released.
           bodyFile: CHANGELOG.md
           token: ${{ secrets.GITHUB_TOKEN }}
