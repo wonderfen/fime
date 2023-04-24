@@ -50,7 +50,7 @@ class Changelog {
                 new InputStreamReader(ins, StandardCharsets.UTF_8));
         String line;
         while ((line = reader.readLine()) != null) {
-            if (line.matches("^- (fix|pref|feat|refactor)[^a-z].+")) {
+            if (line.matches("^- (fix|perf|feat|refactor)[^a-z].+")) {
                 out.write((line + "\n").getBytes(StandardCharsets.UTF_8));
             }
         }
