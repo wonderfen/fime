@@ -118,6 +118,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ env.version_name }}
-          artifacts: ./*.*
-          body: CHANGELOG.md
+          artifacts: ./*.apk
+          body: ${{ env.version_name }} released.
+          bodyFile: CHANGELOG.md
           token: ${{ secrets.GITHUB_TOKEN }}
