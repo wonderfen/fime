@@ -58,6 +58,7 @@ jobs:
       - name: Prepare to build
         run: |
           chmod +x ./android/gradlew
+          chmod +x ./android/changelog/gitlog.sh
           flutter pub get
 
       - name: Build release
@@ -76,9 +77,8 @@ jobs:
           echo TAG=$tag >> $GITHUB_OUTPUT
           cp build/app/outputs/apk/debug/*.apk build/
           cp build/app/outputs/apk/release/*.apk build/
-          chmod +x ./changelog/gitlog.sh
-          java changelog/Changelog.java
-          cp changelog/CHANGELOG.md build/
+          java android/changelog/Changelog.java
+          cp android/changelog/CHANGELOG.md build/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
@@ -112,12 +112,12 @@ jobs:
         with:
           name: ${{ env.version_name }}-outputs
       - run: |
-        ls -R
+          ls -R
 
       - name: Publish release
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ env.version_name }}
           artifacts: ./*.*
-          body: changelog/CHANGELOG.md
+          body: CHANGELOG.md
           token: ${{ secrets.GITHUB_TOKEN }}

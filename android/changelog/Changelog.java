@@ -24,11 +24,12 @@ class Changelog {
     @SuppressWarnings("SpellCheckingInspection")
     public static void main(String[] args) throws IOException {
         Properties versionProp = new Properties();
-        versionProp.load(new FileInputStream("version.properties"));
+        // work dir is fime
+        versionProp.load(new FileInputStream("android/version.properties"));
         int major = Integer.decode(versionProp.getProperty("versionMajor"));
         int minor = Integer.decode(versionProp.getProperty("versionMinor"));
         int patch = Integer.decode(versionProp.getProperty("versionPatch"));
-        FileOutputStream out = new FileOutputStream("changelog/CHANGELOG.md");
+        FileOutputStream out = new FileOutputStream("android/changelog/CHANGELOG.md");
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+08:00"));
         String version = String.format("# %d.%d.%d ", major, minor, patch);
         String date = String.format("(%04d-%02d-%02d)\n", calendar.get(Calendar.YEAR),
@@ -40,7 +41,7 @@ class Changelog {
 
         String os = System.getProperty("os.name")
                           .toLowerCase();
-        String command = os.contains("windows") ? "changelog/gitlog.bat" : "changelog/gitlog.sh";
+        String command = os.contains("windows") ? "android/changelog/gitlog.bat" : "android/changelog/gitlog.sh";
         Runtime.getRuntime()
                .exec(command);
         InputStream ins = new FileInputStream("changelog/log.txt");
