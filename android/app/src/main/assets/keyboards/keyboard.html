@@ -531,13 +531,15 @@
         const EN_MODE = 0
 
         let layouts = {}
+        let defaultLayout = 'qwerty'
         fime.qsa('[data-layout]').forEach(el => {
-            if (el.dataset.layout != 'qwerty') el.style.display = 'none'
+            if (el.dataset.layout != defaultLayout) el.style.display = 'none'
             layouts[el.dataset.layout] = el
         });
 
         let handle = (keyboard, event, key) => {
             if (event == 'tap') {
+                let layout = keyboard.layout
                 if (key == 'En' || key == 'abc') {
                     fime.useKeyboard('abc', EN_MODE)
                     return true
@@ -546,12 +548,12 @@
                     fime.useKeyboard('digital', EN_MODE)
                     return true
                 }
-                if (key == 'symbol' || key == '¥') {
+                if (layout != 'symbol' && (key == 'symbol' || key == '¥')) {
                     fime.useKeyboard('symbol', EN_MODE)
                     return true
                 }
                 if (key == 'VK_FN_RETURN') {
-                    fime.useKeyboard('qwerty', CN_MODE)
+                    fime.useKeyboard(defaultLayout, CN_MODE)
                     return true
                 }
             }
@@ -561,11 +563,11 @@
         fime.setupKeyboard(layouts, handle)
 
         fime.callNative('getDefaultLayout', {}, (args) => {
-            let layout = args['default-layout']
+            defaultLayout = args['default-layout']
             fime.useKeyboard(layout, CN_MODE, handle)
         })
 
-        fime.addListener('onKeyboardLayout', (json) => fime.useKeyboard(json.layout))
+        fime.addListener('onKeyboardLayout', (json) => fime.useKeyboard(json.layout, json.layout == defaultLayout ? CN_MODE : EN_MODE))
     </script>
 </body>
 

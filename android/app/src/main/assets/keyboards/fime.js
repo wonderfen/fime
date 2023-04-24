@@ -27,23 +27,21 @@
     const SPACE = 'VK_SPACE'
     const SINGLE_QUOTE = 'VK_SINGLE_QUOTE'
 
-    const REG_ALPHABET = new RegExp("^[a-zA-Z]$")
+    const REG_ALPHABET = new RegExp('^[a-zA-Z]$')
     const fime = {}
 
     let callbacks = {}
     let listeners = {}
 
-    function getTimestamp() {
-        return (new Date).getTime()
+    let getTimestamp = () => (new Date).getTime()
+
+    let hasBridge_ = null
+    let hasBridge = () => {
+        if (hasBridge_ == null) hasBridge_ = !!(w.android && w.android.jsCallNative)
+        return hasBridge_
     }
 
-    let hasBridge_ = false
-    function hasBridge() {
-        if (hasBridge_ === true) return true
-        return hasBridge_ = w.android && w.android.jsCallNative
-    }
-
-    fime.callNative = function (action, args, callback) {
+    fime.callNative = (action, args, callback) => {
         if (hasBridge()) {
             // console.log('jsCallNative')
             const id = getTimestamp()
@@ -74,17 +72,11 @@
 
     fime.setMode = (mode) => fime.callNative('setMode', { mode: mode })
 
-    fime.qs = (selector) => {
-        return d.querySelector(selector)
-    }
+    fime.qs = (selector) => d.querySelector(selector)
 
-    fime.qsa = (selector) => {
-        return d.querySelectorAll(selector)
-    }
+    fime.qsa = (selector) => d.querySelectorAll(selector)
 
-    getKeyName = (el) => {
-        return el.dataset['name'] || el.querySelector('.fime-label').innerHTML
-    }
+    getKeyName = (el) => el.dataset['name'] || el.querySelector('.fime-label').innerHTML
 
     const TAP_TIMEOUT = 200
     const LONG_PRESS_INTERVAL = 150
@@ -95,7 +87,7 @@
         keyboard: null
     }
 
-    startLongPress = () => {
+    let startLongPress = () => {
         if (timer) clearInterval(timer)
         timer = setInterval(function () {
             if (touch.longPressStarted) {
@@ -109,7 +101,7 @@
         }, LONG_PRESS_INTERVAL)
     }
 
-    onTouchStart = (e) => {
+    let onTouchStart = (e) => {
         e.preventDefault()
         if (e.target.tagName == 'SPAN') {
             touch.at = e.target.parentNode
@@ -128,7 +120,7 @@
         startLongPress()
     }
 
-    onTouchMove = (e) => {
+    let onTouchMove = (e) => {
         touch.longPressStarted = false
         if (!touch.longPressKeep) {
             touch.moveTo = e.touches[0]
@@ -136,7 +128,7 @@
         }
     }
 
-    onTouchEnd = (e) => {
+    let onTouchEnd = (e) => {
         const at = touch.at
         const start = touch.start
         const moveTo = touch.moveTo
@@ -182,7 +174,7 @@
         }
     }
 
-    onTouchCancel = (e) => {
+    let onTouchCancel = (e) => {
         console.log('touchcancel')
         if (timer) {
             clearInterval(timer)
@@ -195,7 +187,7 @@
     }
 
     let keyboards = {}
-    let handler = null
+    let handle = null
 
     class Keyboard {
         constructor(layout, el) {
@@ -330,7 +322,7 @@
 
         onTap(el) {
             let name = getKeyName(el)
-            if (handler && handler(this, 'tap', name)) return
+            if (handle && handle(this, 'tap', name)) return
             if (name == SHIFT) {
                 this.setShift(!this.shifted, el)
             } else {
@@ -341,7 +333,7 @@
         onSwipe(el, dir) {
             let name = getKeyName(el) || el.innerHTML
             console.log('onSwipe, name=' + name + ', direction=' + dir)
-            if (handler && handler(this, 'swipe' + dir, name)) return
+            if (handle && handle(this, 'swipe' + dir, name)) return
             if (dir == 'left' && name == BACKSPACE) {
                 fime.onKey(CLEAR)
             } else if (dir == 'up') {
@@ -352,7 +344,7 @@
 
         onLongPress(el) {
             let name = getKeyName(el)
-            if (handler && handler(this, 'longpress', name)) return
+            if (handle && handle(this, 'longpress', name)) return
             if ([BACKSPACE, SPACE].indexOf(name) >= 0) fime.onKey(name)
         }
     }
@@ -363,7 +355,7 @@
             if (typeof el === 'string') le = fime.qs(el)
             if (el) keyboards[name] = new Keyboard(name, el)
         }
-        if (typeof h == 'function') handler = h
+        if (typeof h == 'function') handle = h
     }
 
     fime.useKeyboard = (layout, mode) => {
