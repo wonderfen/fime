@@ -11,3 +11,5 @@ key.properties
 **/*.keystore
 **/*.jks
 **/.cxx
+
+changelog/*.txt
