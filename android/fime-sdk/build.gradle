@@ -20,6 +20,10 @@ android {
     consumerProguardFiles "consumer-rules.pro"
   }
 
+  sourceSets {
+    main { jniLibs.srcDirs = ['libs'] }
+  }
+
   buildTypes {
     release {
       minifyEnabled false

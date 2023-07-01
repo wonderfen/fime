@@ -139,9 +139,10 @@ public class InputView2 implements View.OnAttachStateChangeListener, View.OnLayo
                                               .inflate(R.layout.intput_view, null);
         actionBarView = container.findViewById(R.id.actionBarView);
         actionBarView.setInputView(this);
-        keyboardView = new KeyboardView(engine.getContext());
+        keyboardView = container.findViewById(
+                R.id.keyboardView); //new KeyboardView(engine.getContext());
         keyboardView.enableJsBridge(this);
-        container.addView(keyboardView);
+        // container.addView(keyboardView);
         keyboardView.loadKeyboard();
         container.addOnAttachStateChangeListener(this);
         container.addOnLayoutChangeListener(this);

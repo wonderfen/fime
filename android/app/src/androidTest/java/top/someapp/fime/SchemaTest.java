@@ -11,7 +11,6 @@ import top.someapp.fimesdk.api.Schema;
 import top.someapp.fimesdk.config.Configs;
 import top.someapp.fimesdk.defaults.DefaultSchema;
 import top.someapp.fimesdk.utils.FileStorage;
-import top.someapp.fimesdk.view.Keyboards;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -48,6 +47,5 @@ public class SchemaTest {
         assertTrue(FileStorage.hasFile(k));
         config = Configs.deserialize(new FileInputStream(k));
         assertNotNull(config);
-        new Keyboards(config);
     }
 }

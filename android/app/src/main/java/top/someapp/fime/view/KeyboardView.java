@@ -8,6 +8,7 @@ package top.someapp.fime.view;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.AttributeSet;
+import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import androidx.annotation.NonNull;
@@ -26,7 +27,7 @@ import java.util.Map;
  * Created on 2023-04-17
  * @since 0.3.2
  */
-public class KeyboardView extends WebView {
+public class KeyboardView extends WebView implements View.OnLayoutChangeListener {
 
     private static final String kAssetsPrefix = "file:///android_asset/keyboards/";
     private static String[] assetsInKeyboards;
@@ -39,6 +40,18 @@ public class KeyboardView extends WebView {
     public KeyboardView(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         init();
+    }
+
+    @Override
+    public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft,
+            int oldTop, int oldRight, int oldBottom) {
+        Logs.d("onLayoutChange, dx: %d, dy: %d", right - oldLeft,
+               bottom - oldTop);
+    }
+
+    @Override protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        Logs.i("onMeasure");
     }
 
     @SuppressLint("JavascriptInterface") void enableJsBridge(@NonNull Object jsBridge) {
@@ -125,6 +138,7 @@ public class KeyboardView extends WebView {
                 Logs.w("No assets found in keyboards!");
             }
         }
+        addOnLayoutChangeListener(this);
     }
 
     private boolean loadFileInAppHome(String name) {

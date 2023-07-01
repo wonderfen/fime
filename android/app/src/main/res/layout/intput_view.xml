@@ -4,14 +4,21 @@
   -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="match_parent"
-  android:layout_height="match_parent"
-  android:orientation="vertical"
-  android:background="@color/white"
-  android:minHeight="128dp">
+    android:layout_width="match_parent"
+    android:layout_height="360dp"
+    android:orientation="vertical"
+    android:background="@color/white"
+    >
 
   <top.someapp.fime.view.ActionBarView
-    android:layout_width="match_parent"
-    android:layout_height="64dp"
-    android:id="@+id/actionBarView" />
+      android:layout_width="match_parent"
+      android:layout_height="64dp"
+      android:id="@+id/actionBarView"
+      />
+  <top.someapp.fime.view.KeyboardView
+      android:id="@+id/keyboardView"
+      android:layout_weight="1"
+      android:layout_width="match_parent"
+      android:layout_height="0dp"
+      />
 </LinearLayout>
