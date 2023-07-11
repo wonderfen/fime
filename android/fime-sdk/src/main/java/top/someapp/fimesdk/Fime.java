@@ -29,7 +29,7 @@ public class Fime {
             // 汉语拼音
             "pinyin_dict.csv",
             "fime_pinyin_schema.conf",
-            // 自然码双拼
+            /*/ 自然码双拼
             "zrm_schema.conf",
             // 拼音93
             "pinyin93_schema.conf",
@@ -43,7 +43,10 @@ public class Fime {
             "zrm93_schema.conf",
             // 连山易码
             "lian_shan_dict.csv",
-            "lian_shan_schema.conf",
+            "lian_shan_schema.conf",*/
+            // 狂妙
+            "km_dict.csv",
+            "km_schema.conf",
     };
 
     private Fime() {

@@ -1,13 +1,25 @@
 /*
- * Copyright (c) 2023 Fime project https://fime.fit
- * Initial author: zelde126@126.com
+ * Copyright (C) 2015-present, osfans
+ * waxaca@163.com https://github.com/osfans
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package com.osfans.trime.core;
 
 import android.content.Context;
 import android.text.TextUtils;
-import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import timber.log.Timber;
@@ -31,8 +43,7 @@ import java.util.Map;
  * @see <a href="https://github.com/rime/librime">Rime</a> <a
  *     href="https://github.com/BYVoid/OpenCC">OpenCC</a>
  */
-@Keep
-public class Rime {
+public class Rime { // 基于 Trime 3.2.7 修改
   /** Rime編碼區 */
   public static class RimeComposition {
     int length;
@@ -287,7 +298,7 @@ public class Rime {
     return mContext.commit_text_preview;
   }
 
-  public Rime(Context context, boolean full_check) {
+  public Rime(Context context, boolean full_check) {  // 防止外部实例化
     init(full_check);
     self = this;
   }
@@ -313,11 +324,9 @@ public class Rime {
             "\t<TrimeInit>\t" + Thread.currentThread().getStackTrace()[2].getMethodName() + "\t";
     Timber.d(methodName);
     mOnMessage = false;
-    String appHome = FimeContext.getInstance()
-                                     .getAppHomeDir()
-                                     .getAbsolutePath();
-    final String sharedDataDir = appHome;
-    final String userDataDir = appHome;
+    // final AppPrefs appPrefs = AppPrefs.defaultInstance();
+    final String sharedDataDir = FimeContext.getInstance().getAppHomeDir().getAbsolutePath();
+    final String userDataDir = sharedDataDir;
 
     Timber.d(methodName + "setup");
     // Initialize librime APIs
@@ -542,7 +551,7 @@ public class Rime {
   // 另外实际上jni读入yaml、修改、导出的效率并不高
   private static boolean overWriteSchema(String schema_id) {
     Map<String, String> map = new HashMap<>();
-    String page_size = "6"; // AppPrefs.defaultInstance().getKeyboard().getCandidatePageSize();
+    String page_size = "9"; // AppPrefs.defaultInstance().getKeyboard().getCandidatePageSize();
     Timber.d("overWriteSchema() page_size=" + page_size);
     if (!page_size.equals("0")) {
       map.put("page_size", page_size);

@@ -19,6 +19,7 @@ import android.view.View;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.RawRes;
+import com.osfans.trime.core.Rime;
 import top.someapp.fimesdk.utils.FileStorage;
 import top.someapp.fimesdk.utils.Logs;
 import top.someapp.fimesdk.utils.Strings;
@@ -48,6 +49,7 @@ public class FimeContext implements Thread.UncaughtExceptionHandler {
     private Dialog imeDialog;
     private File appHomeDir;
     private File fatalLog;
+    private Rime rime;
 
     public FimeContext(Application app) {
         this.app = app;
@@ -203,6 +205,10 @@ public class FimeContext implements Thread.UncaughtExceptionHandler {
         return new File(getCacheDir(), path);
     }
 
+    public Rime getRime() {
+        return rime;
+    }
+
     @Override public void uncaughtException(@NonNull Thread t, @NonNull Throwable e) {
         StringBuilder info = new StringBuilder();
         Calendar calendar = Calendar.getInstance();
@@ -272,5 +278,7 @@ public class FimeContext implements Thread.UncaughtExceptionHandler {
             catch (IOException ignored) {
             }
         }
+        // 初始化 Rime
+        rime = Rime.get(getContext(), true);
     }
 }
