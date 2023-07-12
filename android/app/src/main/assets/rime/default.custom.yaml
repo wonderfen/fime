@@ -6,4 +6,4 @@ customization:
   rime_version: 1.7.3
 patch:
   schema_list:
-    - {schema: pinyin_simp}
+    - {schema: fime_pinyin}

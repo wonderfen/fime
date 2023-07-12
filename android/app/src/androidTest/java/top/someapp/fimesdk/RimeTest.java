@@ -24,31 +24,37 @@ public class RimeTest {
     @Before
     public void setUp() throws Exception {
         rime = Rime.get(FimeContext.getInstance()
-                                   .getContext(), true);
+                                   .getContext(), false);
         assertNotNull(rime);
     }
 
     @Test
     public void testBuildAndDeploy() {
-        String appHome = FimeContext.getInstance()
-                                    .getAppHomeDir()
-                                    .getAbsolutePath();
-        // Rime.deployer_initialize(appHome, appHome);
-        // Rime.deploy_schema("pinyin_simp");
-        Rime.deploy();
-        Rime.prebuild();
+        Rime.destroy();
+        // installation.yaml
+        // build/default.yaml
+        // build/xxx.schema.yaml
+        // build/xxx.bin
+        // xxx.userdb/
+        Rime.get(FimeContext.getInstance()
+                            .getContext(), true);   // full_check = true 会触发 部署
+        Rime.check(true);
     }
 
     @Test
     public void testSchema() {
-        // int session = Rime.create_session();
-        assertTrue(Rime.select_schema("pinyin_simp"));
-        // Rime.setOption("ascii_mode", false);
-        if (Rime.isAsciiMode()) {
-            Rime.toggleOption("ascii_mode");
-        }
-        Rime.onKey(new int[] { 97, 0 });    // a ?
+        assertTrue(Rime.select_schema("fime_pinyin"));
+        Rime.onKey(new int[] { 'a', 0 });    // a ?, 0 表示没有按下任何修饰键(modifier)
         Rime.RimeCandidate[] candidates = Rime.getCandidates();
+        if (candidates != null && candidates.length > 0) {
+            for (Rime.RimeCandidate c : candidates) {
+                Logs.i(c.text);
+            }
+        }
+        Rime.clearComposition();
+        Rime.simulate_key_sequence("zhon");
+        Rime.onKey(new int[] { 'g', Rime.META_RELEASE_ON });    // Rime.META_RELEASE_ON 也可以换成 0
+        candidates = Rime.getCandidates();
         if (candidates != null && candidates.length > 0) {
             for (Rime.RimeCandidate c : candidates) {
                 Logs.i(c.text);

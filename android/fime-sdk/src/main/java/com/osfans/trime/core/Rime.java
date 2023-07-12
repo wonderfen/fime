@@ -325,14 +325,17 @@ public class Rime { // 基于 Trime 3.2.7 修改
     Timber.d(methodName);
     mOnMessage = false;
     // final AppPrefs appPrefs = AppPrefs.defaultInstance();
-    final String sharedDataDir = FimeContext.getInstance().getAppHomeDir().getAbsolutePath();
-    final String userDataDir = sharedDataDir;
-
+    final String appHome = FimeContext.getInstance()
+                                     .getAppHomeDir()
+                                     .getAbsolutePath();
+    final String cacheDir = FimeContext.getInstance()
+                                     .getCacheDir()
+                                     .getAbsolutePath();
     Timber.d(methodName + "setup");
     // Initialize librime APIs
-    setup(sharedDataDir, userDataDir);
+    setup(cacheDir, appHome);
     Timber.d(methodName + "initlialize");
-    initialize(sharedDataDir, userDataDir);
+    initialize(cacheDir, appHome);
 
     Timber.d(methodName + "check");
     check(full_check);
@@ -635,7 +638,7 @@ public class Rime { // 基于 Trime 3.2.7 修改
   public static void handleRimeNotification(String message_type, String message_value) {
     mOnMessage = true;
     // final RimeEvent event = RimeEvent.create(message_type, message_value);
-    Timber.i("message: [%s] %s", message_type, message_value);
+    Timber.i("Rime message: [%s] %s", message_type, message_value);
     // Timber.i("Notification: %s", event);
     // final Trime trime = Trime.getService();
     // Timber.i("Notification: getService done, before det SchemaEvent");
