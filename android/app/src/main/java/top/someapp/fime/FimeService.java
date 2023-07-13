@@ -31,7 +31,7 @@ import androidx.core.view.inputmethod.InputContentInfoCompat;
 import top.someapp.fime.view.InputView2;
 import top.someapp.fimesdk.FimeContext;
 import top.someapp.fimesdk.api.ImeEngine;
-import top.someapp.fimesdk.engine.FimeEngine;
+import top.someapp.fimesdk.engine.RimeEngine;
 import top.someapp.fimesdk.utils.Logs;
 
 import java.io.File;
@@ -119,7 +119,7 @@ public class FimeService extends InputMethodService implements ServiceConnection
 
     private void setupEngine() {
         try {
-            engine = new FimeEngine(this);
+            engine = new RimeEngine(this); // new FimeEngine(this);
         }
         catch (Exception e) {
             e.printStackTrace();

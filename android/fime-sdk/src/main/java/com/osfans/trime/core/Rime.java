@@ -298,7 +298,7 @@ public class Rime { // 基于 Trime 3.2.7 修改
     return mContext.commit_text_preview;
   }
 
-  public Rime(Context context, boolean full_check) {  // 防止外部实例化
+  /*public*/ Rime(Context context, boolean full_check) {  // 防止外部实例化
     init(full_check);
     self = this;
   }

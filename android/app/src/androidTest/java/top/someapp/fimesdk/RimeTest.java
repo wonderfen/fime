@@ -62,4 +62,16 @@ public class RimeTest {
         }
         Rime.destroy();
     }
+
+    @Test
+    public void testSearch() {
+        String code = "xianshishanxideshenghui";
+        for (int i = 0; i < code.length(); i++) {
+            Rime.onKey(new int[] { code.charAt(i), 0 });
+            Rime.RimeCandidate[] candidates = Rime.getCandidatesWithoutSwitch();
+            for (Rime.RimeCandidate c : candidates) {
+                Logs.i("%s:%s", code.substring(0, i + 1), c.text);
+            }
+        }
+    }
 }
