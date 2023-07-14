@@ -163,10 +163,10 @@ public class RimeEngine implements ImeEngine {
     }
 
     @Override public void manualEject() {
-        int selected = Rime.getCandHighlightIndex();
-        if (selected >= 0) {
-            String text = Rime.getCommitText();
-            if (!Strings.isNullOrEmpty(text)) commitText(text);
+        InputEditor inputEditor = getInputEditor();
+        Candidate candidate = inputEditor.getActiveCandidate();
+        if (candidate != null) {
+            if (!Strings.isNullOrEmpty(candidate.text)) commitText(candidate.text);
         }
     }
 
@@ -261,8 +261,17 @@ public class RimeEngine implements ImeEngine {
     private void stop() {
     }
 
+    private InputEditor getInputEditor() {
+        return getSchema().getInputEditor();
+    }
+
     private void resetInputContext() {
         Rime.clearComposition();
+        InputEditor inputEditor = getInputEditor();
+        inputEditor.clearInput();
+        inputEditor.clearCandidates();
+        inputEditor.setActiveIndex(0);
+        notifyHandlers(FimeMessage.create(FimeMessage.MSG_CANDIDATE_CHANGE));
     }
 
     private void asciiModeInput(VirtualKey virtualKey, Keycode keycode) {
@@ -288,7 +297,7 @@ public class RimeEngine implements ImeEngine {
     }
 
     private void cnModeInput(VirtualKey virtualKey, Keycode keycode) {
-        InputEditor inputEditor = getSchema().getInputEditor();
+        InputEditor inputEditor = getInputEditor();
         final int code = virtualKey.getCode();
         if (inputEditor.accept(keycode)) {
             doSearch();
@@ -321,7 +330,7 @@ public class RimeEngine implements ImeEngine {
     }
 
     private void onFnKeyTap(Keycode keycode) {
-        InputEditor inputEditor = getSchema().getInputEditor();
+        InputEditor inputEditor = getInputEditor();
         if (keycode.code == Keycode.VK_FN_BACKSPACE) {
             if (inputEditor.hasInput()) {
                 inputEditor.backspace();
@@ -355,15 +364,18 @@ public class RimeEngine implements ImeEngine {
     }
 
     private void doSearch() {
-        final InputEditor inputEditor = getSchema().getInputEditor();
+        final InputEditor inputEditor = getInputEditor();
         inputEditor.clearCandidates();
         inputEditor.setActiveIndex(0);
         if (inputEditor.hasInput()) {
-            String searchCode = inputEditor.getRawInput();
+            StringBuilder searchCode = new StringBuilder();
+            for (String s : inputEditor.getSearchCodes()) {
+                searchCode.append(s);
+            }
             Logs.i("search `%s` start.", searchCode);
             handler.post(() -> {
                 String prevInput = Rime.get_input();
-                if (searchCode.length() > prevInput.length() && searchCode.startsWith(prevInput)) {
+                if (searchCode.length() > prevInput.length() && searchCode.indexOf(prevInput) == 0) {
                     for (int i = prevInput.length(); i < searchCode.length(); i++) {
                         Rime.onKey(new int[] { searchCode.charAt(i), 0 });
                     }
@@ -377,7 +389,7 @@ public class RimeEngine implements ImeEngine {
                 inputEditor.clearCandidates();
                 inputEditor.setActiveIndex(0);
                 for (int i = 0; i < resultSize; i++) {
-                    inputEditor.appendCandidate(new Candidate(searchCode, candidates[i].text));
+                    inputEditor.appendCandidate(new Candidate(searchCode.toString(), candidates[i].text));
                 }
                 Logs.i("search `%s` end, result.size=%d", searchCode, resultSize);
                 notifyHandlers(FimeMessage.create(FimeMessage.MSG_CANDIDATE_CHANGE));

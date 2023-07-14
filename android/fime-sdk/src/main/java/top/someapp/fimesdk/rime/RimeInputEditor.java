@@ -6,6 +6,7 @@
 package top.someapp.fimesdk.rime;
 
 import androidx.annotation.NonNull;
+import com.osfans.trime.core.Rime;
 import com.typesafe.config.Config;
 import top.someapp.fimesdk.api.Candidate;
 import top.someapp.fimesdk.api.ImeEngine;
@@ -14,7 +15,7 @@ import top.someapp.fimesdk.config.Keycode;
 import top.someapp.fimesdk.utils.Strings;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -42,7 +43,10 @@ class RimeInputEditor implements InputEditor {
 
     @Override public boolean accept(Keycode keycode) {
         final int code = keycode.code;
-        if (Keycode.isFnKeyCode(code) || Strings.isNullOrEmpty(keycode.label)) return false;
+        if (Keycode.isSpaceCode(code) || Keycode.isFnKeyCode(code) || Strings.isNullOrEmpty(
+                keycode.label)) {
+            return false;
+        }
 
         append(keycode.label);
         return true;
@@ -53,7 +57,7 @@ class RimeInputEditor implements InputEditor {
     }
 
     @Override public List<String> getSearchCodes() {
-        return Arrays.asList(getRawInput());
+        return Collections.singletonList(getRawInput());
     }
 
     @Override public void setSearchCodes(List<String> codes) {
@@ -61,7 +65,8 @@ class RimeInputEditor implements InputEditor {
     }
 
     @Override public String getPrompt() {
-        return getRawInput();
+        Rime.RimeComposition composition = Rime.getComposition();   // “作曲”，已输入的编码组合
+        return composition == null ? getRawInput() : composition.getText();
     }
 
     @Override public InputEditor clearInput() {
@@ -135,7 +140,12 @@ class RimeInputEditor implements InputEditor {
     }
 
     @Override public void select(int index) {
-        setActiveIndex(index);
+        Candidate candidate = getCandidateAt(index);
+        if (candidate != null) {
+            setActiveIndex(index);
+            Rime.select_candidate_on_current_page(index);
+            engine.requestSearch();
+        }
     }
 
     @Override public Candidate getSelected() {

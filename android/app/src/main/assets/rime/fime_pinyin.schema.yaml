@@ -48,6 +48,7 @@ engine:
     - punct_translator
     - script_translator
     - reverse_lookup_translator
+    - lua_translator@date_translator     # 自定义的使用lua扩展的翻译器
 
 # 拼写设定
 speller:
