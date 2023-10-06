@@ -54,6 +54,7 @@ class SettingMethodCall {
         if ("clearBuild".equals(method)) return clearBuild();
         if ("validateSchema".equals(method)) return validateSchema(call.argument("conf"));
         if ("buildSchema".equals(method)) return buildSchema(call.argument("conf"));
+        if ("buildAllSchema".equals(method)) return buildAllSchema();
         if ("deleteSchema".equals(method)) return deleteSchema(call.argument("conf"));
 
         if ("getKeyboardSetting".equals(method)) return getKeyboardSetting();
@@ -163,7 +164,7 @@ class SettingMethodCall {
     }
 
     private Map<String, Object> setActiveSchema(String conf) {
-        SchemaManager.SchemaInfo info = SchemaManager.find(conf);
+        SchemaManager.SchemaInfo info = SchemaManager.find(conf, true);
         if (info.precompiled) {
             setting.setString(Setting.kActiveSchema, conf)
                    .save();
@@ -190,6 +191,16 @@ class SettingMethodCall {
 
     private Map<String, Object> deleteSchema(String conf) {
         SchemaManager.delete(conf);
+        return buildMessage("success", true);
+    }
+
+    private Map<String, Object> buildAllSchema() {
+        SchemaManager.buildAll(
+                () -> activity.callFlutter(Fime.NOTIFY_FLUTTER_SCHEMA_BUILD_RESULT,
+                                           buildMessage("success", true)),
+                () -> activity.callFlutter(Fime.NOTIFY_FLUTTER_SCHEMA_BUILD_RESULT,
+                                           buildMessage("success", false))
+        );
         return buildMessage("success", true);
     }
 

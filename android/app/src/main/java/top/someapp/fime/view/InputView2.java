@@ -6,6 +6,7 @@
 package top.someapp.fime.view;
 
 import android.annotation.SuppressLint;
+import android.content.MutableContextWrapper;
 import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -139,10 +140,9 @@ public class InputView2 implements View.OnAttachStateChangeListener, View.OnLayo
                                               .inflate(R.layout.intput_view, null);
         actionBarView = container.findViewById(R.id.actionBarView);
         actionBarView.setInputView(this);
-        keyboardView = container.findViewById(
-                R.id.keyboardView); //new KeyboardView(engine.getContext());
+        keyboardView = KeyboardView.getOrCreate(new MutableContextWrapper(engine.getContext()));
+        container.addView(keyboardView);
         keyboardView.enableJsBridge(this);
-        // container.addView(keyboardView);
         keyboardView.loadKeyboard();
         container.addOnAttachStateChangeListener(this);
         container.addOnLayoutChangeListener(this);

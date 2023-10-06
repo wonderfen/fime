@@ -13,6 +13,8 @@ import org.junit.Before;
 import org.junit.Test;
 import top.someapp.fimesdk.utils.Logs;
 
+import java.util.List;
+
 /**
  * @author zwz
  * Created on 2023-06-21
@@ -39,6 +41,14 @@ public class RimeTest {
         Rime.get(FimeContext.getInstance()
                             .getContext(), true);   // full_check = true 会触发 部署
         Rime.check(true);
+    }
+
+    @Test
+    public void testGetSchemaList() {
+        List schemaList = Rime.get_schema_list();
+        for (Object o : schemaList) {
+            Logs.i(o.toString());
+        }
     }
 
     @Test

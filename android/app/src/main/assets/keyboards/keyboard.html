@@ -562,10 +562,10 @@
 
         fime.setupKeyboard(layouts, handle)
 
-        fime.callNative('getDefaultLayout', {}, (args) => {
-            defaultLayout = args['default-layout']
-            fime.useKeyboard(defaultLayout, CN_MODE, handle)
-        })
+        // fime.callNative('getDefaultLayout', {}, (args) => {
+        //    defaultLayout = args['default-layout']
+        //    fime.useKeyboard(defaultLayout, CN_MODE, handle)
+        // })
 
         fime.addListener('onKeyboardLayout', (json) => fime.useKeyboard(json.layout, json.layout == defaultLayout ? CN_MODE : EN_MODE))
     </script>

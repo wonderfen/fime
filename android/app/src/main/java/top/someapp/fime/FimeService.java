@@ -11,6 +11,7 @@ import android.content.ClipDescription;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.MutableContextWrapper;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.inputmethodservice.InputMethodService;
@@ -29,6 +30,7 @@ import androidx.core.view.inputmethod.EditorInfoCompat;
 import androidx.core.view.inputmethod.InputConnectionCompat;
 import androidx.core.view.inputmethod.InputContentInfoCompat;
 import top.someapp.fime.view.InputView2;
+import top.someapp.fime.view.KeyboardView;
 import top.someapp.fimesdk.FimeContext;
 import top.someapp.fimesdk.api.ImeEngine;
 import top.someapp.fimesdk.engine.RimeEngine;
@@ -120,6 +122,7 @@ public class FimeService extends InputMethodService implements ServiceConnection
     private void setupEngine() {
         try {
             engine = new RimeEngine(this); // new FimeEngine(this);
+            KeyboardView.getOrCreate(new MutableContextWrapper(this));
         }
         catch (Exception e) {
             e.printStackTrace();

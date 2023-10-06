@@ -7,6 +7,7 @@ package top.someapp.fimesdk;
 
 import android.util.Pair;
 import androidx.annotation.NonNull;
+import com.osfans.trime.core.Rime;
 import com.typesafe.config.Config;
 import top.someapp.fimesdk.config.Configs;
 import top.someapp.fimesdk.dict.Dict;
@@ -41,52 +42,42 @@ public class SchemaManager {
     }
 
     public static Collection<SchemaInfo> scan() {
-        FimeContext fimeContext = FimeContext.getInstance();
-        File appHomeDir = fimeContext.getAppHomeDir();
-        File buildTxt = fimeContext.fileInCacheDir("build.txt");
         Map<String, SchemaInfo> info = new HashMap<>();
-        Map<String, Pair<String, String>> compiledInfo = parseBuildTxt(buildTxt);
-        for (Map.Entry<String, Pair<String, String>> entry : compiledInfo.entrySet()) {
-            Pair<String, String> pair = entry.getValue();
-            info.put(entry.getKey(),
-                     SchemaInfo.precompiled(entry.getKey(), pair.second, pair.first));
-        }
-
-        File[] files = appHomeDir.listFiles(f -> {
-            if (f.isFile()) {
-                String name = f.getName();
-                return !info.containsKey(name) && name.endsWith("_schema.conf");
+        try {
+            for (Map<String, String> map : Rime.get_available_schema_list()) {
+                String id = map.get("schema_id");
+                String name = map.get("name");
+                info.put(id, SchemaInfo.precompiled(id, name, name));
             }
-            return false;
-        });
-        assert files != null;
-        for (File f : files) {
-            SchemaInfo original = SchemaInfo.original(f.getName());
-            info.put(original.getName(), original);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            Logs.e(e.getMessage());
         }
         return info.values();
     }
 
-    public static SchemaInfo find(String conf) {
-        FimeContext fimeContext = FimeContext.getInstance();
-        File buildInfo = fimeContext.fileInCacheDir("build.txt");
+    public static SchemaInfo find(@NonNull String conf) {
+        return find(conf, false);
+    }
+
+    public static SchemaInfo find(@NonNull String conf, boolean select) {
         SchemaInfo info = null;
-        if (FileStorage.hasFile(buildInfo)) {
-            try (BufferedReader reader = new BufferedReader(new FileReader(buildInfo))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    if (Strings.isNullOrEmpty(line)) break;
-                    // fime_pinyin_schema.conf=123456.s/汉语拼音
-                    String[] segments = line.split("[=/]");
-                    if (conf.equals(segments[0])) {
-                        info = SchemaInfo.precompiled(segments[0], segments[2], segments[1]);
-                        break;
+        try {
+            for (Map<String, String> map : Rime.get_available_schema_list()) {
+                if (conf
+                        .equals(map.get("schema_id"))) {
+                    String name = map.get("name");
+                    info = SchemaInfo.precompiled(conf, name, name);
+                    if (select) {
+                        Rime.select_schema(conf);
                     }
+                    break;
                 }
             }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
         }
         if (info == null) info = SchemaInfo.original(conf);
         return info;
@@ -127,6 +118,30 @@ public class SchemaManager {
             }).start();
         }
         return schemaInfo;
+    }
+
+    public static void buildAll(@NonNull Runnable success, @NonNull Runnable error) {
+        try {
+            Rime.destroy();
+            Rime.get(FimeContext.getInstance()
+                                .getContext());
+            final int size = Rime.get_schema_list()
+                                 .size();
+            Rime.prebuild();
+            Rime.check(true);
+            Rime.deploy();
+            if (size == Rime.get_available_schema_list()
+                            .size()) {
+                success.run();
+            }
+            else {
+                error.run();
+            }
+        }
+        catch (Exception e) {
+            error.run();
+            Logs.e(e.getMessage());
+        }
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")

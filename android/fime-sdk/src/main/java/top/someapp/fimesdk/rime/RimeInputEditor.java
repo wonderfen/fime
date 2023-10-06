@@ -24,9 +24,10 @@ import java.util.List;
  */
 class RimeInputEditor implements InputEditor {
 
+    private final StringBuilder rawInput = new StringBuilder();
+    private final List<Candidate> candidateList = new ArrayList<>();    // 当前候选列表
+    private final List<Candidate> selected = new ArrayList<>(); // 已经选择的候选
     private ImeEngine engine;
-    private StringBuilder rawInput = new StringBuilder();
-    private List<Candidate> candidateList = new ArrayList<>();
     private int activeIndex = -1;
 
     @Override public Config getConfig() {
@@ -142,8 +143,11 @@ class RimeInputEditor implements InputEditor {
     @Override public void select(int index) {
         Candidate candidate = getCandidateAt(index);
         if (candidate != null) {
-            setActiveIndex(index);
-            Rime.select_candidate_on_current_page(index);
+            if (getRawInput().equals(candidate.code)) {
+                engine.commitText(candidate.text);
+                clearInput();
+            }
+            // selected.add(candidate);
             engine.requestSearch();
         }
     }

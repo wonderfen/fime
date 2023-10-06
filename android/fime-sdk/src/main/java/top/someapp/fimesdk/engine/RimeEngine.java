@@ -7,6 +7,7 @@ package top.someapp.fimesdk.engine;
 
 import android.content.Context;
 import android.inputmethodservice.InputMethodService;
+import android.inputmethodservice.KeyboardView;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -266,7 +267,12 @@ public class RimeEngine implements ImeEngine {
     }
 
     private void resetInputContext() {
-        Rime.clearComposition();
+        try {
+            Rime.clearComposition();
+        }
+        catch (Exception e) {
+            Logs.e(e.getMessage());
+        }
         InputEditor inputEditor = getInputEditor();
         inputEditor.clearInput();
         inputEditor.clearCandidates();
@@ -375,7 +381,8 @@ public class RimeEngine implements ImeEngine {
             Logs.i("search `%s` start.", searchCode);
             handler.post(() -> {
                 String prevInput = Rime.get_input();
-                if (searchCode.length() > prevInput.length() && searchCode.indexOf(prevInput) == 0) {
+                if (searchCode.length() > prevInput.length() && searchCode.indexOf(
+                        prevInput) == 0) {
                     for (int i = prevInput.length(); i < searchCode.length(); i++) {
                         Rime.onKey(new int[] { searchCode.charAt(i), 0 });
                     }
@@ -389,7 +396,8 @@ public class RimeEngine implements ImeEngine {
                 inputEditor.clearCandidates();
                 inputEditor.setActiveIndex(0);
                 for (int i = 0; i < resultSize; i++) {
-                    inputEditor.appendCandidate(new Candidate(searchCode.toString(), candidates[i].text));
+                    inputEditor.appendCandidate(
+                            new Candidate(searchCode.toString(), candidates[i].text));
                 }
                 Logs.i("search `%s` end, result.size=%d", searchCode, resultSize);
                 notifyHandlers(FimeMessage.create(FimeMessage.MSG_CANDIDATE_CHANGE));

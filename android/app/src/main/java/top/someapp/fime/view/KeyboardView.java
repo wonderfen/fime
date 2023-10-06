@@ -7,8 +7,11 @@ package top.someapp.fime.view;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.MutableContextWrapper;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import androidx.annotation.NonNull;
@@ -31,6 +34,7 @@ public class KeyboardView extends WebView implements View.OnLayoutChangeListener
 
     private static final String kAssetsPrefix = "file:///android_asset/keyboards/";
     private static String[] assetsInKeyboards;
+    private static KeyboardView sInstance;
 
     public KeyboardView(@NonNull Context context) {
         super(context);
@@ -40,6 +44,22 @@ public class KeyboardView extends WebView implements View.OnLayoutChangeListener
     public KeyboardView(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         init();
+    }
+
+    public static KeyboardView getOrCreate(@NonNull MutableContextWrapper context) {
+        if (sInstance == null || !(sInstance.getContext() instanceof MutableContextWrapper)) {
+            Logs.d("create KeyboardView.");
+            sInstance = new KeyboardView(context);
+        }
+        else {
+            ViewParent parent = sInstance.getParent();
+            if (parent instanceof ViewGroup) {
+                ((ViewGroup) parent).removeView(sInstance);
+            }
+            ((MutableContextWrapper) sInstance.getContext()).setBaseContext(
+                    context.getBaseContext());
+        }
+        return sInstance;
     }
 
     @Override

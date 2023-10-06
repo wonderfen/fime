@@ -102,7 +102,7 @@ public class Setting {
                 .size() < 8) {
             pref.edit()
                 .putString(kLanguage, "zh-Hans")
-                .putString(kActiveSchema, "fime_pinyin_schema.conf")
+                .putString(kActiveSchema, "fime_pinyin")
                 .putBoolean(kKeyboardPlayKeySound, true)
                 .putBoolean(kKeyboardKeyVibrate, false)
                 .putBoolean(kKeyboardCheckLongPress, true)

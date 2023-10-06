@@ -20,9 +20,13 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 -printusage unused.txt
--printmapping mappint.txt
+-printmapping mapping.txt
 
 -dontwarn razerdp.basepopup.**
 -keep class razerdp.basepopup.**{
+  *;
+}
+
+-keep class com.osfans.trime.core.** {
   *;
 }

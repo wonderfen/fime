@@ -23,30 +23,13 @@ public class Fime {
     public static final String SCHEMA_RESULT_DELETE = "kSchemaDelete";
 
     static final String[] EXPORT_FILES = {
-            // 主题
-            "default.conf",
-            "default_user.conf",
-            // 汉语拼音
-            "pinyin_dict.csv",
-            "fime_pinyin_schema.conf",
-            /*/ 自然码双拼
-            "zrm_schema.conf",
-            // 拼音93
-            "pinyin93_schema.conf",
-            // 五笔86
-            "wubi86_dict.csv",
-            "wubi86_schema.conf",
-            // 声笔飞竞
-            "sbfj_dict.csv",
-            "sbfj_schema.conf",
-            // 自然码93
-            "zrm93_schema.conf",
-            // 连山易码
-            "lian_shan_dict.csv",
-            "lian_shan_schema.conf",*/
-            // 狂妙
-            "km_dict.csv",
-            "km_schema.conf",
+            "default.custom.yaml",
+            "default.yaml",
+            "fime_pinyin.dict.yaml",
+            "fime_pinyin.schema.yaml",
+            "punctuation.yaml",
+            "symbols.yaml",
+            "rime.lua",
     };
 
     private Fime() {

@@ -265,12 +265,13 @@ public class FimeContext implements Thread.UncaughtExceptionHandler {
         catch (IOException e) {
             Logs.e(e.getMessage());
         }
-        // for (String conf : Fime.EXPORT_FILES) {
-        //     try (InputStream ins = getAssets().open(conf)) {
-        //         FileStorage.copyIfNotExists(ins, new File(dir, conf));  // 避免把用户修改过的文件覆盖了
-        //     }
-        //     catch (IOException ignored) {
-        //     }
-        // }
+        for (String conf : Fime.EXPORT_FILES) {
+            try (InputStream ins = getAssets().open(conf)) {
+                FileStorage.copyIfNotExists(ins, new File(dir, conf));  // 避免把用户修改过的文件覆盖了
+            }
+            catch (IOException e) {
+                Logs.e(e.getMessage());
+            }
+        }
     }
 }
