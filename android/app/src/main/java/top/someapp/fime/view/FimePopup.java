@@ -96,6 +96,9 @@ class FimePopup extends PopupWindow implements View.OnClickListener,
                        .setString(Setting.kActiveSchema, conf);
                 ((InputView) rootView).useSchema(conf);
             }
+            else {
+                // FIXME: 2023/10/7 此处需要切换方案!!
+            }
         }
         else if (active == R.id.btnClipboard) {
             if (rootView instanceof InputView) {

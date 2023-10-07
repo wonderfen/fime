@@ -2,17 +2,15 @@
 # encoding: utf-8
 
 schema:
-  schema_id: fime_pinyin
-  name: Fime拼音
+  schema_id: zrm
+  name: 自然码双拼
   version: '2310.1'
   author:
     - fime
+    - 自然码作者: 周志农
   description: |
-    Fime输入法默认汉语拼音方案
+    自然码双拼方案
 
-# 开关
-# states: 方案选单显示的名称。可以注释掉，仍可以通过快捷键切换。
-# reset: 默认状态。 注释掉后，切换窗口时不会重置到默认状态。
 switches:
   - name: ascii_mode
     states: [ 中, A ]
@@ -27,7 +25,6 @@ switches:
     states: [ 半角, 全角 ]
     reset: 0
 
-# 输入引擎
 engine:
   processors:
     - ascii_composer
@@ -50,24 +47,48 @@ engine:
     - reverse_lookup_translator
     - lua_translator@date_translator     # 自定义的使用lua扩展的翻译器
 
-# 拼写设定
 speller:
   alphabet: zyxwvutsrqponmlkjihgfedcba
   delimiter: " '" # 第一位<空格>是拼音之间的分隔符；第二位<'>表示可以手动输入单引号来分割拼音。
   algebra:
     - derive/^([nl])ue$/$1ve/
     - derive/^([jqxy])u/$1v/
+    - xform/^zh/V/
+    - xform/^ch/I/
+    - xform/^sh/U/
+    - xform/([a-z]+)iu$/$1Q/
+    - xform/([bpmdtnljqx])ia$/$1W/
+    - xform/([gkhrVIU])ua$/$1W/
+    - xform/([a-zVIU]+)uan$/$1R/
+    - xform/([a-zVIU]+)[uv]e$/$1T/
+    - xform/([bpmdtnljqxy])ing$/$1Y/
+    - xform/([gkhVIU])uai$/$1Y/
+    - xform/([a-zVIU]+)uo$/$1O/
+    - xform/([a-zVIU]+)un$/$1P/
+    - xform/([jqx])iong$/$1S/
+    - xform/([dtnlgkhVIUrzcsy])ong$/$1S/
+    - xform/([a-zVIU]+)[ui]ang$/$1D/
+    - xform/([a-zVIU])en$/$1F/
+    - xform/([a-zVIU])eng$/$1G/
+    - xform/([a-zVIU])ang$/$1H/
+    - xform/([a-zVIU])an$/$1J/
+    - xform/([a-zVIU])ao$/$1K/
+    - xform/([a-zVIU])ai$/$1L/
+    - xform/([a-zVIU])ei$/$1Z/
+    - xform/([a-zVIU])ie$/$1X/
+    - xform/([a-zVIU])iao$/$1C/
+    - xform/([a-zVIU])ui$/$1V/
+    - xform/([a-zVIU])ou$/$1B/
+    - xform/([a-zVIU])in$/$1N/
+    - xform/([a-zVIU])ian$/$1M/
+    - xform/^([aoe])$/$1$1/
+    - xform/^ang$/AH/
+    - xform/^eng$/EG/
+    - xlit/QWRTYUIOPSDFGHMJCKLZXVBN/qwrtyuiopsdfghmjcklzxvbn/
 
-# 主翻译器，拼音
 translator:
   dictionary: fime_pinyin
-
-# 简繁切换
-#traditionalize:
-#  option_name: s2t
-#  opencc_config: s2t.json             # s2t.json | s2hk.json | s2tw.json | s2twp.json
-#  tips: char                          # 转换提示: all 都显示 | char 仅单字显示 | none 不显示。
-#  excluded_types: [ reverse_lookup ]  # 不转换反查（两分拼字）的内容
+  prism: zrm
 
 punctuator:
   import_preset: symbols

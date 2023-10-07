@@ -7,7 +7,6 @@ package top.someapp.fimesdk.engine;
 
 import android.content.Context;
 import android.inputmethodservice.InputMethodService;
-import android.inputmethodservice.KeyboardView;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -18,6 +17,7 @@ import android.view.inputmethod.InputMethodManager;
 import androidx.annotation.NonNull;
 import com.osfans.trime.core.Rime;
 import top.someapp.fimesdk.FimeContext;
+import top.someapp.fimesdk.Setting;
 import top.someapp.fimesdk.api.Candidate;
 import top.someapp.fimesdk.api.FimeHandler;
 import top.someapp.fimesdk.api.FimeMessage;
@@ -71,7 +71,11 @@ public class RimeEngine implements ImeEngine {
             case FREEZE:
                 if (newState.ordinal() >= ImeState.READY.ordinal()) {   // FREEZE -> READY+
                     state = newState;
-                    useSchema("fime_pinyin");
+                    if (schema == null || schema.getName() == null) {
+                        String schemaConf = Setting.getInstance()
+                                                   .getString(Setting.kActiveSchema);
+                        useSchema(schemaConf);
+                    }
                 }
                 break;
             case READY:

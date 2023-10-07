@@ -63,15 +63,15 @@ class _PageSchemaState<PageSchema> extends State {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text('${AppLocalizations.of(context).i18n('schema')}'),
+          title: Text(AppLocalizations.of(context).i18n('schema')),
           actions: [
             IconButton(
               onPressed: importExternalSchema,
               icon: const Icon(Icons.add),
             ),
             IconButton(
-              onPressed: clearBuild,
-              icon: const Icon(Icons.playlist_remove),
+              onPressed: buildAllSchema,
+              icon: const Icon(Icons.construction),
             ),
           ],
         ),
@@ -86,13 +86,12 @@ class _PageSchemaState<PageSchema> extends State {
           child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-              '${AppLocalizations.of(context).i18n('empty-or-invalid-schema')}'),
+          Text(AppLocalizations.of(context).i18n('empty-or-invalid-schema')),
           MaterialButton(
             onPressed: getSchemas,
             color: Colors.blue,
             textColor: Colors.white,
-            child: Text('${AppLocalizations.of(context).i18n('refresh')}'),
+            child: Text(AppLocalizations.of(context).i18n('refresh')),
           )
         ],
       ));
@@ -101,45 +100,48 @@ class _PageSchemaState<PageSchema> extends State {
     for (var item in schemas) {
       listTiles.add(ListTile(
         leading: active == item['conf']
-            ? const Icon(
-                Icons.check,
-                color: Colors.blue,
+            ? const Padding(
+                padding: EdgeInsets.symmetric(vertical: 6.0),
+                child: Icon(
+                  Icons.check,
+                  color: Colors.blue,
+                ),
               )
             : const Opacity(opacity: 1),
         minLeadingWidth: 24,
         title: Text(item['name']),
         subtitle: Text(item['conf']),
         trailing: SizedBox(
-          width: 72,
+          width: 48,
           child: Row(
             children: [
-              item['precompiled']
-                  ? const Icon(Icons.beenhere, color: Colors.green)
-                  : const Icon(Icons.beenhere),
               PopupMenuButton<String>(
                 icon: const Icon(Icons.menu, color: Colors.blue),
                 itemBuilder: (context) {
                   return [
                     PopupMenuItem(
                         value: 'setActiveSchema',
-                        child: Text(
-                            '${AppLocalizations.of(context).i18n('set-as-default-schema')}')),
+                        child: Text(AppLocalizations.of(context)
+                            .i18n('set-as-default-schema'))),
+                    // PopupMenuItem(
+                    //     value: 'validate',
+                    //     child: Text(
+                    //         AppLocalizations.of(context).i18n('validate-schema'))),
+                    // PopupMenuItem(
+                    //     value: 'build',
+                    //     child: Text(
+                    //         AppLocalizations.of(context).i18n('generate-schema'))),
+                    // PopupMenuItem(
+                    //     value: 'delete',
+                    //     child: Text(AppLocalizations.of(context)
+                    //         .i18n('delete-schema'))),
                     PopupMenuItem(
-                        value: 'validate',
-                        child: Text(
-                            '${AppLocalizations.of(context).i18n('validate-schema')}')),
-                    PopupMenuItem(
-                        value: 'build',
-                        child: Text(
-                            '${AppLocalizations.of(context).i18n('generate-schema')}')),
-                    PopupMenuItem(
-                        value: 'delete',
-                        child: Text(
-                            '${AppLocalizations.of(context).i18n('delete-schema')}')),
+                        value: 'selectKeyboard',
+                        child: Text(AppLocalizations.of(context)
+                            .i18n('selectKeyboard'))),
                   ];
                 },
                 onSelected: (which) {
-                  print(which);
                   try {
                     if ('setActiveSchema' == which) {
                       setActiveSchema(item);
@@ -149,6 +151,8 @@ class _PageSchemaState<PageSchema> extends State {
                       buildSchema(item);
                     } else if ('delete' == which) {
                       deleteSchema(item);
+                    } else if ('selectKeyboard' == which) {
+                      showSnackBar(const Text('Not implements!'));
                     }
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -170,23 +174,28 @@ class _PageSchemaState<PageSchema> extends State {
     );
   }
 
+  void refresh() {
+    schemas.clear();
+    getSchemas();
+  }
+
   void clearBuild() {
     showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text('${AppLocalizations.of(context).i18n('warn')}'),
-            content: Text(
-                '${AppLocalizations.of(context).i18n('warn-clear-build')}'),
+            title: Text(AppLocalizations.of(context).i18n('warn')),
+            content:
+                Text(AppLocalizations.of(context).i18n('warn-clear-build')),
             actions: [
               TextButton(
-                child: Text('${AppLocalizations.of(context).i18n('delete')}'),
+                child: Text(AppLocalizations.of(context).i18n('delete')),
                 onPressed: () {
                   callNative('clearBuild', {}).then((value) {
                     if (value!['success'] ?? false) {
                       Navigator.of(context).pop();
                       showSnackBar(
-                          Text('${AppLocalizations.of(context).i18n('done')}'));
+                          Text(AppLocalizations.of(context).i18n('done')));
                       setState(() {
                         schemas.clear();
                       });
@@ -195,7 +204,7 @@ class _PageSchemaState<PageSchema> extends State {
                 },
               ),
               TextButton(
-                child: Text('${AppLocalizations.of(context).i18n('cancel')}'),
+                child: Text(AppLocalizations.of(context).i18n('cancel')),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -207,18 +216,34 @@ class _PageSchemaState<PageSchema> extends State {
 
   void importExternalSchema() {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content:
-          Text('${AppLocalizations.of(context).i18n('import-new-schema')}'),
+      content: Text(AppLocalizations.of(context).i18n('import-new-schema')),
       duration: Duration(milliseconds: 500),
     ));
     callNative('importExternalSchema', {});
   }
 
+  void buildAllSchema() {
+    busy = true;
+    EasyLoading.show(
+      status: '${AppLocalizations.of(context).i18n('schema-is-building')}...',
+      maskType: EasyLoadingMaskType.custom,
+      dismissOnTap: false,
+    );
+    callNative('buildAllSchema', {}).then((value) {
+      if (value!['success'] ?? false) {
+        // do nothing!
+      } else {
+        showSnackBar(
+            Text('${AppLocalizations.of(context).i18n('operation-failed')}！'));
+      }
+    });
+  }
+
   void _onSchemaResult(Map<dynamic, dynamic> params) {
     if (mounted && params.isNotEmpty) {
       if (params[kSchemaImport] ?? false) {
-        showSnackBar(Text(
-            '${AppLocalizations.of(context).i18n('schema-import-succeed')}'));
+        showSnackBar(
+            Text(AppLocalizations.of(context).i18n('schema-import-succeed')));
         getSchemas();
       }
     }
@@ -231,15 +256,15 @@ class _PageSchemaState<PageSchema> extends State {
       if (params['success'] ?? false) {
         getSchemas();
         EasyLoading.showSuccess(
-            '${AppLocalizations.of(context).i18n('schema-build-ok')}',
+            AppLocalizations.of(context).i18n('schema-build-ok'),
             maskType: EasyLoadingMaskType.custom,
-            duration: Duration(milliseconds: 800),
+            duration: const Duration(milliseconds: 800),
             dismissOnTap: true);
       } else {
         EasyLoading.showError(
-            '${AppLocalizations.of(context).i18n('operation-failed')}',
+            AppLocalizations.of(context).i18n('operation-failed'),
             maskType: EasyLoadingMaskType.custom,
-            duration: Duration(milliseconds: 800),
+            duration: const Duration(milliseconds: 1800),
             dismissOnTap: true);
       }
     }
@@ -251,12 +276,12 @@ class _PageSchemaState<PageSchema> extends State {
           context: context,
           builder: (context) {
             return AlertDialog(
-              title: Text('${AppLocalizations.of(context).i18n('warn')}'),
-              content: Text(
-                  '${AppLocalizations.of(context).i18n('schema-not-build')}'),
+              title: Text(AppLocalizations.of(context).i18n('warn')),
+              content:
+                  Text(AppLocalizations.of(context).i18n('schema-not-build')),
               actions: [
                 TextButton(
-                  child: Text('${AppLocalizations.of(context).i18n('ok')}'),
+                  child: Text(AppLocalizations.of(context).i18n('ok')),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
@@ -275,7 +300,7 @@ class _PageSchemaState<PageSchema> extends State {
         });
       } else {
         showSnackBar(
-            Text('${AppLocalizations.of(context).i18n('operation-failed')}'));
+            Text(AppLocalizations.of(context).i18n('operation-failed')));
       }
     });
   }
@@ -286,10 +311,10 @@ class _PageSchemaState<PageSchema> extends State {
     callNative('validateSchema', item).then((value) {
       if (value!['success'] ?? false) {
         showSnackBar(
-            Text('${AppLocalizations.of(context).i18n('validate-schema-ok')}'));
+            Text(AppLocalizations.of(context).i18n('validate-schema-ok')));
       } else {
         showSnackBar(
-            Text('${AppLocalizations.of(context).i18n('operation-failed')}'));
+            Text(AppLocalizations.of(context).i18n('operation-failed')));
       }
     });
   }
@@ -309,7 +334,7 @@ class _PageSchemaState<PageSchema> extends State {
             '${AppLocalizations.of(context).i18n('schema-is-building')}：${item["name"]}！'));
       } else {
         showSnackBar(
-            Text('${AppLocalizations.of(context).i18n('operation-failed')}'));
+            Text(AppLocalizations.of(context).i18n('operation-failed')));
       }
     });
   }
@@ -317,25 +342,25 @@ class _PageSchemaState<PageSchema> extends State {
   void deleteSchema(item) {
     if (schemas.length == 1) {
       showSnackBar(Text(
-          '${AppLocalizations.of(context).i18n('unique-schema-can-not-delete')}'));
+          AppLocalizations.of(context).i18n('unique-schema-can-not-delete')));
       return;
     }
     showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text('${AppLocalizations.of(context).i18n('warn')}'),
+            title: Text(AppLocalizations.of(context).i18n('warn')),
             content: Text(
-                '${AppLocalizations.of(context).i18n('confirm-delete-schema')}'),
+                AppLocalizations.of(context).i18n('confirm-delete-schema')),
             actions: [
               TextButton(
-                child: Text('${AppLocalizations.of(context).i18n('delete')}'),
+                child: Text(AppLocalizations.of(context).i18n('delete')),
                 onPressed: () {
                   Navigator.of(context).pop();
                   callNative('deleteSchema', item).then((value) {
                     if (value!['success'] ?? false) {
                       showSnackBar(Text(
-                          '${AppLocalizations.of(context).i18n('schema-deleted')}'));
+                          AppLocalizations.of(context).i18n('schema-deleted')));
                       setState(() {
                         schemas.remove(item);
                       });
@@ -344,7 +369,7 @@ class _PageSchemaState<PageSchema> extends State {
                 },
               ),
               TextButton(
-                child: Text('${AppLocalizations.of(context).i18n('cancel')}'),
+                child: Text(AppLocalizations.of(context).i18n('cancel')),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },

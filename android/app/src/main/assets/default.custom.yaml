@@ -7,3 +7,4 @@ customization:
 patch:
   schema_list:
     - {schema: fime_pinyin}
+    - {schema: zrm}

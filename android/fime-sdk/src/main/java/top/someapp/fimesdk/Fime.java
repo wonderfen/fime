@@ -27,6 +27,7 @@ public class Fime {
             "default.yaml",
             "fime_pinyin.dict.yaml",
             "fime_pinyin.schema.yaml",
+            "zrm.schema.yaml",
             "punctuation.yaml",
             "symbols.yaml",
             "rime.lua",

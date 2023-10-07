@@ -44,6 +44,12 @@ public class RimeTest {
     }
 
     @Test
+    public void testDeploySchema() {
+        SchemaManager.buildAll(() -> {Logs.i("Deploy success.");},
+                               () -> {Logs.i("Deploy failed!");});
+    }
+
+    @Test
     public void testGetSchemaList() {
         List schemaList = Rime.get_schema_list();
         for (Object o : schemaList) {
