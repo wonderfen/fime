@@ -56,35 +56,33 @@ speller:
     - xform/^zh/V/
     - xform/^ch/I/
     - xform/^sh/U/
-    - xform/([a-z]+)iu$/$1Q/
-    - xform/([bpmdtnljqx])ia$/$1W/
-    - xform/([gkhrVIU])ua$/$1W/
-    - xform/([a-zVIU]+)uan$/$1R/
-    - xform/([a-zVIU]+)[uv]e$/$1T/
-    - xform/([bpmdtnljqxy])ing$/$1Y/
-    - xform/([gkhVIU])uai$/$1Y/
-    - xform/([a-zVIU]+)uo$/$1O/
-    - xform/([a-zVIU]+)un$/$1P/
-    - xform/([jqx])iong$/$1S/
-    - xform/([dtnlgkhVIUrzcsy])ong$/$1S/
-    - xform/([a-zVIU]+)[ui]ang$/$1D/
-    - xform/([a-zVIU])en$/$1F/
-    - xform/([a-zVIU])eng$/$1G/
-    - xform/([a-zVIU])ang$/$1H/
-    - xform/([a-zVIU])an$/$1J/
-    - xform/([a-zVIU])ao$/$1K/
-    - xform/([a-zVIU])ai$/$1L/
-    - xform/([a-zVIU])ei$/$1Z/
-    - xform/([a-zVIU])ie$/$1X/
-    - xform/([a-zVIU])iao$/$1C/
-    - xform/([a-zVIU])ui$/$1V/
-    - xform/([a-zVIU])ou$/$1B/
-    - xform/([a-zVIU])in$/$1N/
-    - xform/([a-zVIU])ian$/$1M/
+    - xform/^(\w)iu$/$1Q/
+    - xform/^(\w)[iu]a$/$1W/
+    - xform/^(\w)uan$/$1R/
+    - xform/^(\w)[uv]e$/$1T/
+    - xform/^(\w)ing$/$1Y/
+    - xform/^(\w)uai$/$1Y/
+    - xform/^(\w)uo$/$1O/
+    - xform/^(\w)un$/$1P/
+    - xform/^(\w)i?ong$/$1S/
+    - xform/^(\w)[ui]ang$/$1D/
+    - xform/^(\w)en$/$1F/
+    - xform/^(\w)eng$/$1G/
+    - xform/^(\w)ang$/$1H/
+    - xform/^(\w)an$/$1J/
+    - xform/^(\w)ao$/$1K/
+    - xform/^(\w)ai$/$1L/
+    - xform/^(\w)ei$/$1Z/
+    - xform/^(\w)ie$/$1X/
+    - xform/^(\w)iao$/$1C/
+    - xform/^(\w)ui$/$1V/
+    - xform/^(\w)ou$/$1B/
+    - xform/^(\w)in$/$1N/
+    - xform/^(\w)ian$/$1M/
     - xform/^([aoe])$/$1$1/
     - xform/^ang$/AH/
     - xform/^eng$/EG/
-    - xlit/QWRTYUIOPSDFGHMJCKLZXVBN/qwrtyuiopsdfghmjcklzxvbn/
+    - xlit/QWERTYUIOPASDFGHJKLZXCVBNM/qwertyuiopasdfghjklzxcvbnm/
 
 translator:
   dictionary: fime_pinyin

@@ -5,6 +5,7 @@
 
 package top.someapp.fimesdk.rime;
 
+import android.view.KeyEvent;
 import androidx.annotation.NonNull;
 import com.osfans.trime.core.Rime;
 import com.typesafe.config.Config;
@@ -26,7 +27,7 @@ class RimeInputEditor implements InputEditor {
 
     private final StringBuilder rawInput = new StringBuilder();
     private final List<Candidate> candidateList = new ArrayList<>();    // 当前候选列表
-    private final List<Candidate> selected = new ArrayList<>(); // 已经选择的候选
+    private final StringBuilder selected = new StringBuilder();    // 已选择的候选
     private ImeEngine engine;
     private int activeIndex = -1;
 
@@ -72,6 +73,7 @@ class RimeInputEditor implements InputEditor {
 
     @Override public InputEditor clearInput() {
         rawInput.setLength(0);
+        selected.setLength(0);
         return this;
     }
 
@@ -143,12 +145,19 @@ class RimeInputEditor implements InputEditor {
     @Override public void select(int index) {
         Candidate candidate = getCandidateAt(index);
         if (candidate != null) {
-            if (getRawInput().equals(candidate.code)) {
-                engine.commitText(candidate.text);
-                clearInput();
+            // 模拟实体键盘的选择，一般是 1～9
+            Rime.select_candidate_on_current_page(index);
+            Rime.onKey(new int[] { KeyEvent.KEYCODE_0 + (index + 1) % 10, 0 });
+            selected.append(candidate.text);
+            Rime.RimeCandidate[] candidates = Rime.getCandidatesWithoutSwitch();
+            final int resultSize = candidates == null ? 0 : candidates.length;
+            clearCandidates();
+            setActiveIndex(0);
+            for (int i = 0; i < resultSize; i++) {
+                appendCandidate(
+                        new Candidate("", candidates[i].text));
             }
-            // selected.add(candidate);
-            engine.requestSearch();
+            if (resultSize == 0) engine.commitText(selected.toString());
         }
     }
 
