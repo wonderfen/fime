@@ -70,6 +70,8 @@
 
     fime.onKey = (name) => fime.callNative('onKey', { name: name })
 
+    fime.select = (index) => fime.callNative('select', { index: index })
+
     fime.setMode = (mode) => fime.callNative('setMode', { mode: mode })
 
     fime.qs = (selector) => d.querySelector(selector)

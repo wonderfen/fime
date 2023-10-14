@@ -38,6 +38,16 @@
 </head>
 
 <body class="fime-box clearfix icon-fime">
+    <div class="fime-action-bar">
+        <div class="fime-composition"></div>
+        <div class="fime-candidates-box">
+            <div class="item">&lt;</div>
+            <div class="fime-candidates">
+                <!-- <div class="item">候选1</div> -->
+            </div>
+            <div class="item">&gt;</div>
+        </div>
+    </div>
     <div class="fime-kbd-box" data-layout="qwerty">
         <div class="fime-key-row">
             <div class="fime-key">
@@ -529,6 +539,8 @@
     <script>
         const CN_MODE = 1
         const EN_MODE = 0
+        const $composition = fime.qs('.fime-composition')
+        const $candidates = fime.qs('.fime-candidates')
 
         let layouts = {}
         let defaultLayout = 'qwerty'
@@ -560,14 +572,24 @@
             return false
         }
 
+        let updateActionBar = (args) => {
+            $composition.innerHTML = args.composition
+            $candidates.innerHTML = ''
+            let index = 0
+            args.candidates.forEach(item => {
+                let child = document.createElement('DIV')
+                child.classList.add('item')
+                child.dataset.i = index
+                child.innerHTML = item
+                $candidates.appendChild(child)
+                child.addEventListener('click', (e) => fime.select(parseInt(child.dataset.i)))
+                index++
+            })
+        }
+
         fime.setupKeyboard(layouts, handle)
-
-        // fime.callNative('getDefaultLayout', {}, (args) => {
-        //    defaultLayout = args['default-layout']
-        //    fime.useKeyboard(defaultLayout, CN_MODE, handle)
-        // })
-
         fime.addListener('onKeyboardLayout', (json) => fime.useKeyboard(json.layout, json.layout == defaultLayout ? CN_MODE : EN_MODE))
+        fime.addListener('onInputChange', updateActionBar)
     </script>
 </body>
 

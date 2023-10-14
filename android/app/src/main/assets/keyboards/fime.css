@@ -7,7 +7,8 @@
     font-display: block;
 }
 
-[class^="icon-"], [class*=" icon-"] {
+[class^="icon-"],
+[class*=" icon-"] {
     /* use !important to prevent issues with browser extensions that change fonts */
     font-family: 'icomoon' !important;
     speak: never;
@@ -78,6 +79,44 @@ body {
     margin: 0;
 }
 
+.fime-action-bar {
+    background: #d5d7dd;
+    height: 58px;
+    overflow-y: hidden;
+}
+
+.fime-composition {
+    height: 16px;
+    padding-top: 8px;
+    padding-left: 8px;
+    font-size: smaller;
+}
+
+.fime-candidates-box {
+    display: flex;
+    flex-direction: row;
+    border-bottom: 1px solid #b5b5b5;
+    justify-content: space-between;
+    align-items: center;
+    overflow: scroll;
+}
+
+.fime-candidates {
+    flex-grow: 1;
+    display: flex;
+    justify-content: space-around;
+    padding-bottom: 4px;
+}
+
+.fime-candidates-box .item {
+    min-width: 16px;
+    margin: 0 4px;
+    padding: 6px;
+    text-align: center;
+    overflow: scroll;
+    white-space: nowrap;
+}
+
 .fime-kbd-box {
     min-height: 16px;
     background: #d5d7dd;
@@ -85,6 +124,7 @@ body {
     touch-action: none;
     display: flex;
     flex-direction: column;
+    padding-top: 4px;
 }
 
 .fime-key-row {
@@ -115,7 +155,8 @@ body {
     user-select: none;
 }
 
-.fime-key-active, .fime-key:active {
+.fime-key-active,
+.fime-key:active {
     background: #efefef;
     box-shadow: none;
 }

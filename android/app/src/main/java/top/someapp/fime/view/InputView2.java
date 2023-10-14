@@ -15,6 +15,7 @@ import android.webkit.JavascriptInterface;
 import androidx.annotation.NonNull;
 import top.someapp.fime.R;
 import top.someapp.fimesdk.FimeContext;
+import top.someapp.fimesdk.api.Candidate;
 import top.someapp.fimesdk.api.DefaultFimeHandler;
 import top.someapp.fimesdk.api.FimeHandler;
 import top.someapp.fimesdk.api.FimeMessage;
@@ -27,7 +28,9 @@ import top.someapp.fimesdk.utils.Logs;
 import top.someapp.fimesdk.view.Theme;
 import top.someapp.fimesdk.view.VirtualKey;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -47,7 +50,7 @@ public class InputView2 implements View.OnAttachStateChangeListener, View.OnLayo
     @SuppressWarnings("unused")
     private final Set<Theme> themes = new HashSet<>();
     private ViewGroup container;
-    private ActionBarView actionBarView;
+    // private ActionBarView actionBarView;
     private KeyboardView keyboardView;
     private FimeHandler painter;
 
@@ -74,7 +77,7 @@ public class InputView2 implements View.OnAttachStateChangeListener, View.OnLayo
     }
 
     public void update() {
-        actionBarView.repaint();
+        // actionBarView.repaint();
         Map<String, Object> keyboardConfig = engine.getSchema()
                                                    .getKeyboardConfig();
         if (keyboardConfig != null) {
@@ -90,6 +93,9 @@ public class InputView2 implements View.OnAttachStateChangeListener, View.OnLayo
             Map<String, Object> map = Jsons.toMap(args);
             if ("onKey".equals(cmd)) {
                 onKey((String) map.get("name"));
+            }
+            else if ("select".equals(cmd)) {
+                getInputEditor().select(((Number) map.get("index")).intValue());
             }
             else if ("setMode".equals(cmd)) {
                 int mode = (int) map.get("mode");
@@ -138,8 +144,8 @@ public class InputView2 implements View.OnAttachStateChangeListener, View.OnLayo
     @SuppressLint("InflateParams") private void init() {
         container = (ViewGroup) LayoutInflater.from(engine.getContext())
                                               .inflate(R.layout.intput_view, null);
-        actionBarView = container.findViewById(R.id.actionBarView);
-        actionBarView.setInputView(this);
+        // actionBarView = container.findViewById(R.id.actionBarView);
+        // actionBarView.setInputView(this);
         keyboardView = KeyboardView.getOrCreate(new MutableContextWrapper(engine.getContext()));
         container.addView(keyboardView);
         keyboardView.enableJsBridge(this);
@@ -173,7 +179,16 @@ public class InputView2 implements View.OnAttachStateChangeListener, View.OnLayo
             case FimeMessage.MSG_REPAINT:
             case FimeMessage.MSG_CANDIDATE_CHANGE:
             case FimeMessage.MSG_INPUT_CHANGE:
-                engine.post(actionBarView::repaint);
+                String composition = getInputEditor().hasInput() ? getInputEditor().getPrompt() :
+                        "";
+                List<String> candidates = new ArrayList<>();
+                if (getInputEditor().hasCandidate()) {
+                    for (Candidate c : getInputEditor().getCandidateList()) {
+                        candidates.add(c.text);
+                    }
+                }
+                engine.post(
+                        () -> keyboardView.onInputChange(composition, candidates));
                 return true;
             case FimeMessage.MSG_CHECK_LONG_PRESS:
                 Logs.d("MSG_CHECK_LONG_PRESS");

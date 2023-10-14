@@ -23,6 +23,8 @@ import top.someapp.fimesdk.utils.Logs;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -104,6 +106,13 @@ public class KeyboardView extends WebView implements View.OnLayoutChangeListener
         if (layout != null) {
             evalScript("fime.onNativeCall", "'onKeyboardLayout'", "{layout:'" + layout + "'}");
         }
+    }
+
+    void onInputChange(@NonNull String composition, @NonNull List<String> candidates) {
+        Map<String, Object> args = new HashMap<>();
+        args.put("composition", composition);
+        args.put("candidates", candidates);
+        evalScript("fime.onNativeCall", "'onInputChange'", Jsons.toJSONString(args));
     }
 
     private void evalScript(@NonNull String function, Object... args) {

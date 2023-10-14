@@ -10,11 +10,11 @@
     android:background="@color/white"
     >
 
-  <top.someapp.fime.view.ActionBarView
+  <!--<top.someapp.fime.view.ActionBarView
       android:layout_width="match_parent"
       android:layout_height="64dp"
       android:id="@+id/actionBarView"
-      />
+      />-->
   <!--<top.someapp.fime.view.KeyboardView
       android:id="@+id/keyboardView"
       android:layout_weight="1"
