@@ -160,7 +160,7 @@ public class RimeEngine implements ImeEngine {
         else {
             asciiModeInput(virtualKey, keycode);
         }
-        notifyHandlers(FimeMessage.create(FimeMessage.MSG_INPUT_CHANGE));
+        // notifyHandlers(FimeMessage.create(FimeMessage.MSG_INPUT_CHANGE)); // html 键盘不需要了
     }
 
     @Override public void requestSearch() {
@@ -352,6 +352,7 @@ public class RimeEngine implements ImeEngine {
                 ims.getCurrentInputConnection()
                    .sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DEL));
             }
+            if (!inputEditor.hasInput()) Rime.clearComposition();
             notifyHandlers(FimeMessage.create(FimeMessage.MSG_INPUT_CHANGE));
         }
         else if (keycode.code == Keycode.VK_FN_CLEAR) {
@@ -370,6 +371,12 @@ public class RimeEngine implements ImeEngine {
                 ims.getCurrentInputConnection()
                    .sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER));
             }
+        }
+        else if (keycode.code == Keycode.VK_FN_PAGE_UP) {
+            doPaging(keycode.code);
+        }
+        else if (keycode.code == Keycode.VK_FN_PAGE_DOWN) {
+            doPaging(keycode.code);
         }
     }
 
@@ -410,6 +417,34 @@ public class RimeEngine implements ImeEngine {
                                .ejectOnCandidateChange(inputEditor);
                 }
             });
+        }
+    }
+
+    private void doPaging(int keycode) {
+        if (mode != CN_MODE) return;
+        boolean sendToRime = false;
+        if (keycode == Keycode.VK_FN_PAGE_UP && Rime.isPaging()) {
+            Rime.onKey(new int[] { Keycode.RIME_PAGE_UP, 0 });
+            sendToRime = true;
+        }
+        else if (keycode == Keycode.VK_FN_PAGE_DOWN && getInputEditor().hasCandidate()) {
+            Rime.onKey(new int[] { Keycode.RIME_PAGE_DOWN, 0 });
+            sendToRime = true;
+        }
+        if (sendToRime) {
+            final InputEditor inputEditor = getInputEditor();
+            inputEditor.clearCandidates();
+            inputEditor.setActiveIndex(0);
+            Rime.RimeCandidate[] candidates = Rime.getCandidatesWithoutSwitch();
+            final int resultSize = candidates == null ? 0 : candidates.length;
+            inputEditor.clearCandidates();
+            inputEditor.setActiveIndex(0);
+            for (int i = 0; i < resultSize; i++) {
+                inputEditor.appendCandidate(
+                        new Candidate("", candidates[i].text));
+            }
+            Logs.i("paging end, result.size=%d", resultSize);
+            notifyHandlers(FimeMessage.create(FimeMessage.MSG_CANDIDATE_CHANGE));
         }
     }
 }

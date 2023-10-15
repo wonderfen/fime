@@ -6,6 +6,7 @@
 package top.someapp.fimesdk.config;
 
 import android.view.KeyEvent;
+import com.osfans.trime.core.Rime;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -197,6 +198,11 @@ public class Keycode {
     public static final int VK_x = 120;
     public static final int VK_y = 121;
     public static final int VK_z = 122;
+
+    // Rime 的一些特殊按键值
+    public static final int RIME_PAGE_UP = Rime.get_keycode_by_name("Page_Up");
+    public static final int RIME_PAGE_DOWN = Rime.get_keycode_by_name("Page_Down");
+
     // 符号按键部分
     private static final String kSymbols = "`!@#$%^&*()-[]\\;',./";
     private static final char TAB_CHAR = 0X21C6;

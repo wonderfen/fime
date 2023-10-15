@@ -587,6 +587,8 @@
             })
         }
 
+        fime.qs('.fime-candidates-box div:first-child').addEventListener('click', () => fime.onKey('VK_FN_PAGE_UP'))
+        fime.qs('.fime-candidates-box div:last-child').addEventListener('click', () => fime.onKey('VK_FN_PAGE_DOWN'))
         fime.setupKeyboard(layouts, handle)
         fime.addListener('onKeyboardLayout', (json) => fime.useKeyboard(json.layout, json.layout == defaultLayout ? CN_MODE : EN_MODE))
         fime.addListener('onInputChange', updateActionBar)

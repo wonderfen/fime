@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import com.osfans.trime.core.Rime;
 import com.typesafe.config.Config;
 import top.someapp.fimesdk.api.Candidate;
+import top.someapp.fimesdk.api.FimeMessage;
 import top.someapp.fimesdk.api.ImeEngine;
 import top.someapp.fimesdk.api.InputEditor;
 import top.someapp.fimesdk.config.Keycode;
@@ -157,7 +158,12 @@ class RimeInputEditor implements InputEditor {
                 appendCandidate(
                         new Candidate("", candidates[i].text));
             }
-            if (resultSize == 0) engine.commitText(selected.toString());
+            if (resultSize == 0) {
+                engine.commitText(selected.toString());
+            }
+            else {
+                engine.notifyHandlers(FimeMessage.create(FimeMessage.MSG_INPUT_CHANGE));
+            }
         }
     }
 

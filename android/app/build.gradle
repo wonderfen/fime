@@ -126,7 +126,7 @@ android {
 
     ndk {
       // Filter for architectures supported by Flutter.
-      abiFilters 'arm64-v8a', 'x86_64'
+      abiFilters 'arm64-v8a'//, 'x86_64'
     }
   }
 
@@ -157,7 +157,7 @@ android {
     }
     release {
       ndk {
-        abiFilters 'arm64-v8a', 'x86_64'
+        abiFilters 'arm64-v8a' //, 'x86_64' 减小 apk 文件的大小
       }
       versionNameSuffix '' // prevent NPE
       signingConfig signingConfigs.release

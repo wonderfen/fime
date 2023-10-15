@@ -177,10 +177,10 @@ public class InputView2 implements View.OnAttachStateChangeListener, View.OnLayo
     private boolean handle(@NonNull Message msg) {
         switch (msg.what) {
             case FimeMessage.MSG_REPAINT:
+                return true;    // do nothing.
             case FimeMessage.MSG_CANDIDATE_CHANGE:
             case FimeMessage.MSG_INPUT_CHANGE:
-                String composition = getInputEditor().hasInput() ? getInputEditor().getPrompt() :
-                        "";
+                String composition = getInputEditor().getPrompt();
                 List<String> candidates = new ArrayList<>();
                 if (getInputEditor().hasCandidate()) {
                     for (Candidate c : getInputEditor().getCandidateList()) {
